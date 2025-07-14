@@ -65,7 +65,7 @@ class DefaultFavPagesComponent(
             handleBackButton = true,
             initialPages = {
                 val list = favTabs.value.map {
-                    FavPagesConfig(it)
+                    FavPagesConfig(it.id)
                 }
 
                 Pages(
@@ -73,17 +73,17 @@ class DefaultFavPagesComponent(
                     selectedIndex =
                         when{
                             favType == FavScreenType.SUBSCRIBED -> {
-                                list.indexOf(list.find { it.favItem.id == 222L })
+                                list.indexOf(list.find { it.favItemId == 222L })
                             }
                             else -> {
-                                (initPos.value).coerceIn(0, (initPos.value-1).coerceAtLeast(0))
+                                (initPos.value).coerceIn(0, (initPos.value).coerceAtLeast(0))
                             }
                         },
                 )
             },
             key = "FavoritesStack",
             childFactory = { config, componentContext ->
-                when (config.favItem.id) {
+                when (config.favItemId) {
                     222L -> {
                         FavPagesComponents.SubscribedChild(
                             component = DefaultSubscriptionsComponent(
@@ -113,7 +113,7 @@ class DefaultFavPagesComponent(
                                         )
                                     )
                                 },
-                                favType =  when(config.favItem.id){
+                                favType =  when(config.favItemId){
                                     111L -> {
                                         FavScreenType.FAVORITES
                                     }
@@ -124,7 +124,7 @@ class DefaultFavPagesComponent(
                                         FavScreenType.FAV_LIST
                                     }
                                 },
-                                idList = config.favItem.id,
+                                idList = config.favItemId,
                                 updateTabs = {
                                     fullRefresh()
                                 },
@@ -150,7 +150,6 @@ class DefaultFavPagesComponent(
     override val model = initialModel
 
     override fun selectPage(p: Int) {
-        viewModel.selectPage(p)
         navigation.select(p)
     }
 

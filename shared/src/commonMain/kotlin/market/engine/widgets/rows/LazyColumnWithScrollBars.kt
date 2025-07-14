@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import market.engine.common.ScrollBarsProvider
 import market.engine.core.data.globalData.ThemeResources.dimens
 
@@ -22,7 +21,7 @@ fun LazyColumnWithScrollBars(
     heightMod : Modifier = Modifier.fillMaxSize(),
     modifierList: Modifier = Modifier,
     state: LazyListState = rememberLazyListState(),
-    contentPadding : Dp = dimens.zero,
+    contentPadding : PaddingValues = PaddingValues(dimens.smallPadding),
     verticalArrangement : Arrangement.Vertical = Arrangement.spacedBy(dimens.smallPadding),
     horizontalAlignment : Alignment.Horizontal = Alignment.Start,
     reverseLayout : Boolean = false,
@@ -36,7 +35,7 @@ fun LazyColumnWithScrollBars(
             state = state,
             modifier = modifierList,
             flingBehavior = flingBehavior,
-            contentPadding = PaddingValues(contentPadding),
+            contentPadding = contentPadding,
             verticalArrangement = verticalArrangement,
             horizontalAlignment = horizontalAlignment,
             reverseLayout = reverseLayout,

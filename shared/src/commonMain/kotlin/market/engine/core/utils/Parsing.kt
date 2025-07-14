@@ -285,7 +285,6 @@ fun OfferItem.setNewParams(offer: Offer) {
     catPath = offer.catpath
     publicUrl = offer.publicUrl
     externalImages = offer.externalImages
-    isProposalEnabled = offer.isProposalEnabled
 }
 
 fun Offer.parseToOfferItem() : OfferItem {
@@ -342,7 +341,6 @@ fun Offer.parseToOfferItem() : OfferItem {
         session = session,
         state = state,
         currentQuantity = currentQuantity,
-        isProposalEnabled = isProposalEnabled,
         externalImages = externalImages,
     )
 }

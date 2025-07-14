@@ -1,10 +1,13 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,9 +25,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.filtersObjects.MsgFilters
-import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
@@ -36,6 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DialogsFilterContent(
     initialFilters: List<Filter>,
+    modifier: Modifier = Modifier,
     onClose : (List<Filter>) -> Unit,
 ) {
     var filters by remember { mutableStateOf(initialFilters.map { it.copy() }) }
@@ -70,175 +74,196 @@ fun DialogsFilterContent(
     val userLoginTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_login" }?.value ?: "") }
     val userIdTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_id" }?.value ?: "") }
     val idObjectTextState = remember { mutableStateOf(filters.find { it.key == "object_id"}?.value ?: "") }
-    Box(
-        modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                focusManager.clearFocus()
-            })
-        }.padding(dimens.smallPadding),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        //Header Filters
-        FilterContentHeaderBar(
-            stringResource(strings.filter),
-            isShowClear.value,
-            {
-                MsgFilters.clearFilters()
-                filters = MsgFilters.filters
-                isRefreshing.value = true
-                isShowClear.value = checkSize()
-                onClose(filters)
+
+
+    AnimatedVisibility(
+        visible = true,
+        enter = expandVertically(),
+        exit = shrinkVertically(),
+    )
+    {
+        EdgeToEdgeScaffold(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(dimens.smallPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                },
+            isLoading = false,
+            topBar = {
+                FilterContentHeaderBar(
+                    title = stringResource(strings.filter),
+                    isShowClearBtn = isShowClear.value,
+                    onClear = {
+                        isShowClear.value = false
+                        MsgFilters.clearFilters()
+                        filters = MsgFilters.filters
+                        isRefreshing.value = true
+                        isShowClear.value = checkSize()
+                        onClose(filters)
+                    },
+                    onClosed = {
+                        onClose(filters)
+                    }
+                )
             },
-            {
-                onClose(filters)
-            }
-        )
-        LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
-            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = dimens.smallPadding,
-        ) {
-            //expand
-            item {
-                ExpandableSection(
-                    title = stringResource(strings.conversationsLabel),
-                    isExpanded = isExpanded,
-                    onExpandChange = { isExpanded = !isExpanded },
-                    content = {
-                        Column {
-                            typeFilters.forEach { pair ->
-                                RadioOptionRow(
-                                    pair,
-                                    selectedFilterKey.value
-                                ){ isChecked, choice ->
-                                    if (isChecked) {
-                                        filters.find { it.key == choice }?.value = ""
-                                        filters.find { it.key == choice }?.interpretation = null
-                                        selectedFilterKey.value = null
-                                    }else{
-                                        typeFilters.forEach { filter->
-                                            if (filter.first != choice) {
-                                                filters.find { it.key == filter.first }?.value = ""
-                                                filters.find { it.key == filter.first }?.interpretation = null
+        ) { contentPadding ->
+            Box(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
+                LazyColumnWithScrollBars(
+                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
+                )
+                {
+                    //expand
+                    item {
+                        ExpandableSection(
+                            title = stringResource(strings.conversationsLabel),
+                            isExpanded = isExpanded,
+                            onExpandChange = { isExpanded = !isExpanded },
+                            content = {
+                                Column {
+                                    typeFilters.forEach { pair ->
+                                        RadioOptionRow(
+                                            pair,
+                                            selectedFilterKey.value
+                                        ) { isChecked, choice ->
+                                            if (isChecked) {
+                                                filters.find { it.key == choice }?.value = ""
+                                                filters.find { it.key == choice }?.interpretation =
+                                                    null
+                                                selectedFilterKey.value = null
+                                            } else {
+                                                typeFilters.forEach { filter ->
+                                                    if (filter.first != choice) {
+                                                        filters.find { it.key == filter.first }?.value =
+                                                            ""
+                                                        filters.find { it.key == filter.first }?.interpretation =
+                                                            null
+                                                    }
+                                                }
+                                                filters.find { it.key == choice }?.value = "true"
+                                                filters.find { it.key == choice }?.interpretation =
+                                                    typeFilters.find { it.first == choice }?.second
+                                                selectedFilterKey.value = choice
+                                            }
+                                            isRefreshing.value = true
+                                            isShowClear.value = checkSize()
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    //user search
+                    item {
+                        Row(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val userId = stringResource(strings.userIdParameterName)
+                            val userLogin = stringResource(strings.userLoginParameterName)
+
+                            if (filters.find { it.key == "interlocutor_id" }?.value != null) {
+                                TextFieldWithState(
+                                    label = userId,
+                                    textState = userIdTextState,
+                                    onTextChange = { text ->
+                                        if (userIdTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "interlocutor_id" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$userLogin: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "interlocutor_id" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
                                             }
                                         }
-                                        filters.find { it.key == choice }?.value = "true"
-                                        filters.find { it.key == choice }?.interpretation = typeFilters.find { it.first == choice }?.second
-                                        selectedFilterKey.value = choice
-                                    }
-                                    isRefreshing.value = true
-                                    isShowClear.value = checkSize()
-                                }
+                                        userIdTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    isNumber = true,
+                                    modifier = Modifier.weight(1f).padding(dimens.smallPadding)
+                                )
+                            }
+
+                            if (filters.find { it.key == "interlocutor_login" }?.value != null) {
+                                TextFieldWithState(
+                                    label = userLogin,
+                                    textState = userLoginTextState,
+                                    onTextChange = { text ->
+                                        if (userLoginTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "interlocutor_login" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$userLogin: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "interlocutor_login" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        userLoginTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    modifier = Modifier.weight(1f).padding(dimens.smallPadding)
+                                )
                             }
                         }
                     }
-                )
-            }
-            //user search
-            item {
-                Row(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val userId = stringResource(strings.userIdParameterName)
-                    val userLogin = stringResource(strings.userLoginParameterName)
+                    //id object
+                    item {
+                        Row(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val objectId = stringResource(strings.offerOrderIdParameterName)
 
-                    if (filters.find { it.key == "interlocutor_id" }?.value != null) {
-                        TextFieldWithState(
-                            label = userId,
-                            textState = userIdTextState,
-                            onTextChange = { text ->
-                                if (userIdTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "interlocutor_id" }?.apply {
-                                        value = text
-                                        interpretation = "$userLogin: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "interlocutor_id" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                userIdTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            isNumber = true,
-                            modifier = Modifier.weight(1f).padding(dimens.smallPadding)
-                        )
-                    }
-
-                    if (filters.find { it.key == "interlocutor_login" }?.value != null) {
-                        TextFieldWithState(
-                            label = userLogin,
-                            textState = userLoginTextState,
-                            onTextChange = { text ->
-                                if (userLoginTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "interlocutor_login" }?.apply {
-                                        value = text
-                                        interpretation = "$userLogin: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "interlocutor_login" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                userLoginTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            modifier = Modifier.weight(1f).padding(dimens.smallPadding)
-                        )
+                            if (filters.find { it.key == "object_id" }?.value != null) {
+                                TextFieldWithState(
+                                    label = objectId,
+                                    textState = idObjectTextState,
+                                    onTextChange = { text ->
+                                        if (idObjectTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "object_id" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$objectId: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "object_id" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        idObjectTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    isNumber = true,
+                                    modifier = Modifier.weight(1f).padding(dimens.smallPadding)
+                                )
+                            }
+                        }
                     }
                 }
-            }
-            //id object
-            item {
-                Row(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val objectId = stringResource(strings.offerOrderIdParameterName)
 
-                    if (filters.find { it.key == "object_id" }?.value != null) {
-                        TextFieldWithState(
-                            label = objectId,
-                            textState = idObjectTextState,
-                            onTextChange = { text ->
-                                if (idObjectTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "object_id" }?.apply {
-                                        value = text
-                                        interpretation = "$objectId: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "object_id" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                idObjectTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            isNumber = true,
-                            modifier = Modifier.weight(1f).padding(dimens.smallPadding)
-                        )
-                    }
+                AcceptedPageButton(
+                    stringResource(strings.actionAcceptFilters),
+                    Modifier.align(Alignment.BottomCenter)
+                ) {
+                    onClose(filters)
                 }
             }
-        }
-
-        AcceptedPageButton(
-            stringResource(strings.actionAcceptFilters),
-            Modifier
-                .align(Alignment.BottomCenter)
-                .padding(dimens.mediumPadding)
-        ){
-            onClose(filters)
         }
     }
 }

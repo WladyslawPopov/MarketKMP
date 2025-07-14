@@ -2,9 +2,9 @@ package market.engine.fragments.root.main.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,17 +30,18 @@ import org.jetbrains.compose.resources.stringResource
 fun ProfileNavContent(
     list: List<NavigationItem>,
     activeTitle: String? = null,
+    contentPadding: PaddingValues = PaddingValues(dimens.smallPadding),
     goToSettings: ((String) -> Unit)? = null,
 ) {
     LazyColumnWithScrollBars(
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = contentPadding
     ) {
         item {
             UserPanel(
-                modifier = Modifier.wrapContentSize().padding(dimens.mediumPadding),
+                modifier = Modifier.padding(dimens.smallPadding),
                 UserData.userInfo,
-                updateTrigger = 1,
                 goToUser = {
                     list.find { it.icon == drawables.profileIcon }?.onClick?.invoke()
                 },
@@ -106,7 +107,6 @@ fun ProfileNavContent(
                 }
             }
         }
-
         item {  }
     }
 }

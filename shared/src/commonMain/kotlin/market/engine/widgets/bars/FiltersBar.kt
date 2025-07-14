@@ -1,8 +1,8 @@
 package market.engine.widgets.bars
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,15 +31,22 @@ import market.engine.widgets.rows.LazyRowWithScrollBars
 
 @Composable
 fun FiltersBar(
-    uiFilterBarUiState: FilterBarUiState
+    uiFilterBarUiState: FilterBarUiState,
+    isVisible : Boolean = true
 ) {
     val swipeTabsBarState = remember(uiFilterBarUiState.swipeTabsBarState) { uiFilterBarUiState.swipeTabsBarState }
     val listNavigation = remember(uiFilterBarUiState.listNavigation) {  uiFilterBarUiState.listNavigation }
 
+    val color = if (!isVisible)
+        colors.primaryColor.copy(0.8f)
+    else
+        colors.primaryColor
+
     AnimatedVisibility(
-        listNavigation.isNotEmpty() && listNavigation.isNotEmpty(),
-        enter = fadeIn(),
-        exit = fadeOut()
+        visible = isVisible,
+        modifier = Modifier.background(color),
+        enter = expandVertically(),
+        exit = shrinkVertically()
     )
     {
         Column {

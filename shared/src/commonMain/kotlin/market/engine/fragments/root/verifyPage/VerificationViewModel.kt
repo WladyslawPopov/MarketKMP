@@ -24,6 +24,7 @@ class VerificationViewModel : CoreViewModel() {
     val userOperations : UserOperations by lazy { getKoin().get() }
 
     fun init(settingsType: String, owner: Long?, code: String?) {
+        refresh()
         when (settingsType) {
             "set_password" -> {
                 getSetPassword(owner)

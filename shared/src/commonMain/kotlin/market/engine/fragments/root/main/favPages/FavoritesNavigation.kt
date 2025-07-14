@@ -53,9 +53,9 @@ import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
+import market.engine.fragments.root.main.proposalPage.DefaultProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
-import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
@@ -126,7 +126,7 @@ fun FavoritesNavigation(
     ) { child ->
         when (val screen = child.instance) {
             is ChildFavorites.FavPagesChild -> FavPagesNavigation(screen.component, modifier)
-            is ChildFavorites.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildFavorites.OfferChild -> OfferContent(screen.component)
             is ChildFavorites.ListingChild -> ListingContent(screen.component, modifier)
             is ChildFavorites.UserChild -> UserContent(screen.component, modifier)
             is ChildFavorites.CreateOfferChild -> CreateOfferContent(screen.component)
@@ -376,13 +376,10 @@ fun createFavoritesChild(
     )
 
     is ProposalScreen -> ChildFavorites.ProposalChild(
-        component = proposalFactory(
-            componentContext = componentContext,
+        component = DefaultProposalComponent(
             offerId = config.offerId,
             proposalType = config.proposalType,
-            navigateBack = {
-                favoritesNavigation.pop()
-            },
+            componentContext = componentContext,
             navigateToOffer = {
                 favoritesNavigation.pushNew(
                     OfferScreen(it, getCurrentDate())
@@ -392,6 +389,9 @@ fun createFavoritesChild(
                 favoritesNavigation.pushNew(
                     UserScreen(it, getCurrentDate(), false)
                 )
+            },
+            navigateBack = {
+                favoritesNavigation.pop()
             }
         )
     )

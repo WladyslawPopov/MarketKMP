@@ -135,6 +135,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent) : CoreV
             delay(2000)
             setLoading(false)
         }
+        refresh()
     }
 
     fun getGenderSelects(){

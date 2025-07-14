@@ -1,6 +1,5 @@
 package market.engine.widgets.ilustrations
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,12 +15,12 @@ fun FullScreenImageViewer(
     pagerFullState: PagerState,
     images: List<String>,
     isUpdate: Boolean = false,
+    modifier: Modifier = Modifier
 ) {
     val zoomState = rememberZoomState()
 
     Box(
-        modifier = Modifier
-            .animateContentSize()
+        modifier = modifier
             .background(colors.grayLayout.copy(alpha = 0.8f))
     ) {
         HorizontalImageViewer(

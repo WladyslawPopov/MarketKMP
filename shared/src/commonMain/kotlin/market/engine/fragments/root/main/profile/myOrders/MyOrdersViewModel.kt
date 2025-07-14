@@ -47,8 +47,8 @@ class MyOrdersViewModel(
     private val pagingRepository: PagingRepository<Order> = PagingRepository()
 
     val listingBaseViewModel = ListingBaseViewModel()
-    val ld = listingBaseViewModel.listingData
-    val activeType = listingBaseViewModel.activeWindowType
+    private val ld = listingBaseViewModel.listingData
+    private val activeType = listingBaseViewModel.activeWindowType
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         ld,

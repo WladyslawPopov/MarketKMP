@@ -24,7 +24,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,7 +33,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.delay
 import market.engine.common.additionalAuthorizationContent
 import market.engine.common.openUrl
 import market.engine.common.requestIntegrityTokenAuth
@@ -44,7 +42,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
@@ -83,6 +81,8 @@ fun LoginContent(
 
     val openBottomSheet = viewModel.openContent.collectAsState()
 
+    val toastItem = viewModel.toastItem.collectAsState()
+
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
             {
@@ -98,20 +98,11 @@ fun LoginContent(
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     LaunchedEffect(openBottomSheet.value){
-        try {
-            snapshotFlow {
-                openBottomSheet.value
-            }.collect {
-                if(it){
-                    delay(30)
-                    scaffoldState.bottomSheetState.expand()
-                }else{
-                    delay(30)
-                    scaffoldState.bottomSheetState.partialExpand()
-                    scaffoldState.bottomSheetState.hide()
-                }
-            }
-        }catch (_ : Exception){}
+        if(openBottomSheet.value){
+            scaffoldState.bottomSheetState.expand()
+        }else{
+            scaffoldState.bottomSheetState.partialExpand()
+        }
     }
 
     LaunchedEffect(scaffoldState.bottomSheetState.currentValue){
@@ -129,49 +120,45 @@ fun LoginContent(
         onDispose { }
     }
 
-    BaseContent(
-        modifier = modifier,
+    EdgeToEdgeScaffold(
+        modifier = modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onTap = {
+                    focusManager.clearFocus()
+                }
+            )
+        }.fillMaxSize(),
         topBar = {
             SimpleAppBar(
                 data = appBarData
             )
         },
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         error = error,
         isLoading = isLoading.value,
         onRefresh = {
             viewModel.refreshPage()
         }
     )
-    {
+    { contentPadding ->
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
-            sheetContainerColor = colors.primaryColor,
-            containerColor = colors.primaryColor,
-            contentColor = colors.white,
+            sheetContainerColor = colors.white,
             sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = true,
+            sheetSwipeEnabled = openBottomSheet.value,
             sheetContent = {
                 O2AuthContent(
-                    auth2ContentState
+                    auth2ContentState,
                 )
-            },
-            modifier = Modifier.fillMaxSize()
+            }
         )
         {
             LazyColumnWithScrollBars(
                 modifierList = Modifier
                     .background(color = colors.white)
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                focusManager.clearFocus()
-                            }
-                        )
-                    }
-                    .padding(dimens.mediumPadding),
+                    .fillMaxSize(),
                 state = scrollState,
+                contentPadding = contentPadding,
                 verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             )

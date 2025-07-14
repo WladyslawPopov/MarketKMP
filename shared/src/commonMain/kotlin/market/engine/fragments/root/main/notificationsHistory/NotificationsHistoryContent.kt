@@ -1,18 +1,15 @@
 package market.engine.fragments.root.main.notificationsHistory
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -28,32 +25,32 @@ fun NotificationsHistoryContent(
     val err = viewModel.errorMessage.collectAsState()
 
     val responseGetPage = viewModel.responseGetPage.collectAsState()
+    val toastItem = viewModel.toastItem.collectAsState()
 
-    val refresh = {
-        viewModel.onError(ServerErrorException())
-        viewModel.getPage()
-    }
-
-    val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        {
-            OnError(err.value)
+    val error: (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage.isNotBlank()) {
             {
-                viewModel.onError(ServerErrorException())
-            }
-        }
-    } else {
-        null
-    }
-
-    val noFound = if (responseGetPage.value?.isEmpty() == true){
-            @Composable {
-                NoItemsFoundLayout {
-                    refresh()
+                OnError(err.value)
+                {
+                    viewModel.onError(ServerErrorException())
                 }
             }
-        }else{
+        } else {
             null
         }
+    }
+
+    val noFound = remember(responseGetPage.value) {
+        if (responseGetPage.value?.isEmpty() == true) {
+            @Composable {
+                NoItemsFoundLayout {
+                    viewModel.getPage()
+                }
+            }
+        } else {
+            null
+        }
+    }
 
 
     val onBack = {
@@ -67,38 +64,36 @@ fun NotificationsHistoryContent(
         }
     )
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             NotificationsHistoryAppBar(
                 onBackClick = onBack,
-                onRefresh = refresh
+                onRefresh = {
+                    viewModel.getPage()
+                }
             )
         },
         onRefresh = {
-            refresh()
+            viewModel.getPage()
         },
         error = error,
         noFound = noFound,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         modifier = Modifier.fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.TopCenter
+    ) { contentPadding ->
+        LazyColumnWithScrollBars(
+            modifierList = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
         ) {
-            LazyColumnWithScrollBars(
-                modifierList = Modifier.fillMaxSize().padding(dimens.smallPadding)
-            ) {
-                items(responseGetPage.value?.size ?: 0, key = { i ->
-                    responseGetPage.value?.get(i)?.id ?: i
-                }) { i->
-                    responseGetPage.value?.get(i)?.let { item ->
-                        NotificationsHistoryItem(item){
-                            val link = item.getDeepLinkByType()
-                            if (link != null) {
-                                component.goToDeepLink(link)
-                            }
+            items(responseGetPage.value?.size ?: 0, key = { i ->
+                responseGetPage.value?.get(i)?.id ?: i
+            }) { i->
+                responseGetPage.value?.get(i)?.let { item ->
+                    NotificationsHistoryItem(item){
+                        val link = item.getDeepLinkByType()
+                        if (link != null) {
+                            component.goToDeepLink(link)
                         }
                     }
                 }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.BottomSheetScaffold
@@ -62,7 +61,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.states.ScrollDataState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
@@ -74,15 +72,15 @@ import market.engine.core.network.networkObjects.RemoveBid
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.formatParameterValue
 import market.engine.core.utils.formatRemainingTimeAnnotated
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallImageButton
-import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
@@ -110,8 +108,7 @@ import kotlin.toString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferContent(
-    component: OfferComponent,
-    modifier: Modifier
+    component: OfferComponent
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.offerViewModel
@@ -130,7 +127,6 @@ fun OfferContent(
     val ourChoiceList = viewModel.responseOurChoice.collectAsState()
 
     val remainingTime = viewModel.remainingTime.collectAsState()
-    val errorString = viewModel.errorString.collectAsState()
 
     val promoList = offerRepository.value.promoList.collectAsState()
     val operationsList = offerRepository.value.operationsList.collectAsState()
@@ -138,6 +134,8 @@ fun OfferContent(
     val listItems = offerRepository.value.getAppBarOfferList()
 
     val isMenuVisible = offerRepository.value.isMenuVisible.collectAsState()
+
+    val isProposalEnabled = offerRepository.value.isProposalEnabled.collectAsState()
 
     val menuItems by produceState(initialValue = emptyList(), isMenuVisible.value) {
         if (isMenuVisible.value) {
@@ -162,28 +160,18 @@ fun OfferContent(
 
     val focusManager = LocalFocusManager.current
 
-    val stateColumn = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.scrollState.value.scrollItem,
-        initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
-    )
-
     BackHandler(model.backHandler) {
         component.onBackClick()
     }
 
-    LaunchedEffect(stateColumn) {
-        snapshotFlow {
-            stateColumn.firstVisibleItemIndex to stateColumn.firstVisibleItemScrollOffset
-        }.collect { (index, offset) ->
-            viewModel.updateScroll(ScrollDataState(index, offset))
-        }
-    }
+    val scrollState = rememberLazyScrollState(viewModel)
 
-    LaunchedEffect(scrollPos.value){
+    LaunchedEffect(scrollPos.value) {
         snapshotFlow {
             scrollPos.value
         }.collect {
-            stateColumn.animateScrollToItem(it)
+            if (it > 1)
+                scrollState.scrollState.animateScrollToItem(it)
         }
     }
 
@@ -196,19 +184,16 @@ fun OfferContent(
     )
 
     LaunchedEffect(isImageViewerVisible.value) {
-        try {
-            if (!isImageViewerVisible.value) {
-                scaffoldState.bottomSheetState.hide()
-                pagerState.scrollToPage(pagerFullState.currentPage)
-            } else {
-                if (pagerState.currentPage != pagerFullState.currentPage) {
-                    pagerFullState.scrollToPage(pagerState.currentPage)
-                }
-                if (images.isNotEmpty()) {
-                    scaffoldState.bottomSheetState.expand()
-                }
+        if (!isImageViewerVisible.value) {
+            scaffoldState.bottomSheetState.partialExpand()
+            pagerState.scrollToPage(pagerFullState.currentPage)
+        } else {
+            if (pagerState.currentPage != pagerFullState.currentPage) {
+                pagerFullState.scrollToPage(pagerState.currentPage)
             }
-        } catch (_: Exception) {
+            if (images.isNotEmpty()) {
+                scaffoldState.bottomSheetState.expand()
+            }
         }
     }
 
@@ -221,7 +206,7 @@ fun OfferContent(
         }
     }
 
-    LaunchedEffect(valuesPickerState.selectedItem){
+    LaunchedEffect(valuesPickerState.selectedItem) {
         snapshotFlow {
             valuesPickerState.selectedItem
         }.collect {
@@ -246,7 +231,11 @@ fun OfferContent(
         SimpleAppBarData(
             isMenuVisible = isMenuVisible.value,
             onBackClick = {
-                component.onBackClick()
+                if (isImageViewerVisible.value) {
+                    isImageViewerVisible.value = false
+                }else{
+                    component.onBackClick()
+                }
             },
             listItems = listItems,
             menuItems = menuItems,
@@ -256,14 +245,15 @@ fun OfferContent(
         )
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
-                data = appbarData
+                data = appbarData,
+                color = colors.white.copy(0.5f)
             ) {
                 TextAppBar(
                     stringResource(
-                        if(offerState == OfferStates.SNAPSHOT)
+                        if (offerState == OfferStates.SNAPSHOT)
                             strings.snapshotLabel else strings.defaultOfferTitle
                     )
                 )
@@ -276,33 +266,32 @@ fun OfferContent(
         onRefresh = {
             viewModel.refreshPage()
         },
-        modifier = Modifier.fillMaxSize()
-    ) {
+        modifier = Modifier
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+            .fillMaxSize()
+    )
+    { contentPadding ->
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
-            sheetContentColor = colors.transparent,
-            sheetContainerColor = colors.white,
-            containerColor = colors.transparent,
-            contentColor = colors.transparent,
+            sheetContainerColor = colors.primaryColor.copy(0.5f),
             sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = true,
+            sheetSwipeEnabled = isImageViewerVisible.value,
             sheetContent = {
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
-                    images = images
+                    images = images,
+                    modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                 )
-            },
+            }
         ) {
             LazyColumnWithScrollBars(
-                state = stateColumn,
-                modifierList = modifier.background(color = colors.primaryColor)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = {
-                            focusManager.clearFocus()
-                        })
-                    },
-                contentPadding = dimens.smallPadding
+                heightMod = Modifier.background(colors.primaryColor),
+                state = scrollState.scrollState,
+                contentPadding = contentPadding
             )
             {
                 //images offer
@@ -310,12 +299,16 @@ fun OfferContent(
                     Box(
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.small)
-                            .clickable { isImageViewerVisible.value = !isImageViewerVisible.value }
+                            .clickable {
+                                isImageViewerVisible.value = !isImageViewerVisible.value
+                            }
                             .fillMaxWidth()
                             .height(if (isBigScreen.value) 500.dp else 300.dp)
+                            .padding(dimens.smallPadding)
                             .zIndex(6f),
                         contentAlignment = Alignment.Center
-                    ) {
+                    )
+                    {
                         HorizontalImageViewer(
                             images = images,
                             pagerState = pagerState,
@@ -336,6 +329,7 @@ fun OfferContent(
                         }
                     }
                 }
+
                 if (offer.hasTempImages) {
                     item {
                         Text(
@@ -409,8 +403,7 @@ fun OfferContent(
                     LazyVerticalStaggeredGrid(
                         columns = columns,
                         modifier = Modifier
-                            .heightIn(200.dp, 5000.dp)
-                            .wrapContentHeight(),
+                            .heightIn(200.dp, 5000.dp),
                         userScrollEnabled = false,
                         verticalItemSpacing = dimens.smallPadding,
                         horizontalArrangement = Arrangement.spacedBy(
@@ -502,7 +495,8 @@ fun OfferContent(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Column {
-                                                val isShowOptions = remember { mutableStateOf(false) }
+                                                val isShowOptions =
+                                                    remember { mutableStateOf(false) }
 
                                                 SimpleTextButton(
                                                     text = stringResource(strings.actionsLabel),
@@ -596,7 +590,9 @@ fun OfferContent(
                                     AuctionPriceLayout(
                                         offer = offer,
                                         onAddBidClick = { bid ->
-                                            offerRepository.value.onAddBidClick(bid.toLongOrNull() ?: 1)
+                                            offerRepository.value.onAddBidClick(
+                                                bid.toLongOrNull() ?: 1
+                                            )
                                         },
                                         modifier = Modifier
                                     )
@@ -613,7 +609,7 @@ fun OfferContent(
                                             offerRepository.value.buyNowClick()
                                         },
                                         onAddToCartClick = {
-                                           viewModel.onAddToCartClick(offer)
+                                            viewModel.onAddToCartClick(offer)
                                         },
                                         onSaleClick = {
                                             component.goToCreateOffer(
@@ -631,44 +627,37 @@ fun OfferContent(
                             item {
                                 // seller panel
                                 if (offer.sellerData != null && !isMyOffer) {
-                                    Column(
-                                        modifier = Modifier,
-                                        horizontalAlignment = Alignment.Start,
-                                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                    ) {
-                                        UserPanel(
-                                            modifier = Modifier
-                                                .background(
-                                                    colors.white,
-                                                    MaterialTheme.shapes.small
-                                                )
-                                                .clip(MaterialTheme.shapes.small).fillMaxSize(),
-                                            offer.sellerData,
-                                            updateTrigger = 1,
-                                            goToUser = {
-                                                component.goToUser(
-                                                    offer.sellerData?.id ?: 1L,
-                                                    false
-                                                )
-                                            },
-                                            goToAllLots = {
-                                                component.goToUsersListing(offer.sellerData)
-                                            },
-                                            goToAboutMe = {
-                                                component.goToUser(offer.sellerData?.id ?: 1L, true)
-                                            },
-                                            addToSubscriptions = {
-                                                viewModel.addToSubscriptions(offer)
-                                            },
-                                            goToSubscriptions = {
-                                                component.goToSubscribes()
-                                            },
-                                            goToSettings = {
-                                                component.goToDynamicSettings(it, null)
-                                            },
-                                            isBlackList = statusList
-                                        )
-                                    }
+                                    UserPanel(
+                                        modifier = Modifier.background(
+                                            colors.white,
+                                            MaterialTheme.shapes.small
+                                        ),
+                                        user = offer.sellerData,
+                                        goToUser = {
+                                            component.goToUser(
+                                                offer.sellerData?.id ?: 1L,
+                                                false
+                                            )
+                                        },
+                                        goToAllLots = {
+                                            component.goToUsersListing(offer.sellerData)
+                                        },
+                                        goToAboutMe = {
+                                            component.goToUser(offer.sellerData?.id ?: 1L, true)
+                                        },
+                                        addToSubscriptions = { callBack ->
+                                            viewModel.addToSubscriptions(offer) { es ->
+                                                callBack(es)
+                                            }
+                                        },
+                                        goToSubscriptions = {
+                                            component.goToSubscribes()
+                                        },
+                                        goToSettings = {
+                                            component.goToDynamicSettings(it, null)
+                                        },
+                                        isBlackList = statusList
+                                    )
                                 }
                             }
 
@@ -698,7 +687,7 @@ fun OfferContent(
                                     }
 
                                     //make proposal to seller
-                                    if (offer.isProposalEnabled) {
+                                    if (isProposalEnabled.value) {
                                         ProposalToSeller(
                                             isMyOffer,
                                         ) {
@@ -885,18 +874,6 @@ fun OfferContent(
                 offerRepository.value,
                 valuesPickerState,
                 uiState.value.buyNowCounts
-            )
-
-            CreateSubscribeDialog(
-                errorString.value != "",
-                errorString.value,
-                onDismiss = {
-                    offerRepository.value.clearDialogFields()
-                },
-                goToSubscribe = {
-                    component.goToSubscribes()
-                    offerRepository.value.clearDialogFields()
-                }
             )
         }
     }

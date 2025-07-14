@@ -2,7 +2,6 @@ package market.engine.fragments.root.main.profile.conversations
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,12 +33,15 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
-import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.listing.ListingBaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.widgets.bars.DeletePanel
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
@@ -71,7 +73,15 @@ fun ConversationsContent(
 
     val toastItem = viewModel.toastItem.collectAsState()
 
+    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
+
+    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
+    val selectedItems = listingBaseViewModel.selectItems.collectAsState()
+
+    val listingState = rememberLazyScrollState(viewModel)
+
     val err = viewModel.errorMessage.collectAsState()
+
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
             { OnError(err.value) {  } }
@@ -111,7 +121,7 @@ fun ConversationsContent(
     val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
 
     val content : @Composable (Modifier) -> Unit = {
-        BaseContent(
+        EdgeToEdgeScaffold(
             topBar = {
                 DrawerAppBar(
                     drawerState = drawerState,
@@ -130,23 +140,15 @@ fun ConversationsContent(
                             ),
                         )
                     ),
-                    color = colors.transparent
+                    color = if (!listingState.areBarsVisible.value)
+                        colors.primaryColor.copy(0.8f)
+                    else colors.primaryColor
                 ) {
                     TextAppBar(
                         stringResource(strings.messageTitle)
                     )
                 }
-            },
-            onRefresh = {
-                viewModel.updatePage()
-            },
-            error = error,
-            noFound = null,
-            isLoading = isLoading.value,
-            toastItem = toastItem.value,
-            modifier = modifier.fillMaxSize()
-        ) {
-            Column {
+
                 if (model.message != null) {
                     Row(
                         modifier = Modifier.background(colors.white).fillMaxWidth()
@@ -160,39 +162,64 @@ fun ConversationsContent(
                     }
                 }
 
-                ListingBaseContent(
-                    modifier = Modifier.fillMaxWidth(),
-                    data = data,
-                    viewModel = listingBaseViewModel,
-                    noFound = noFound,
-                    filtersContent = { activeWindowType ->
-                        when (activeWindowType) {
-                            ActiveWindowListingType.FILTERS -> {
-                                DialogsFilterContent(
-                                    listingData.filters,
-                                ) {
-                                    listingBaseViewModel.applyFilters(it)
-                                }
-                            }
-
-                            ActiveWindowListingType.SORTING -> {
-                                SortingOrdersContent(
-                                    listingData.sort
-                                ) {
-                                    listingBaseViewModel.applySorting(it)
-                                }
-                            }
-
-                            else -> {}
-                        }
+                DeletePanel(
+                    selectedItems.value.size,
+                    onCancel = {
+                        listingBaseViewModel.clearSelectedItems()
                     },
-                    item = { conversation ->
-                        ConversationItem(
-                            conversation,
-                            updateItem.value
-                        )
+                    onDelete = {
+                        listingBaseViewModel.deleteSelectedItems()
                     }
                 )
+
+                FiltersBar(
+                    filterBarUiState.value,
+                    isVisible = listingState.areBarsVisible.value &&
+                    activeType.value == ActiveWindowListingType.LISTING,
+                )
+            },
+            onRefresh = {
+                viewModel.updatePage()
+            },
+            error = error,
+            noFound = noFound,
+            isLoading = isLoading.value,
+            toastItem = toastItem.value,
+            modifier = modifier.fillMaxSize()
+        ) { contentPadding ->
+            when (activeType.value) {
+                ActiveWindowListingType.FILTERS -> {
+                    DialogsFilterContent(
+                        listingData.filters,
+                        Modifier.padding(top = contentPadding.calculateTopPadding())
+                    ) {
+                        listingBaseViewModel.applyFilters(it)
+                    }
+                }
+
+                ActiveWindowListingType.SORTING -> {
+                    SortingOrdersContent(
+                        listingData.sort,
+                        Modifier.padding(top = contentPadding.calculateTopPadding())
+                    ) {
+                        listingBaseViewModel.applySorting(it)
+                    }
+                }
+
+                else -> {
+                    PagingLayout(
+                        data = data,
+                        viewModel = listingBaseViewModel,
+                        state = listingState.scrollState,
+                        contentPadding = contentPadding,
+                        content = { conversation ->
+                            ConversationItem(
+                                conversation,
+                                updateItem.value
+                            )
+                        }
+                    )
+                }
             }
         }
     }

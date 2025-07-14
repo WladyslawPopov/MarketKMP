@@ -1,14 +1,11 @@
 package market.engine.widgets.bars
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,7 +15,7 @@ import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.widgets.buttons.getFloatAnyButton
+import market.engine.widgets.buttons.SmallIconButton
 
 @Composable
 fun PagingCounterBar(
@@ -29,19 +26,18 @@ fun PagingCounterBar(
     showDownButton: Boolean,
     onClick: () -> Unit,
 ) {
-    AnimatedVisibility(
-        visible = currentPage != 1 || currentPage != totalPages,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = modifier
-    ){
+    if( currentPage != 1 || currentPage != totalPages)
+    {
         Card(
+            modifier = modifier,
+            colors = colors.cardColors,
             onClick = {
                 onClick()
             }
-        ) {
+        )
+        {
             Row(
-                modifier = Modifier.wrapContentWidth()
+                modifier = Modifier
                     .background(colors.grayLayout)
                     .padding(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
@@ -64,12 +60,17 @@ fun PagingCounterBar(
                     style = MaterialTheme.typography.labelSmall
                 )
 
-                getFloatAnyButton(
-                    showDownButton || showUpButton,
-                    drawable = if (showDownButton) drawables.iconArrowDown else drawables.iconArrowUp,
-                    modifier.size(dimens.mediumIconSize)
-                ) {
-                    onClick()
+                if (showUpButton || showDownButton) {
+                    SmallIconButton(
+                        if (showDownButton) drawables.iconArrowDown else drawables.iconArrowUp,
+                        color = colors.black,
+                        modifier = Modifier
+                            .background(colors.white.copy(0.7f), CircleShape)
+                            .size(dimens.smallIconSize),
+                        modifierIconSize = Modifier.size(dimens.extraSmallIconSize)
+                    ){
+                        onClick()
+                    }
                 }
             }
         }

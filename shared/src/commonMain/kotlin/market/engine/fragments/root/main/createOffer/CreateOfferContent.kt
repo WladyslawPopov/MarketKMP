@@ -14,17 +14,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,13 +55,12 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.states.ScrollDataState
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.processInput
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
@@ -74,6 +68,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.checkboxs.ThemeCheckBox
@@ -128,26 +123,16 @@ fun CreateOfferContent(
 
     val focusManager = LocalFocusManager.current
 
+    val toastItem = viewModel.toastItem.collectAsState()
+
     val goToUp = remember { mutableStateOf(false) }
 
     val richTextState = rememberRichTextState()
 
-    val columnState = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.scrollState.value.scrollItem,
-        initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
-    )
-
-    val sheetState = rememberStandardBottomSheetState(
-        initialValue = if (categoryID == 1L)
-            SheetValue.Expanded else SheetValue.PartiallyExpanded
-    )
-
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = sheetState
-    )
+   val columnState = rememberLazyScrollState(viewModel)
 
     BackHandler(model.value.backHandler){
-        viewModel.onBack()
+        component.onBackClicked()
     }
 
     val launcher = rememberFilePickerLauncher(
@@ -172,14 +157,6 @@ fun CreateOfferContent(
         }
     }
 
-    LaunchedEffect(isEditCategory){
-        if(isEditCategory) {
-            scaffoldState.bottomSheetState.expand()
-        } else {
-            scaffoldState.bottomSheetState.partialExpand()
-        }
-    }
-
     LaunchedEffect(richTextState){
         snapshotFlow{
             richTextState.annotatedString
@@ -188,23 +165,15 @@ fun CreateOfferContent(
         }
     }
 
-    LaunchedEffect(columnState){
-        snapshotFlow{
-            columnState.firstVisibleItemIndex to columnState.firstVisibleItemScrollOffset
-        }.collectLatest { (index,offset) ->
-            viewModel.updateScroll(ScrollDataState(index,offset))
-        }
-    }
-
     LaunchedEffect(goToUp.value){
         if (goToUp.value){
             delay(300)
-            columnState.scrollToItem(0)
+            columnState.scrollState.scrollToItem(0)
             goToUp.value = false
         }
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
                 data = appBarState
@@ -229,19 +198,11 @@ fun CreateOfferContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         modifier = Modifier.fillMaxSize()
-    ) {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
-            sheetContentColor = colors.primaryColor,
-            sheetContainerColor = colors.primaryColor,
-            contentColor = colors.primaryColor,
-            containerColor = colors.primaryColor,
-            sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = false,
-            sheetContent = {
+    ) { contentPadding ->
+        when{
+            categoryID == 1L || isEditCategory ->{
                 CategoryContent(
                     categoryState.categoryViewModel,
                     onClose = {
@@ -250,27 +211,25 @@ fun CreateOfferContent(
                     onCompleted = {
                         viewModel.closeCategory()
                         viewModel.refreshPage()
-                    }
+                    },
+                    modifier = Modifier.padding(top = contentPadding.calculateTopPadding())
                 )
-            },
-        ) {
-            AnimatedVisibility(
-                !scaffoldState.bottomSheetState.isVisible && payloadState != null && newOfferId.value == null,
-                enter = fadeIn(),
-                exit = fadeOut()
-            )
-            {
+            }
+
+            !isEditCategory && payloadState != null && newOfferId.value == null ->{
                 LazyColumnWithScrollBars(
                     modifierList = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = {
                                 focusManager.clearFocus()
                             })
-                        }.padding(horizontal = dimens.smallPadding),
-                    state = columnState,
+                        },
+                    state = columnState.scrollState,
+                    contentPadding = contentPadding,
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
+                )
+                {
                     //categories
                     item {
                         Row(
@@ -330,7 +289,7 @@ fun CreateOfferContent(
                                 first.forEach { key ->
                                     when (key) {
                                         "title" -> {
-                                            payloadState?.fields?.find { it.key == key }
+                                            payloadState.fields.find { it.key == key }
                                                 ?.let { field ->
                                                     item {
                                                         Column {
@@ -349,7 +308,7 @@ fun CreateOfferContent(
                                         "saletype" -> {
                                             item {
                                                 Column {
-                                                    payloadState?.fields?.find { it.key == key }
+                                                    payloadState.fields.find { it.key == key }
                                                         ?.let { field ->
                                                             Column {
                                                                 SeparatorLabel(
@@ -365,7 +324,7 @@ fun CreateOfferContent(
                                                         }
 
 
-                                                    payloadState?.fields?.find { it.key == "startingprice" }
+                                                    payloadState.fields.find { it.key == "startingprice" }
                                                         ?.let { field ->
                                                             AnimatedVisibility(
                                                                 choiceCodeSaleType.value == 0 || choiceCodeSaleType.value == 1,
@@ -383,7 +342,7 @@ fun CreateOfferContent(
                                                         }
 
 
-                                                    payloadState?.fields?.find { it.key == "buynowprice" }
+                                                    payloadState.fields.find { it.key == "buynowprice" }
                                                         ?.let { field ->
                                                             AnimatedVisibility(
                                                                 choiceCodeSaleType.value == 2 || choiceCodeSaleType.value == 1,
@@ -400,7 +359,7 @@ fun CreateOfferContent(
                                                             }
                                                         }
 
-                                                    payloadState?.fields?.find { it.key == "priceproposaltype" }
+                                                    payloadState.fields.find { it.key == "priceproposaltype" }
                                                         ?.let { field ->
                                                             DynamicSelect(
                                                                 field,
@@ -419,13 +378,12 @@ fun CreateOfferContent(
                         when (key) {
                             "params" -> {
                                 item {
-                                    val paramList =
-                                        payloadState?.fields?.filter {
-                                            it.key?.contains(
-                                                "par_"
-                                            ) == true
-                                        }
-                                            ?: emptyList()
+                                    val paramList = payloadState.fields.filter {
+                                        it.key?.contains(
+                                            "par_"
+                                        ) == true
+                                    }
+
                                     SeparatorLabel(stringResource(strings.parametersLabel))
 
                                     SetUpDynamicFields(
@@ -451,7 +409,7 @@ fun CreateOfferContent(
                             ),
                             content = {
                                 third.forEach { key ->
-                                    payloadState?.fields?.find { it.key == key }
+                                    payloadState.fields.find { it.key == key }
                                         ?.let { field ->
                                             when (field.key) {
                                                 "length_in_days" -> {
@@ -620,7 +578,7 @@ fun CreateOfferContent(
                                 }
                             }
                         }
-                        payloadState?.fields?.find { it.key == key }
+                        payloadState.fields.find { it.key == key }
                             ?.let { field ->
                                 when (field.key) {
                                     "session_start" -> {
@@ -668,10 +626,11 @@ fun CreateOfferContent(
                     }
                 }
             }
-
-            AnimatedVisibility(newOfferId.value != null)
-            {
-                val title = payloadState?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
+            newOfferId.value != null -> {
+                val title = remember {
+                    payloadState?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
+                        ?: ""
+                }
                 //success offer
                 SuccessContent(
                     images,

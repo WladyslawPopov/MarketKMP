@@ -85,6 +85,8 @@ class OfferRepository(
     private val _isMenuVisible = MutableStateFlow(false)
     val isMenuVisible = _isMenuVisible.asStateFlow()
 
+    private val _isProposalEnabled = MutableStateFlow(false)
+    val isProposalEnabled = _isProposalEnabled.asStateFlow()
     
     init {
         updateOperations()
@@ -420,7 +422,7 @@ class OfferRepository(
                         )
                     })
                 }
-                offer.isProposalEnabled = isProposalsEnabled()
+                _isProposalEnabled.value = isProposalsEnabled()
             }
 
             getOfferOperations(

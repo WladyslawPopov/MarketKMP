@@ -17,12 +17,14 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.listing.ListingBaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
@@ -39,7 +41,9 @@ fun MyOffersContent(
     val categoryState = viewModel.categoryState
 
     val listingDataState by listingBaseViewModel.listingData.collectAsState()
-    val activeWindowType by listingBaseViewModel.activeWindowType.collectAsState()
+    val activeType by listingBaseViewModel.activeWindowType.collectAsState()
+
+    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
 
     val listingData = listingDataState.data
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
@@ -86,57 +90,65 @@ fun MyOffersContent(
         }
     }
 
-    BaseContent(
-        topBar = null,
-        onRefresh = {
-            viewModel.updatePage()
-        },
-        error = error,
-        noFound = null,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
-        floatingActionButton = {
-            floatingCreateOfferButton {
-                component.goToCreateOffer(CreateOfferType.CREATE, null, null)
+    val listingState = rememberLazyScrollState(viewModel)
+
+    when(activeType) {
+        ActiveWindowListingType.FILTERS -> {
+            OfferFilterContent(
+                listingData.filters,
+                categoryState,
+                LotsType.FAVORITES,
+                modifier
+            ) { newFilters ->
+                listingBaseViewModel.applyFilters(newFilters)
             }
-        },
-        modifier = modifier.fillMaxSize()
-    ) {
-        ListingBaseContent(
-            data = data,
-            viewModel = listingBaseViewModel,
-            noFound = noFound,
-            filtersContent = {
-                when (activeWindowType) {
-                    ActiveWindowListingType.FILTERS -> {
-                        OfferFilterContent(
-                            listingData.filters,
-                            categoryState,
-                            LotsType.FAVORITES,
-                        ){ newFilters ->
-                            listingBaseViewModel.applyFilters(newFilters)
-                        }
-                    }
+        }
 
-                    ActiveWindowListingType.SORTING -> {
-                        SortingOffersContent(
-                            listingData.sort,
-                            isCabinet = true,
-                        ){ newSort ->
-                            listingBaseViewModel.applySorting(newSort)
-                        }
-                    }
-                    else -> {
+        ActiveWindowListingType.SORTING -> {
+            SortingOffersContent(
+                listingData.sort,
+                isCabinet = true,
+                modifier
+            ) { newSort ->
+                listingBaseViewModel.applySorting(newSort)
+            }
+        }
 
+        else -> {
+            EdgeToEdgeScaffold(
+                topBar = {
+                    FiltersBar(
+                        filterBarUiState.value,
+                        isVisible = listingState.areBarsVisible.value,
+                    )
+                },
+                onRefresh = {
+                    viewModel.updatePage()
+                },
+                error = error,
+                noFound = noFound,
+                isLoading = isLoading.value,
+                toastItem = toastItem.value,
+                floatingActionButton = {
+                    floatingCreateOfferButton {
+                        component.goToCreateOffer(CreateOfferType.CREATE, null, null)
                     }
-                }
-            },
-            item = { offer ->
-                CabinetOfferItem(
-                    offer,
-                    updateItem.value,
+                },
+                modifier = modifier.fillMaxSize()
+            ) { contentPadding ->
+                PagingLayout(
+                    data = data,
+                    viewModel = listingBaseViewModel,
+                    state = listingState.scrollState,
+                    contentPadding = contentPadding,
+                    content = { offer ->
+                        CabinetOfferItem(
+                            offer,
+                            updateItem.value,
+                        )
+                    }
                 )
             }
-        )
+        }
     }
 }

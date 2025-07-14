@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,9 +22,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.Tab
-import market.engine.core.network.networkObjects.FavoriteListItem
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.root.main.favPages.favorites.FavoritesContent
@@ -38,7 +37,7 @@ import market.engine.widgets.tooltip.rememberTooltipState
 @Serializable
 data class FavPagesConfig(
     @Serializable
-    val favItem: FavoriteListItem
+    val favItemId: Long
 )
 
 @Composable
@@ -55,10 +54,12 @@ fun FavPagesNavigation(
 
     val favTabList = remember { mutableStateOf(uiState.value.favTabList) }
     val isDragMode = uiState.value.isDragMode
-    val initPosition = uiState.value.initPosition
     val appBarState = uiState.value.appState
+    val initPos = viewModel.initPosition.collectAsState()
+    val updateFullPage = viewModel.updatePage.collectAsState()
 
     val tooltipState = rememberTooltipState()
+    val toastItem = viewModel.toastItem.collectAsState()
 
     val onTooltipClick = remember {
         mutableStateOf(
@@ -72,9 +73,21 @@ fun FavPagesNavigation(
         )
     }
 
+    LaunchedEffect(initPos.value) {
+        if (initPos.value != component.componentsPages.value.selectedIndex) {
+            component.selectPage(initPos.value)
+        }
+    }
+
+    LaunchedEffect(updateFullPage.value) {
+        if(updateFullPage.value > 0) {
+            component.fullRefresh()
+        }
+    }
+
     val lazyListState = rememberLazyListState(
         initialFirstVisibleItemIndex =
-            (initPosition).coerceIn(0, (favTabList.value.size-1).coerceAtLeast(0))
+            (initPos.value).coerceIn(0, (favTabList.value.size-1).coerceAtLeast(0))
     )
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
@@ -89,49 +102,25 @@ fun FavPagesNavigation(
         }
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             TooltipWrapper(
                 modifier= Modifier,
                 tooltipState = tooltipState,
                 onClick = onTooltipClick,
                 content = { tooltipState ->
-
                     SimpleAppBar(
                         data = appBarState
                     ) {
                         ReorderTabRow(
-                            tabs = favTabList.value.map {
-                                Tab(
-                                    id = it.id,
-                                    title = it.title ?: "",
-                                    image = it.images.firstOrNull(),
-                                    isPined = it.markedAsPrimary,
-                                    onClick = {
-
-                                    }
-                                )
-                            }.toList(),
-                            selectedTab = initPosition,
-                            onTabSelected = {
-                                component.selectPage(it)
-                            },
+                            tabs = favTabList.value,
+                            selectedTab = initPos.value,
                             isDragMode = isDragMode,
-                            onTabsReordered = { list ->
-                                val newList = list.map { listItem ->
-                                    favTabList.value.find { it.title == listItem.title && it.id == listItem.id }
-                                        ?: FavoriteListItem()
-                                }
+                            menuList = viewModel.menuItems.value,
+                            onTabsReordered = { newList ->
                                 favTabList.value = newList
                             },
                             lazyListState = lazyListState,
-                            getOperations = { id, callback ->
-                                if (id > 1000) {
-                                    viewModel.getOperationFavTab(id, callback)
-                                } else {
-                                    viewModel.getDefOperationFavTab(callback)
-                                }
-                            },
                             modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
                         )
                     }
@@ -143,30 +132,30 @@ fun FavPagesNavigation(
         },
         error = error,
         noFound = null,
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         modifier = modifier.fillMaxSize()
-    ) { contentPaddings ->
-        Box(modifier = Modifier.padding(top = contentPaddings.calculateTopPadding()).fillMaxSize()) {
+    ) { contentPadding ->
+        Box(modifier = Modifier.fillMaxSize()) {
             ChildPages(
                 modifier = Modifier.fillMaxSize(),
                 pages = component.componentsPages,
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
-                    component.selectPage(it)
+                    viewModel.selectPage(it)
                 }
             ) { _, page ->
                 when (page) {
                     is FavPagesComponents.SubscribedChild -> {
                         SubscriptionsContent(
                             page.component,
-                            Modifier
+                            Modifier.padding(top = contentPadding.calculateTopPadding())
                         )
                     }
 
                     is FavPagesComponents.FavoritesChild -> {
                         FavoritesContent(
                             page.component,
-                            Modifier
+                            Modifier.padding(top = contentPadding.calculateTopPadding())
                         )
                     }
                 }

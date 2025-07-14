@@ -30,8 +30,6 @@ interface UserComponent {
 
     val feedbacksPages: Value<ChildPages<*, FeedbacksComponent>>
 
-    fun updateUserInfo()
-
     fun selectAllOffers(user : User)
 
     fun onBack()
@@ -57,7 +55,7 @@ class DefaultUserComponent(
     val navigateToSubscriptions: () -> Unit,
 ) : UserComponent, ComponentContext by componentContext {
 
-    val viewModel : UserViewModel = UserViewModel()
+    val viewModel : UserViewModel = UserViewModel(userId, this)
 
     private val _model = MutableValue(
         UserComponent.Model(
@@ -69,14 +67,6 @@ class DefaultUserComponent(
     )
 
     override val model = _model
-
-    init {
-        updateUserInfo()
-    }
-
-    override fun updateUserInfo() {
-        model.value.userViewModel.getUserInfo(model.value.userId)
-    }
 
     override fun selectAllOffers(user : User) {
         val ld = ListingData()
@@ -120,7 +110,6 @@ class DefaultUserComponent(
             userId = model.value.userId,
             type = config.type,
             componentContext = componentContext,
-            feedbacksViewModel = viewModel,
             navigateToSnapshot = {
                 navigateToSnapshot(it)
             },

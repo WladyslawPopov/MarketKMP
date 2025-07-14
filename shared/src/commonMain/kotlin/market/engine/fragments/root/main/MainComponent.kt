@@ -109,12 +109,7 @@ class DefaultMainComponent(
     )
 
     private val favPagesViewModel by lazy {
-        FavPagesViewModel(
-            fullRefresh = {
-                (childFavoritesStack.value.items.firstOrNull()?.instance as?
-                        ChildFavorites.FavPagesChild)?.component?.fullRefresh()
-            }
-        )
+        FavPagesViewModel()
     }
 
     val checkShowBar : () -> Boolean = {

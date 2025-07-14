@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -29,10 +28,11 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsContent
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -64,6 +64,7 @@ fun CreateOrderContent(
 
     val isLoading = viewModel.isShowProgress.collectAsState()
     val err = viewModel.errorMessage.collectAsState()
+    val toastItem = viewModel.toastItem.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
@@ -83,9 +84,9 @@ fun CreateOrderContent(
         }
     }
 
-    val state = rememberLazyListState()
+    val state = rememberLazyScrollState(viewModel)
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
                 data = appBarData
@@ -104,17 +105,19 @@ fun CreateOrderContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         modifier = Modifier.fillMaxSize()
 
-    ) {
+    ) { contentPadding ->
         LazyColumnWithScrollBars(
-            state = state,
-            modifierList = Modifier.fillMaxSize().pointerInput(Unit) {
+            state = state.scrollState,
+            modifierList = Modifier.fillMaxSize()
+                .pointerInput(Unit) {
                     detectTapGestures(onTap = {
                         focusManager.clearFocus()
                     })
-                }.padding(dimens.smallPadding),
+                },
+            contentPadding = contentPadding
         ) {
             // header
             item {

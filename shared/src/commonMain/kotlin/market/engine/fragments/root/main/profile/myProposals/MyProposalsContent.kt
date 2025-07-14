@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.profile.myProposals
 
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -16,11 +17,13 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.listing.ListingBaseContent
+import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetProposalItem
@@ -35,7 +38,7 @@ fun MyProposalsContent(
     val viewModel = model.viewModel
     val listingBaseViewModel = viewModel.listingBaseViewModel
     val listingDataState = listingBaseViewModel.listingData.collectAsState()
-    val activeWindowType = listingBaseViewModel.activeWindowType.collectAsState()
+    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
     val listingData = listingDataState.value.data
     val categoriesData = viewModel.categoryState
 
@@ -47,6 +50,8 @@ fun MyProposalsContent(
     val err = viewModel.errorMessage.collectAsState()
 
     val toastItem = viewModel.toastItem.collectAsState()
+
+    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
 
     BackHandler(model.backHandler){
         viewModel.onBackNavigation()
@@ -76,58 +81,66 @@ fun MyProposalsContent(
         }
     }
 
-    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { OnError(err.value) { viewModel.updatePage() } }
-    }else{
-        null
+    val listingState = rememberLazyScrollState(viewModel)
+
+    val error : (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage != "") {
+            { OnError(err.value) { viewModel.updatePage() } }
+        } else {
+            null
+        }
     }
 
-    BaseContent(
-        topBar = null,
-        onRefresh = {
-            viewModel.updatePage()
-        },
-        error = error,
-        noFound = null,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
-        modifier = modifier.fillMaxSize()
-    ) {
-        ListingBaseContent(
-            data = data,
-            viewModel = listingBaseViewModel,
-            noFound = noFound,
-            filtersContent = {
-                when (activeWindowType.value) {
-                    ActiveWindowListingType.FILTERS -> {
-                        OfferFilterContent(
-                            listingData.filters,
-                            categoriesData,
-                            LotsType.FAVORITES,
-                        ){ newFilters ->
-                            listingBaseViewModel.applyFilters(newFilters)
-                        }
+    when(activeType.value){
+        ActiveWindowListingType.FILTERS -> {
+            OfferFilterContent(
+                listingData.filters,
+                categoriesData,
+                LotsType.FAVORITES,
+                modifier
+            ){ newFilters ->
+                listingBaseViewModel.applyFilters(newFilters)
+            }
+        }
+        ActiveWindowListingType.SORTING -> {
+            SortingOffersContent(
+                listingData.sort,
+                isCabinet = true,
+                modifier
+            ){ newSort ->
+                listingBaseViewModel.applySorting(newSort)
+            }
+        }
+        else -> {
+            EdgeToEdgeScaffold(
+                topBar = {
+                    FiltersBar(
+                        filterBarUiState.value,
+                        isVisible = listingState.areBarsVisible.value
+                    )
+                },
+                onRefresh = {
+                    viewModel.updatePage()
+                },
+                error = error,
+                noFound = noFound,
+                isLoading = isLoading.value,
+                toastItem = toastItem.value,
+                modifier = modifier.fillMaxSize()
+            ) { contentPadding ->
+                PagingLayout(
+                    data = data,
+                    viewModel = listingBaseViewModel,
+                    state = listingState.scrollState,
+                    contentPadding = contentPadding,
+                    content = { offer ->
+                        CabinetProposalItem(
+                            state = offer,
+                            updateItem = updateItem.value
+                        )
                     }
-
-                    ActiveWindowListingType.SORTING -> {
-                        SortingOffersContent(
-                            listingData.sort,
-                            isCabinet = true,
-                        ){ newSort ->
-                            listingBaseViewModel.applySorting(newSort)
-                        }
-                    }
-                    else -> {
-
-                    }
-                }
-            },
-            item = { offer ->
-                CabinetProposalItem(
-                    state = offer,
-                    updateItem = updateItem.value
                 )
             }
-        )
+        }
     }
 }

@@ -10,4 +10,5 @@ data class Tab(
     val isPined: Boolean = false,
     val id: Long = getCurrentDate().toLong(),
     val onClick: () -> Unit = {},
+    val onLongClick: () -> Unit = {},
 )

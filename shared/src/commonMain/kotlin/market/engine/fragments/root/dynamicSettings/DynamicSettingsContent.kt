@@ -1,5 +1,6 @@
 package market.engine.fragments.root.dynamicSettings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
@@ -66,6 +67,8 @@ fun DynamicSettingsContent(
 
     val focusManager = LocalFocusManager.current
 
+    val toastItem = viewModel.toastItem.collectAsState()
+
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage.isNotBlank()) {
             {
@@ -100,7 +103,7 @@ fun DynamicSettingsContent(
         component.onBack()
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
                 data = pageState.value.appBarState
@@ -108,20 +111,20 @@ fun DynamicSettingsContent(
                 TextAppBar(pageState.value.titleText)
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.background(colors.primaryColor).pointerInput(Unit) {
+            detectTapGestures {
+                focusManager.clearFocus()
+            }
+        }.fillMaxSize(),
         isLoading = isLoading.value,
         onRefresh = {
             viewModel.setUpPage()
         },
         error = error,
-        toastItem = viewModel.toastItem.value
-    ) {
+        toastItem = toastItem.value
+    ) { contentPadding ->
         LazyColumnWithScrollBars(
-            modifierList = Modifier.pointerInput(Unit) {
-                detectTapGestures {
-                    focusManager.clearFocus()
-                }
-            }.fillMaxWidth(),
+            contentPadding = contentPadding,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {

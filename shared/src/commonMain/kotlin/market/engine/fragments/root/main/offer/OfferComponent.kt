@@ -78,6 +78,16 @@ class DefaultOfferComponent(
     override val model: Value<OfferComponent.Model> = _model
     private val offerViewModel = model.value.offerViewModel
 
+    private val shouldRefreshOnResume = MutableValue(false)
+
+    init {
+        lifecycle.doOnResume {
+            if (shouldRefreshOnResume.value) {
+                viewModel.refreshPage()
+                shouldRefreshOnResume.value = false
+            }
+        }
+    }
 
     override fun navigateToOffers(id: Long) {
         selectOffer(id)
@@ -130,17 +140,13 @@ class DefaultOfferComponent(
         offerId: Long,
         externalImages: List<String>?
     ) {
+        shouldRefreshOnResume.value = true
         navigationCreateOffer(type, catPath, offerId, externalImages)
-        lifecycle.doOnResume {
-            viewModel.refreshPage()
-        }
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
+        shouldRefreshOnResume.value = true
         navigateToCreateOrder(item)
-        lifecycle.doOnResume {
-            viewModel.refreshPage()
-        }
     }
 
     override fun goToDialog(dialogId: Long?) {
@@ -148,17 +154,13 @@ class DefaultOfferComponent(
     }
 
     override fun goToProposalPage(type: ProposalType) {
+        shouldRefreshOnResume.value = true
         navigateToProposalPage(id, type)
-        lifecycle.doOnResume {
-            viewModel.refreshPage()
-        }
     }
 
     override fun goToDynamicSettings(type: String, offerId: Long?) {
+        shouldRefreshOnResume.value = true
         navigateDynamicSettings(type, offerId)
-        lifecycle.doOnResume {
-            viewModel.refreshPage()
-        }
     }
 
     override fun goToLogin() {

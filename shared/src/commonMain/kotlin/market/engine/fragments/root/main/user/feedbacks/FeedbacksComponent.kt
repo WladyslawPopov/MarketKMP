@@ -1,14 +1,10 @@
 package market.engine.fragments.root.main.user.feedbacks
 
-import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import kotlinx.coroutines.flow.Flow
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.network.networkObjects.Reports
 import market.engine.core.data.types.ReportPageType
-import market.engine.fragments.root.main.user.UserViewModel
 
 interface FeedbacksComponent {
     val model : Value<Model>
@@ -16,8 +12,7 @@ interface FeedbacksComponent {
     data class Model(
         val userId : Long,
         var type : ReportPageType,
-        val feedbacksViewModel: UserViewModel,
-        var pagingDataFlow : Flow<PagingData<Reports>>
+        val feedbacksViewModel: FeedbacksViewModel
     )
 
     fun goToOrder(orderId: Long, type: DealTypeGroup)
@@ -31,18 +26,18 @@ class DefaultFeedbacksComponent(
     val type : ReportPageType,
     val userId : Long,
     componentContext: ComponentContext,
-    feedbacksViewModel: UserViewModel,
     private val navigateToOrder : (Long, DealTypeGroup) -> Unit,
     private val navigateToSnapshot : (Long) -> Unit,
     private val navigateToUser : (Long) -> Unit,
 ) : FeedbacksComponent, ComponentContext by componentContext {
 
+    val feedbacksViewModel = FeedbacksViewModel(type, userId)
+
     private val _model = MutableValue(
         FeedbacksComponent.Model(
             userId = userId,
             type = type,
-            feedbacksViewModel = feedbacksViewModel,
-            pagingDataFlow = feedbacksViewModel.initFeedback(type, userId)
+            feedbacksViewModel = feedbacksViewModel
         )
     )
 

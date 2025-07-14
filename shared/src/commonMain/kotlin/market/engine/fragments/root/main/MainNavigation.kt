@@ -22,7 +22,6 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
 import market.engine.core.data.compositions.LocalBottomBarHeight
-import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
@@ -50,27 +49,30 @@ fun MainNavigation(
 ) {
     val childStack by component.childMainStack.subscribeAsState()
 
-    val currentScreen = remember(childStack.active.instance) { when (childStack.active.instance) {
-        is ChildMain.HomeChildMain -> 0
-        is ChildMain.CategoryChildMain -> 1
-        is ChildMain.BasketChildMain -> 2
-        is ChildMain.FavoritesChildMain -> 3
-        is ChildMain.ProfileChildMain -> 4
-    } }
+    val currentScreen = remember(childStack.active.instance) {
+        when (childStack.active.instance) {
+            is ChildMain.HomeChildMain -> 0
+            is ChildMain.CategoryChildMain -> 1
+            is ChildMain.BasketChildMain -> 2
+            is ChildMain.FavoritesChildMain -> 3
+            is ChildMain.ProfileChildMain -> 4
+        }
+    }
 
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
     val showLogoutDialog = viewModel.showLogoutDialog.collectAsState()
-    var bottomBarHeight by remember { mutableStateOf(dimens.zero) }
+    var bottomBarHeight by mutableStateOf(LocalBottomBarHeight.current)
     val density = LocalDensity.current
 
-    Scaffold { contentPadding ->
+    Scaffold {
         CompositionLocalProvider(LocalBottomBarHeight provides bottomBarHeight) {
             Children(
+                modifier = modifier,
                 stack = childStack,
                 animation = stackAnimation(fade())
             ) { child ->
-                Box(modifier = modifier) {
+                Box {
                     Row {
                         if (!model.value.showBottomBar.value) {
                             getRailNavBar(
@@ -120,7 +122,9 @@ fun MainNavigation(
                             .align(Alignment.BottomCenter)
                             .zIndex(300f)
                             .onSizeChanged {
-                                bottomBarHeight = with(density) { it.height.toDp() }
+                                bottomBarHeight = with(density) {
+                                    it.height.toDp()
+                                }
                             },
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -131,6 +135,7 @@ fun MainNavigation(
         }
     }
 }
+
 
 @Serializable
 sealed class MainConfig {

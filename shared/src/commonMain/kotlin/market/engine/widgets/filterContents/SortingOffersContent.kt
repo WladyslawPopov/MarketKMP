@@ -56,6 +56,7 @@ fun SortingOffersContent(
     ContentSort(
         currentSort = sort,
         sortSections = sortSections,
+        modifier = modifier,
         onClose = {
             onClose(sort)
         },

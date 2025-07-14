@@ -1,16 +1,19 @@
 package market.engine.widgets.filterContents
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +36,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Options
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
@@ -43,9 +47,9 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterListingContent(
+    modifier: Modifier = Modifier,
     initialFilters: List<Filter>,
     regionsOptions: List<Options>,
-    modifier: Modifier = Modifier,
     onClear: () -> Unit,
     onClosed: (newFilters : List<Filter>) -> Unit,
 ) {
@@ -161,25 +165,22 @@ fun FilterListingContent(
         }
     }
 
-    Box(
-        modifier = modifier
-            .background(colors.primaryColor)
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            },
-        contentAlignment = Alignment.TopCenter
-    ) {
-        LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp),
-            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            state = scrollState
-        )
-        {
-            item {
+    AnimatedVisibility(
+        visible = true,
+        enter = expandVertically(),
+        exit = shrinkVertically(),
+    )
+    {
+        EdgeToEdgeScaffold(
+            modifier = modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                },
+            isLoading = false,
+            topBar = {
                 FilterContentHeaderBar(
                     title = stringResource(strings.filter),
                     isShowClearBtn = isShowClear.value,
@@ -191,288 +192,304 @@ fun FilterListingContent(
                         onClosed(listingData)
                     }
                 )
-            }
-            //SaleType Filters
-            item {
-                ExpandableSection(
-                    title = stringResource(strings.saleTypeParameterName),
-                    isExpanded = isExpanded1,
-                    onExpandChange = { isExpanded1 = !isExpanded1 },
-                    content = {
-                        Column {
-                            saleTypeFilters.forEach { pair ->
-                                RadioOptionRow(
-                                    pair,
-                                    saleTypeFilterKey.value
-                                ){ isChecked, choice ->
-                                    if(isChecked) {
-                                        saleTypeFilterKey.value = null
-                                        applyFilterLogic(
-                                            "clear_saleType",
-                                            "",
-                                            listingData
-                                        )
-                                    }else{
-                                        saleTypeFilterKey.value = choice
-                                        applyFilterLogic(
-                                            choice,
-                                            saleTypeFilters.find { it.first == choice }?.second ?: "",
-                                            listingData
-                                        )
+            },
+        ) { contentPadding ->
+            Box(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
+                LazyColumnWithScrollBars(
+                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentPadding = PaddingValues(bottom = dimens.largePadding),
+                    state = scrollState
+                )
+                {
+                    //SaleType Filters
+                    item {
+                        ExpandableSection(
+                            title = stringResource(strings.saleTypeParameterName),
+                            isExpanded = isExpanded1,
+                            onExpandChange = { isExpanded1 = !isExpanded1 },
+                            content = {
+                                Column {
+                                    saleTypeFilters.forEach { pair ->
+                                        RadioOptionRow(
+                                            pair,
+                                            saleTypeFilterKey.value
+                                        ) { isChecked, choice ->
+                                            if (isChecked) {
+                                                saleTypeFilterKey.value = null
+                                                applyFilterLogic(
+                                                    "clear_saleType",
+                                                    "",
+                                                    listingData
+                                                )
+                                            } else {
+                                                saleTypeFilterKey.value = choice
+                                                applyFilterLogic(
+                                                    choice,
+                                                    saleTypeFilters.find { it.first == choice }?.second
+                                                        ?: "",
+                                                    listingData
+                                                )
+                                            }
+                                            isShowClear.value = checkSize()
+                                            isRefreshing.value = true
+                                        }
                                     }
+                                }
+                            }
+                        )
+                    }
+                    //Special Filters
+                    item {
+                        ExpandableSection(
+                            title = stringResource(strings.specialFilters),
+                            isExpanded = isExpanded2,
+                            onExpandChange = { isExpanded2 = !isExpanded2 },
+                            content = {
+                                Column {
+                                    specialFilters.forEach { filter ->
+                                        val isCheckedFilter = remember {
+                                            mutableStateOf(
+                                                listingData.find {
+                                                    it.key == filter.first &&
+                                                            it.interpretation != null &&
+                                                            it.interpretation != ""
+                                                }?.value
+                                            )
+                                        }
+
+                                        RadioOptionRow(
+                                            filter,
+                                            isCheckedFilter.value
+                                        ) { isChecked, choice ->
+                                            if (isChecked) {
+                                                isCheckedFilter.value = null
+                                            } else {
+                                                isCheckedFilter.value = choice
+                                            }
+                                            applyFilterLogic(
+                                                choice,
+                                                specialFilters.find { it.first == choice }?.second
+                                                    ?: "",
+                                                listingData
+                                            )
+                                            isShowClear.value = checkSize()
+                                            isRefreshing.value = true
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    // Region
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            Text(
+                                text = stringResource(strings.regionParameterName),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = colors.black
+                            )
+
+                            getDropdownMenu(
+                                modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                                selectedText = regionSelected.value
+                                    ?: stringResource(strings.chooseAction),
+                                selects = regionsOptions.map { it.name.toString() },
+                                onItemClick = { newRegion ->
+                                    listingData.find { it.key == "region" }?.value =
+                                        regionsOptions.find { it.name == newRegion }?.code.toString()
+                                    listingData.find { it.key == "region" }?.interpretation =
+                                        newRegion
+
+                                    regionSelected.value = newRegion
+
+                                    isShowClear.value = checkSize()
+                                    isRefreshing.value = true
+                                },
+                                onClearItem = {
+                                    listingData.find { it.key == "region" }?.interpretation =
+                                        null
+                                    regionSelected.value = null
                                     isShowClear.value = checkSize()
                                     isRefreshing.value = true
                                 }
-                            }
+                            )
                         }
                     }
-                )
-            }
-            //Special Filters
-            item {
-                ExpandableSection(
-                    title = stringResource(strings.specialFilters),
-                    isExpanded = isExpanded2,
-                    onExpandChange = { isExpanded2 = !isExpanded2 },
-                    content = {
-                        Column {
-                            specialFilters.forEach { filter ->
-                                val isCheckedFilter = remember {
-                                    mutableStateOf(
-                                        listingData.find {
-                                            it.key == filter.first &&
-                                                    it.interpretation != null &&
-                                                    it.interpretation != ""
-                                        }?.value
-                                    )
-                                }
-
-                                RadioOptionRow(
-                                    filter,
-                                    isCheckedFilter.value
-                                ) { isChecked, choice ->
-                                    if (isChecked){
-                                        isCheckedFilter.value = null
-                                    }else{
-                                        isCheckedFilter.value = choice
-                                    }
-                                    applyFilterLogic(
-                                        choice,
-                                        specialFilters.find { it.first == choice }?.second ?: "",
-                                        listingData
-                                    )
-                                    isShowClear.value = checkSize()
-                                    isRefreshing.value = true
-                                }
-                            }
-                        }
-                    }
-                )
-            }
-            // Region
-            item {
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Text(
-                        text = stringResource(strings.regionParameterName),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = colors.black
-                    )
-
-                    getDropdownMenu(
-                        modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                        selectedText = regionSelected.value ?: stringResource(strings.chooseAction),
-                        selects = regionsOptions.map { it.name.toString() },
-                        onItemClick = { newRegion ->
-                            listingData.find { it.key == "region" }?.value =
-                                regionsOptions.find { it.name == newRegion }?.code.toString()
-                            listingData.find { it.key == "region" }?.interpretation =
-                                newRegion
-
-                            regionSelected.value = newRegion
-
-                            isShowClear.value = checkSize()
-                           isRefreshing.value = true
-                        },
-                        onClearItem = {
-                            listingData.find { it.key == "region" }?.interpretation =
-                                null
-                            regionSelected.value = null
+                    // Price Filter
+                    item {
+                        PriceFilter(listingData) {
                             isShowClear.value = checkSize()
                             isRefreshing.value = true
                         }
-                    )
-                }
-            }
-            // Price Filter
-            item {
-                PriceFilter(listingData) {
-                    isShowClear.value = checkSize()
-                    isRefreshing.value = true
-                }
-            }
-            //time filter
-            item {
-                ExpandableSection(
-                    title = stringResource(strings.timeParameterName),
-                    isExpanded = isExpanded3,
-                    onExpandChange = { isExpanded3 = !isExpanded3 },
-                    content = {
-                        LazyColumn(
-                            modifier = Modifier
-                                .heightIn(max = 800.dp)
-                                .clip(MaterialTheme.shapes.small)
-                                .background(colors.primaryColor)
-                                .fillMaxWidth()
-                                .padding(dimens.smallPadding),
-                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            item {
-                                val title = stringResource(strings.offersFor)
-
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                ) {
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = colors.black
-                                    )
-
-                                    getDropdownMenu(
-                                        selectedText = timeNewSelected.value ?: stringResource(strings.chooseAction),
-                                        selects = timeOptions,
-                                        onItemClick = { time ->
-                                            listingData.find { it.key == "new" }?.value =
-                                                timeFilterMap.find { it.second == time }?.first
-                                                    ?: ""
-                                            listingData.find { it.key == "new" }?.interpretation =
-                                                "$title $time"
-
-                                            timeNewSelected.value = time
-
-                                            isShowClear.value = checkSize()
-                                            isRefreshing.value = true
-                                        },
-                                        onClearItem = {
-                                            listingData.find { it.key == "new" }?.value =
-                                                ""
-                                            listingData.find { it.key == "new" }?.interpretation =
-                                                null
-
-                                            timeNewSelected.value = null
-                                            isShowClear.value = checkSize()
-                                           isRefreshing.value = true
-                                        }
-                                    )
-                                }
-                            }
-
-                            item {
-                                val title =
-                                    stringResource(strings.newOffersWithoutRelistedFor)
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                ) {
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = colors.black
-                                    )
-
-                                    getDropdownMenu(
-                                        selectedText = timeNewWithoutRelistedSelected.value ?: stringResource(strings.chooseAction),
-                                        selects = timeOptions,
-                                        onItemClick = { time ->
-                                            listingData.find { it.key == "new_without_relisted" }?.value =
-                                                timeFilterMap.find { it.second == time }?.first
-                                                    ?: ""
-                                            listingData.find { it.key == "new_without_relisted" }?.interpretation =
-                                                "$title $time"
-
-                                            timeNewWithoutRelistedSelected.value = time
-
-                                            isShowClear.value = checkSize()
-                                            isRefreshing.value = true
-                                        },
-                                        onClearItem = {
-                                            listingData.find { it.key == "new_without_relisted" }?.value =
-                                                ""
-                                            listingData.find { it.key == "new_without_relisted" }?.interpretation =
-                                                null
-
-                                            timeNewWithoutRelistedSelected.value = null
-
-                                            isShowClear.value = checkSize()
-                                            isRefreshing.value = true
-                                        }
-                                    )
-                                }
-                            }
-
-                            item {
-                                val title = stringResource(strings.endingWith)
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                ) {
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = colors.black
-                                    )
-
-                                    getDropdownMenu(
-                                        selectedText = timeEndingSelected.value ?: stringResource(strings.chooseAction),
-                                        selects = timeOptions,
-                                        onItemClick = { time ->
-                                            listingData.find { it.key == "ending" }?.value =
-                                                timeFilterMap.find { it.second == time }?.first
-                                                    ?: ""
-                                            listingData.find { it.key == "ending" }?.interpretation =
-                                                "$title $time"
-
-                                            timeEndingSelected.value = time
-
-                                            isShowClear.value = checkSize()
-                                           isRefreshing.value = true
-                                        },
-                                        onClearItem = {
-                                            listingData.find { it.key == "ending" }?.value =
-                                                ""
-                                            listingData.find { it.key == "ending" }?.interpretation =
-                                                null
-
-                                            timeEndingSelected.value = null
-
-                                            isShowClear.value = checkSize()
-                                           isRefreshing.value = true
-                                        }
-                                    )
-                                }
-                            }
-
-                            item {  }
-                        }
                     }
-                )
-            }
-        }
+                    //time filter
+                    item {
+                        ExpandableSection(
+                            title = stringResource(strings.timeParameterName),
+                            isExpanded = isExpanded3,
+                            onExpandChange = { isExpanded3 = !isExpanded3 },
+                            content = {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .heightIn(max = 800.dp)
+                                        .clip(MaterialTheme.shapes.small)
+                                        .background(colors.primaryColor)
+                                        .fillMaxWidth()
+                                        .padding(dimens.smallPadding),
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    item {
+                                        val title = stringResource(strings.offersFor)
 
-        AcceptedPageButton(
-            stringResource(strings.actionAcceptFilters),
-            Modifier.wrapContentWidth().padding(dimens.smallPadding)
-                .align(Alignment.BottomCenter)
-        ) {
-            onClosed(listingData)
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        ) {
+                                            Text(
+                                                text = title,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = colors.black
+                                            )
+
+                                            getDropdownMenu(
+                                                selectedText = timeNewSelected.value
+                                                    ?: stringResource(strings.chooseAction),
+                                                selects = timeOptions,
+                                                onItemClick = { time ->
+                                                    listingData.find { it.key == "new" }?.value =
+                                                        timeFilterMap.find { it.second == time }?.first
+                                                            ?: ""
+                                                    listingData.find { it.key == "new" }?.interpretation =
+                                                        "$title $time"
+
+                                                    timeNewSelected.value = time
+
+                                                    isShowClear.value = checkSize()
+                                                    isRefreshing.value = true
+                                                },
+                                                onClearItem = {
+                                                    listingData.find { it.key == "new" }?.value =
+                                                        ""
+                                                    listingData.find { it.key == "new" }?.interpretation =
+                                                        null
+
+                                                    timeNewSelected.value = null
+                                                    isShowClear.value = checkSize()
+                                                    isRefreshing.value = true
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    item {
+                                        val title =
+                                            stringResource(strings.newOffersWithoutRelistedFor)
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        ) {
+                                            Text(
+                                                text = title,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = colors.black
+                                            )
+
+                                            getDropdownMenu(
+                                                selectedText = timeNewWithoutRelistedSelected.value
+                                                    ?: stringResource(strings.chooseAction),
+                                                selects = timeOptions,
+                                                onItemClick = { time ->
+                                                    listingData.find { it.key == "new_without_relisted" }?.value =
+                                                        timeFilterMap.find { it.second == time }?.first
+                                                            ?: ""
+                                                    listingData.find { it.key == "new_without_relisted" }?.interpretation =
+                                                        "$title $time"
+
+                                                    timeNewWithoutRelistedSelected.value = time
+
+                                                    isShowClear.value = checkSize()
+                                                    isRefreshing.value = true
+                                                },
+                                                onClearItem = {
+                                                    listingData.find { it.key == "new_without_relisted" }?.value =
+                                                        ""
+                                                    listingData.find { it.key == "new_without_relisted" }?.interpretation =
+                                                        null
+
+                                                    timeNewWithoutRelistedSelected.value = null
+
+                                                    isShowClear.value = checkSize()
+                                                    isRefreshing.value = true
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    item {
+                                        val title = stringResource(strings.endingWith)
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                        ) {
+                                            Text(
+                                                text = title,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = colors.black
+                                            )
+
+                                            getDropdownMenu(
+                                                selectedText = timeEndingSelected.value
+                                                    ?: stringResource(strings.chooseAction),
+                                                selects = timeOptions,
+                                                onItemClick = { time ->
+                                                    listingData.find { it.key == "ending" }?.value =
+                                                        timeFilterMap.find { it.second == time }?.first
+                                                            ?: ""
+                                                    listingData.find { it.key == "ending" }?.interpretation =
+                                                        "$title $time"
+
+                                                    timeEndingSelected.value = time
+
+                                                    isShowClear.value = checkSize()
+                                                    isRefreshing.value = true
+                                                },
+                                                onClearItem = {
+                                                    listingData.find { it.key == "ending" }?.value =
+                                                        ""
+                                                    listingData.find { it.key == "ending" }?.interpretation =
+                                                        null
+
+                                                    timeEndingSelected.value = null
+
+                                                    isShowClear.value = checkSize()
+                                                    isRefreshing.value = true
+                                                }
+                                            )
+                                        }
+                                    }
+
+                                    item { }
+                                }
+                            }
+                        )
+                    }
+                }
+
+                AcceptedPageButton(
+                    stringResource(strings.actionAcceptFilters),
+                    Modifier.align(Alignment.BottomCenter)
+                ) {
+                    onClosed(listingData)
+                }
+            }
         }
     }
 }

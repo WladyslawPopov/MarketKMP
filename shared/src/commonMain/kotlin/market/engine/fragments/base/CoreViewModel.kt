@@ -73,7 +73,6 @@ open class CoreViewModel : ViewModel() {
     val userRepository: UserRepository by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
 
-
     private val _scrollState = MutableStateFlow(ScrollDataState())
     val scrollState: StateFlow<ScrollDataState> = _scrollState
 
@@ -108,12 +107,18 @@ open class CoreViewModel : ViewModel() {
     fun showToast(newToast: ToastItem) {
         _toastItem.value = newToast
         viewModelScope.launch {
-            delay(3000)
+            delay(2000)
             _toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
         }
     }
 
-    fun getOperationFields(id: Long,type: String, method: String, onSuccess: (title: String, List<Fields>) -> Unit){
+    fun getOperationFields(
+        id: Long,
+        type: String,
+        method: String,
+        onSuccess: (title: String, List<Fields>) -> Unit
+    )
+    {
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) {
                 operationsMethods.getOperationFields(id, type, method)
@@ -140,7 +145,8 @@ open class CoreViewModel : ViewModel() {
         body: HashMap<String, JsonElement> = hashMapOf(),
         onSuccess: () -> Unit,
         errorCallback: (List<Fields>?) -> Unit
-    ){
+    )
+    {
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) { operationsMethods.postOperationFields(id, type, method, body) }
             withContext(Dispatchers.Main) {
@@ -189,7 +195,8 @@ open class CoreViewModel : ViewModel() {
         }
     }
 
-    fun updateUserInfo(){
+    fun updateUserInfo()
+    {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.Unconfined) {
@@ -204,14 +211,16 @@ open class CoreViewModel : ViewModel() {
         }
     }
 
-    fun refresh(){
+    fun refresh()
+    {
         _updatePage.value++
         updateUserInfo()
         onError(ServerErrorException())
         resetScroll()
     }
 
-    fun addToFavorites(offer : OfferItem, onSuccess: (Boolean) -> Unit) {
+    fun addToFavorites(offer : OfferItem, onSuccess: (Boolean) -> Unit)
+    {
         if(UserData.token != "") {
             viewModelScope.launch {
                 val buf = withContext(Dispatchers.IO) {

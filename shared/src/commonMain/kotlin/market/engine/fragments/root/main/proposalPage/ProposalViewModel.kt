@@ -36,8 +36,6 @@ class ProposalViewModel: CoreViewModel() {
 
     val body = mutableStateOf<BodyListPayload<Proposals>?>(null)
 
-    val firstVisibleItem = MutableStateFlow(0)
-
     val rememberFields = mutableStateOf<MutableMap<Long, ArrayList<Fields>?>>(mutableMapOf())
 
     val rememberChoice = mutableStateOf<MutableMap<Long, Int>>(mutableMapOf())

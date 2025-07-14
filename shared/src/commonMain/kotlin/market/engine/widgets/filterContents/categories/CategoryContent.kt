@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,13 +18,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -46,7 +46,6 @@ fun CategoryContent(
     val categories = viewModel.categories.collectAsState()
     val selectedId = viewModel.selectedId.collectAsState()
 
-
     val onBack = remember {{
         if (searchData.value.searchCategoryID != 1L) {
             viewModel.navigateBack()
@@ -55,76 +54,85 @@ fun CategoryContent(
         }
     }}
 
-    val noFound : @Composable () -> Unit = remember(categories.value){{
+    val noFound : (@Composable () -> Unit)? = remember(categories.value){
         if (categories.value.isEmpty()) {
-            NoItemsFoundLayout(
-                textButton = if(searchData.value.searchCategoryID != 1L) stringResource(strings.resetLabel)
-                else stringResource(strings.refreshButton),
-            ) {
-                viewModel.resetToRoot()
+            {
+                NoItemsFoundLayout(
+                    textButton = if (searchData.value.searchCategoryID != 1L) stringResource(strings.resetLabel)
+                    else stringResource(strings.refreshButton),
+                ) {
+                    viewModel.resetToRoot()
+                }
             }
+        } else {
+            null
         }
-    }}
+    }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimens.smallPadding),
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                AnimatedVisibility(
+                    visible = searchData.value.searchCategoryID != 1L,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    NavigationArrowButton {
+                        if (!isLoading.value) {
+                            onBack()
+                        }
+                    }
+                }
+
+                TextAppBar(
+                    buildString {
+                        if (searchData.value.searchCategoryID == 1L) {
+                            append(viewModel.catDef.value)
+                        } else {
+                            append(searchData.value.searchCategoryName)
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+
+                if (searchData.value.searchCategoryID != 1L) {
+                    ActionButton(
+                        stringResource(strings.clear),
+                        fontSize = dimens.mediumText,
+                    ) {
+                        viewModel.resetToRoot()
+                    }
+                }
+            }
+        },
         onRefresh = {
             viewModel.onRefresh()
         },
         error = null,
-        noFound = null,//important, because we have our own noFound
+        noFound = noFound,
         isLoading = isLoading.value,
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Box(modifier) {
+        modifier = modifier,
+    ) { contentPadding ->
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(contentPadding)
+        )
+        {
             LazyColumnWithScrollBars(
                 modifierList = Modifier
                     .fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
-                    .padding(bottom = 60.dp)
                     .align(Alignment.TopCenter),
                 horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding())
             ) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AnimatedVisibility(
-                            visible = searchData.value.searchCategoryID != 1L,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            NavigationArrowButton {
-                                if (!isLoading.value) {
-                                    onBack()
-                                }
-                            }
-                        }
-
-                        TextAppBar(
-                            buildString {
-                                if (searchData.value.searchCategoryID == 1L) {
-                                    append(viewModel.catDef.value)
-                                } else {
-                                    append(searchData.value.searchCategoryName)
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-
-                        if (searchData.value.searchCategoryID != 1L) {
-                            ActionButton(
-                                stringResource(strings.clear),
-                                fontSize = dimens.mediumText,
-                            ) {
-                                viewModel.resetToRoot()
-                            }
-                        }
-                    }
-                }
-                item { noFound() }
                 items(categories.value) { category ->
                     val icon = getCategoryIcon(category.name)
 

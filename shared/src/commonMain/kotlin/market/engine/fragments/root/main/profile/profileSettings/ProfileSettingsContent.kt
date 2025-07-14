@@ -7,14 +7,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProfileSettingsTypes
-import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.main.profile.profileSettings.content.GlobalSettings
@@ -33,35 +33,34 @@ fun ProfileSettingsContent(
     val err = viewModel.errorMessage.collectAsState()
     val toastItem = viewModel.toastItem.collectAsState()
 
-    val refresh = {
-        viewModel.onError(ServerErrorException())
-        viewModel.refresh()
-    }
-
     BackHandler(model.backHandler){
         component.goToBack()
     }
 
-    val error : (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()){
-        {
-            OnError(err.value){
-                refresh()
+    val error : (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage.isNotBlank()) {
+            {
+                OnError(err.value) {
+                    viewModel.refreshPage()
+                }
             }
+        } else {
+            null
         }
-    }else{
-        null
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         modifier = Modifier.fillMaxSize(),
         isLoading = isLoading.value,
         onRefresh = {
-            refresh()
+            viewModel.refreshPage()
         },
         error = error,
         toastItem = toastItem.value
-    ) {
-        LazyColumnWithScrollBars{
+    ) { contentPadding ->
+        LazyColumnWithScrollBars(
+            contentPadding = contentPadding
+        ){
             item {
                 when(settingsType){
                     ProfileSettingsTypes.GLOBAL_SETTINGS -> GlobalSettings(component, viewModel)

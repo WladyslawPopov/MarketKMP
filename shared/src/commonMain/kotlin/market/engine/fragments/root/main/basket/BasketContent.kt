@@ -24,7 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.states.ScrollDataState
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -53,6 +53,7 @@ fun BasketContent(
 
     val isLoading = viewModel.isShowProgress.collectAsState()
     val isError = viewModel.errorMessage.collectAsState()
+    val toastItem = viewModel.toastItem.collectAsState()
 
     BackHandler(
         modelState.value.backHandler
@@ -98,7 +99,7 @@ fun BasketContent(
         }
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
                 data = basketState.value.appBarData
@@ -128,14 +129,14 @@ fun BasketContent(
         error = error,
         noFound = noFound,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         modifier = Modifier.fillMaxSize()
-    ) {
+    ) { contentPadding ->
         LazyColumnWithScrollBars(
             modifierList = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             state = scrollState,
-            contentPadding = dimens.smallPadding
+            contentPadding = contentPadding,
         ) {
             items(basketItemsState.value, key = { item -> item.user.id }) { itemState ->
                 BasketItemContent(

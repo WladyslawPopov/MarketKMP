@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,11 +22,12 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
-import market.engine.fragments.base.BaseContent
-import market.engine.fragments.base.listing.ListingBaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dialogs.AccessDialog
@@ -39,17 +41,20 @@ fun SubscriptionsContent(
     modifier: Modifier,
 ) {
     val modelState = component.model.subscribeAsState()
-    val subViewModel = modelState.value.subViewModel
-    val data = subViewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val updateItem = subViewModel.updateItem.collectAsState()
-    val titleDialog = subViewModel.titleDialog.collectAsState()
-    val deleteId = subViewModel.deleteId.collectAsState()
-    val listingBaseViewModel = subViewModel.listingBaseViewModel
+    val viewModel = modelState.value.subViewModel
+    val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
+    val updateItem = viewModel.updateItem.collectAsState()
+    val titleDialog = viewModel.titleDialog.collectAsState()
+    val deleteId = viewModel.deleteId.collectAsState()
+    val listingBaseViewModel = viewModel.listingBaseViewModel
     val listingDataState = listingBaseViewModel.listingData.collectAsState()
 
-    val createSubBtn = subViewModel.filterListingBtnItem.collectAsState()
+    val createSubBtn = viewModel.filterListingBtnItem.collectAsState()
+    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
 
     val listingData = listingDataState.value.data
+
+    val listingScroll = rememberLazyScrollState(viewModel)
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -60,7 +65,7 @@ fun SubscriptionsContent(
                     title = stringResource(strings.emptySubscriptionsLabel),
                     image = drawables.emptyFavoritesImage
                 ) {
-                    subViewModel.refresh()
+                    viewModel.refresh()
                 }
             }
         } else {
@@ -68,87 +73,94 @@ fun SubscriptionsContent(
         }
     }
 
-    val err = subViewModel.errorMessage.collectAsState()
+    val err = viewModel.errorMessage.collectAsState()
 
-    val error : (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
-        { OnError(err.value) { subViewModel.refresh() } }
-    }else{
-        null
+    val error : (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage != "") {
+            { OnError(err.value) { viewModel.refresh() } }
+        }else{
+            null
+        }
     }
 
     BackHandler(modelState.value.backHandler){
-        subViewModel.backClick()
+        viewModel.backClick()
     }
 
-    BaseContent(
-        topBar = null,
-        onRefresh = {
-            component.onRefresh()
-        },
-        error = error,
-        noFound = null,
-        isLoading = isLoading.value,
-        toastItem = subViewModel.toastItem.value,
-        modifier = modifier.fillMaxSize()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SmallIconButton(
-                drawables.newLotIcon,
-                color = colors.positiveGreen,
-                modifier = Modifier.size(dimens.smallIconSize)
-            ) {
-                component.goToCreateNewSubscription()
-            }
-
-            if (listingData.sort != null){
-                ActiveFilterListingItem(createSubBtn.value.first())
-            }
-
-            SmallIconButton(
-                drawables.sortIcon,
-                color = colors.black
-            ){
-                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
+    when (activeType.value) {
+        ActiveWindowListingType.SORTING -> {
+            SortingOrdersContent(
+                listingData.sort,
+                modifier
+            ){ newSort ->
+                listingBaseViewModel.applySorting(newSort)
             }
         }
 
-        ListingBaseContent(
-            data = data,
-            viewModel = listingBaseViewModel,
-            noFound = noFound,
-            filtersContent = { activeWindowType ->
-                when (activeWindowType){
-                    ActiveWindowListingType.SORTING -> {
-                        SortingOrdersContent(
-                            listingData.sort,
-                        ){ newSort ->
-                            listingBaseViewModel.applySorting(newSort)
+        else -> {
+            EdgeToEdgeScaffold(
+                topBar = {
+                    Row(
+                        modifier = Modifier.background(colors.primaryColor).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            dimens.mediumPadding,
+                            Alignment.End
+                        ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SmallIconButton(
+                            drawables.newLotIcon,
+                            color = colors.positiveGreen,
+                            modifier = Modifier.size(dimens.smallIconSize)
+                        ) {
+                            component.goToCreateNewSubscription()
+                        }
+
+                        if (listingData.sort != null) {
+                            ActiveFilterListingItem(createSubBtn.value.first())
+                        }
+
+                        SmallIconButton(
+                            drawables.sortIcon,
+                            color = colors.black
+                        ) {
+                            listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
                         }
                     }
-                    else -> {}
-                }
-            },
-            item = { subscription ->
-                SubscriptionItem(
-                    subscription,
-                    updateItem.value
+                },
+                onRefresh = {
+                    component.onRefresh()
+                },
+                error = error,
+                noFound = noFound,
+                isLoading = isLoading.value,
+                toastItem = viewModel.toastItem.value,
+                modifier = modifier.fillMaxSize()
+            ) { contentPadding ->
+                PagingLayout(
+                    data = data,
+                    viewModel = listingBaseViewModel,
+                    state = listingScroll.scrollState,
+                    contentPadding = contentPadding,
+                    content = { subscription ->
+                        SubscriptionItem(
+                            subscription,
+                            updateItem.value
+                        )
+                    }
+                )
+
+                AccessDialog(
+                    showDialog = deleteId.value != 1L,
+                    title = titleDialog.value,
+                    onDismiss = {
+                        viewModel.closeDialog()
+                    },
+                    onSuccess = {
+                        viewModel.deleteSubscription(deleteId.value)
+                    }
                 )
             }
-        )
-
-        AccessDialog(
-            showDialog = deleteId.value != 1L,
-            title = titleDialog.value,
-            onDismiss = {
-                subViewModel.closeDialog()
-            },
-            onSuccess = {
-                subViewModel.deleteSubscription(deleteId.value)
-            }
-        )
+        }
     }
 }

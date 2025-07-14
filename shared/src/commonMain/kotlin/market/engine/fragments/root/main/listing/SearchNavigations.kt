@@ -45,9 +45,9 @@ import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
+import market.engine.fragments.root.main.proposalPage.DefaultProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
-import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
@@ -114,7 +114,7 @@ fun SearchNavigation(
     ) { child ->
         when (val screen = child.instance) {
             is ChildSearch.ListingChild -> ListingContent(screen.component, modifier)
-            is ChildSearch.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildSearch.OfferChild -> OfferContent(screen.component)
             is ChildSearch.UserChild -> UserContent(screen.component, modifier)
             is ChildSearch.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildSearch.CreateOrderChild -> CreateOrderContent(screen.component)
@@ -352,22 +352,25 @@ fun createSearchChild(
         )
 
         is SearchConfig.ProposalScreen -> ChildSearch.ProposalChild(
-            component = proposalFactory(
-                componentContext = componentContext,
-                offerId = config.offerId,
-                proposalType = config.proposalType,
-                navigateBack = {
-                    searchNavigation.pop()
-                },
-                navigateToUser = {
-                    searchNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
-                    )
-                },
-                navigateToOffer = {
-                    searchNavigation.pop()
-                }
-            )
+            component =
+                DefaultProposalComponent(
+                    offerId = config.offerId,
+                    proposalType = config.proposalType,
+                    componentContext = componentContext,
+                    navigateToOffer = {
+                        searchNavigation.pushNew(
+                            OfferScreen(it, getCurrentDate())
+                        )
+                    },
+                    navigateToUser = {
+                        searchNavigation.pushNew(
+                            UserScreen(it, getCurrentDate(), false)
+                        )
+                    },
+                    navigateBack = {
+                        searchNavigation.pop()
+                    }
+                )
         )
 
         is SearchConfig.CreateSubscriptionScreen -> {

@@ -1,11 +1,14 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -31,6 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealType
 import market.engine.core.utils.convertDateWithMinutes
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.DateBtn
 import market.engine.widgets.dialogs.DateDialog
@@ -45,6 +49,7 @@ import org.jetbrains.compose.resources.stringResource
 fun OrderFilterContent(
     initialFilters: List<Filter>,
     typeFilters: DealType,
+    modifier: Modifier = Modifier,
     onClose: (newFilters : List<Filter>) -> Unit,
 ) {
     var filters by remember { mutableStateOf(initialFilters.map { it.copy() }) }
@@ -59,339 +64,378 @@ fun OrderFilterContent(
 
     val isShowClear = remember { mutableStateOf(checkSize()) }
 
-    val sellerLoginTextState = remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
-    val sellerIdTextState = remember { mutableStateOf(filters.find { it.key == "seller_id" }?.value ?: "") }
+    val sellerLoginTextState =
+        remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
+    val sellerIdTextState =
+        remember { mutableStateOf(filters.find { it.key == "seller_id" }?.value ?: "") }
 
-    val buyerIdTextState = remember { mutableStateOf(filters.find { it.key == "buyer_id" }?.value ?: "") }
-    val buyerLoginTextState = remember { mutableStateOf(filters.find { it.key == "buyer_login" }?.value ?: "") }
+    val buyerIdTextState =
+        remember { mutableStateOf(filters.find { it.key == "buyer_id" }?.value ?: "") }
+    val buyerLoginTextState =
+        remember { mutableStateOf(filters.find { it.key == "buyer_login" }?.value ?: "") }
 
-    val idOrderTextState = remember { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
+    val idOrderTextState = remember { mutableStateOf(filters.find { it.key == "id" }?.value ?: "") }
 
-    val idOfferTextState = remember { mutableStateOf(filters.find { it.key == "offer_id"}?.value ?: "") }
-    val nameOfferTextState = remember { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
+    val idOfferTextState =
+        remember { mutableStateOf(filters.find { it.key == "offer_id" }?.value ?: "") }
+    val nameOfferTextState =
+        remember { mutableStateOf(filters.find { it.key == "search" }?.value ?: "") }
 
     val from = stringResource(strings.fromAboutTimeLabel)
     val to = stringResource(strings.toAboutTimeLabel)
 
-    val showDateDialog : MutableState<String?> = remember { mutableStateOf(null) }
+    val showDateDialog: MutableState<String?> = remember { mutableStateOf(null) }
 
-    val fromThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation ?: from) }
-    val toThisDateTextState = remember { mutableStateOf(filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation ?: to) }
-
-    Box(
-        modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
-            detectTapGestures(onTap = {
-                focusManager.clearFocus()
-            })
-        }.padding(dimens.smallPadding),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        //Header Filters
-        FilterContentHeaderBar(
-            title = stringResource(strings.filter),
-            isShowClearBtn = isShowClear.value,
-            onClear = {
-                DealFilters.clearTypeFilter(typeFilters)
-                filters = DealFilters.getByTypeFilter(typeFilters)
-                isRefreshing.value = true
-                isShowClear.value = checkSize()
-                onClose(filters)
-            },
-            onClosed = {
-                onClose(filters)
-            }
+    val fromThisDateTextState = remember {
+        mutableStateOf(
+            filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation
+            ?: from
         )
+    }
+    val toThisDateTextState = remember {
+        mutableStateOf(
+            filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation
+            ?: to
+        )
+    }
 
-        LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
-            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = dimens.smallPadding,
-        ) {
-            item {
-                Row(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val sellerId = stringResource(strings.sellerIdParameterName)
-                    val sellerLogin = stringResource(strings.sellerLoginParameterName)
-
-                    if (filters.find { it.key == "seller_id" }?.value != null) {
-                        TextFieldWithState(
-                            label = sellerId,
-                            textState = sellerIdTextState,
-                            onTextChange = { text ->
-                                if (sellerIdTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "seller_id" }?.apply {
-                                        value = text
-                                        interpretation = "$sellerId: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "seller_id" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                sellerIdTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            isNumber = true,
-                            modifier = Modifier.weight(1f)
-                        )
+    AnimatedVisibility(
+        visible = true,
+        enter = expandVertically(),
+        exit = shrinkVertically(),
+    )
+    {
+        EdgeToEdgeScaffold(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(dimens.smallPadding)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                },
+            isLoading = false,
+            topBar = {
+                FilterContentHeaderBar(
+                    title = stringResource(strings.filter),
+                    isShowClearBtn = isShowClear.value,
+                    onClear = {
+                        DealFilters.clearTypeFilter(typeFilters)
+                        filters = DealFilters.getByTypeFilter(typeFilters)
+                        isRefreshing.value = true
+                        isShowClear.value = checkSize()
+                        onClose(filters)
+                    },
+                    onClosed = {
+                        onClose(filters)
                     }
+                )
+            },
+        ) { contentPadding ->
+            Box(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
+                LazyColumnWithScrollBars(
+                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),
+                )
+                {
+                    item {
+                        Row(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val sellerId = stringResource(strings.sellerIdParameterName)
+                            val sellerLogin = stringResource(strings.sellerLoginParameterName)
 
-                    if (filters.find { it.key == "seller_login" }?.value != null) {
-                        TextFieldWithState(
-                            label = sellerLogin,
-                            textState = sellerLoginTextState,
-                            onTextChange = { text ->
-                                if (sellerLoginTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "seller_login" }?.apply {
-                                        value = text
-                                        interpretation = "$sellerLogin: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "seller_login" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                sellerLoginTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val buyerId = stringResource(strings.buyerIdParameterName)
-                    val buyerLogin = stringResource(strings.buyerLoginParameterName)
-
-                    if (filters.find { it.key == "buyer_id" }?.value != null) {
-                        TextFieldWithState(
-                            label = buyerId,
-                            textState = buyerIdTextState,
-                            onTextChange = { text ->
-                                if (buyerIdTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "buyer_id" }?.apply {
-                                        value = text
-                                        interpretation = "$buyerId: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "buyer_id" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                buyerIdTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            isNumber = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    if (filters.find { it.key == "buyer_login" }?.value != null) {
-                        TextFieldWithState(
-                            label = buyerLogin,
-                            textState = buyerLoginTextState,
-                            onTextChange = { text ->
-                                if (buyerLoginTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "buyer_login" }?.apply {
-                                        value = text
-                                        interpretation = "$buyerLogin: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "buyer_login" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                buyerLoginTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val offerId = stringResource(strings.offerIdParameterName)
-                    val orderId = stringResource(strings.orderIdParameterName)
-
-                    if (filters.find { it.key == "offer_id" }?.value != null) {
-                        TextFieldWithState(
-                            label = offerId,
-                            textState = idOfferTextState,
-                            onTextChange = { text ->
-                                if (idOfferTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "offer_id" }?.apply {
-                                        value = text
-                                        interpretation = "$offerId: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "offer_id" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                idOfferTextState.value = text
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            isNumber = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    if (filters.find { it.key == "id" }?.value != null) {
-                        TextFieldWithState(
-                            label = orderId,
-                            textState = idOrderTextState,
-                            onTextChange = { text ->
-                                if (idOrderTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "id" }?.apply {
-                                        value = text
-                                        interpretation = "$orderId: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "id" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            isNumber = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val offerTitle = stringResource(strings.searchOfferNameParameterName)
-
-                    if (filters.find { it.key == "search" }?.value != null) {
-                        TextFieldWithState(
-                            label = offerTitle,
-                            textState = nameOfferTextState,
-                            onTextChange = { text ->
-                                if (nameOfferTextState.value.isNotBlank()) {
-                                    filters.find { filter -> filter.key == "search" }?.apply {
-                                        value = text
-                                        interpretation = "$offerTitle: $text"
-                                    }
-                                } else {
-                                    filters.find { it.key == "search" }.let {
-                                        it?.value = ""
-                                        it?.interpretation = null
-                                    }
-                                }
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            modifier = Modifier.weight(1f),
-                            leadingIcon = {
-                                Icon(
-                                    painterResource(drawables.searchIcon),
-                                    "",
-                                    tint = colors.black,
-                                    modifier = Modifier.size(dimens.smallIconSize)
+                            if (filters.find { it.key == "seller_id" }?.value != null) {
+                                TextFieldWithState(
+                                    label = sellerId,
+                                    textState = sellerIdTextState,
+                                    onTextChange = { text ->
+                                        if (sellerIdTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "seller_id" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$sellerId: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "seller_id" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        sellerIdTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    isNumber = true,
+                                    modifier = Modifier.weight(1f)
                                 )
                             }
-                        )
+
+                            if (filters.find { it.key == "seller_login" }?.value != null) {
+                                TextFieldWithState(
+                                    label = sellerLogin,
+                                    textState = sellerLoginTextState,
+                                    onTextChange = { text ->
+                                        if (sellerLoginTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "seller_login" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$sellerLogin: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "seller_login" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        sellerLoginTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val buyerId = stringResource(strings.buyerIdParameterName)
+                            val buyerLogin = stringResource(strings.buyerLoginParameterName)
+
+                            if (filters.find { it.key == "buyer_id" }?.value != null) {
+                                TextFieldWithState(
+                                    label = buyerId,
+                                    textState = buyerIdTextState,
+                                    onTextChange = { text ->
+                                        if (buyerIdTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "buyer_id" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$buyerId: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "buyer_id" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        buyerIdTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    isNumber = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            if (filters.find { it.key == "buyer_login" }?.value != null) {
+                                TextFieldWithState(
+                                    label = buyerLogin,
+                                    textState = buyerLoginTextState,
+                                    onTextChange = { text ->
+                                        if (buyerLoginTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "buyer_login" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$buyerLogin: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "buyer_login" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        buyerLoginTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val offerId = stringResource(strings.offerIdParameterName)
+                            val orderId = stringResource(strings.orderIdParameterName)
+
+                            if (filters.find { it.key == "offer_id" }?.value != null) {
+                                TextFieldWithState(
+                                    label = offerId,
+                                    textState = idOfferTextState,
+                                    onTextChange = { text ->
+                                        if (idOfferTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "offer_id" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$offerId: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "offer_id" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        idOfferTextState.value = text
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    isNumber = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            if (filters.find { it.key == "id" }?.value != null) {
+                                TextFieldWithState(
+                                    label = orderId,
+                                    textState = idOrderTextState,
+                                    onTextChange = { text ->
+                                        if (idOrderTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "id" }?.apply {
+                                                value = text
+                                                interpretation = "$orderId: $text"
+                                            }
+                                        } else {
+                                            filters.find { it.key == "id" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    isNumber = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val offerTitle = stringResource(strings.searchOfferNameParameterName)
+
+                            if (filters.find { it.key == "search" }?.value != null) {
+                                TextFieldWithState(
+                                    label = offerTitle,
+                                    textState = nameOfferTextState,
+                                    onTextChange = { text ->
+                                        if (nameOfferTextState.value.isNotBlank()) {
+                                            filters.find { filter -> filter.key == "search" }
+                                                ?.apply {
+                                                    value = text
+                                                    interpretation = "$offerTitle: $text"
+                                                }
+                                        } else {
+                                            filters.find { it.key == "search" }.let {
+                                                it?.value = ""
+                                                it?.interpretation = null
+                                            }
+                                        }
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    leadingIcon = {
+                                        Icon(
+                                            painterResource(drawables.searchIcon),
+                                            "",
+                                            tint = colors.black,
+                                            modifier = Modifier.size(dimens.smallIconSize)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        Column(
+                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp)
+                                .padding(dimens.mediumPadding),
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            DynamicLabel(
+                                stringResource(strings.dateCreatedLabel),
+                                false,
+                            )
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (filters.find { it.key == "created_ts" && it.operation == "gte" }?.value != null) {
+                                    DateBtn(
+                                        fromThisDateTextState.value,
+                                        Modifier.weight(1f)
+                                    ) {
+                                        showDateDialog.value = "from"
+                                    }
+                                }
+
+                                if (filters.find { it.key == "created_ts" && it.operation == "lte" }?.value != null) {
+                                    DateBtn(
+                                        toThisDateTextState.value,
+                                        Modifier.weight(1f)
+                                    ) {
+                                        showDateDialog.value = "to"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-            }
-            item {
-                Column(
-                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp).padding(dimens.mediumPadding),
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    horizontalAlignment = Alignment.Start
+
+                AcceptedPageButton(
+                    stringResource(strings.actionAcceptFilters),
+                    Modifier.align(Alignment.BottomCenter)
                 ) {
-                    DynamicLabel(
-                        stringResource(strings.dateCreatedLabel),
-                        false,
-                    )
+                    onClose(filters)
+                }
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (filters.find { it.key == "created_ts" && it.operation == "gte" }?.value != null) {
-                            DateBtn(
-                                fromThisDateTextState.value,
-                                Modifier.weight(1f)
-                            ){
-                                showDateDialog.value = "from"
-                            }
+                DateDialog(
+                    showDialog = showDateDialog.value != null,
+                    onDismiss = {
+                        showDateDialog.value = null
+                    },
+                    onSucceed = { futureTimeInSeconds ->
+                        if (showDateDialog.value == "from") {
+                            fromThisDateTextState.value =
+                                "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                            filters.find { it.key == "created_ts" && it.operation == "gte" }?.value =
+                                futureTimeInSeconds.toString()
+                            filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation =
+                                fromThisDateTextState.value
+
+                        } else {
+                            toThisDateTextState.value =
+                                "$to: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                            filters.find { it.key == "created_ts" && it.operation == "lte" }?.value =
+                                futureTimeInSeconds.toString()
+                            filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation =
+                                toThisDateTextState.value
                         }
 
-                        if (filters.find { it.key == "created_ts" && it.operation == "lte" }?.value != null) {
-                            DateBtn(
-                                toThisDateTextState.value,
-                                Modifier.weight(1f)
-                            ){
-                                showDateDialog.value = "to"
-                            }
-                        }
+                        isRefreshing.value = true
+                        isShowClear.value = checkSize()
+                        showDateDialog.value = null
                     }
-                }
+                )
             }
-        }
-
-        DateDialog(
-            showDialog = showDateDialog.value != null,
-            onDismiss = {
-                showDateDialog.value = null
-            },
-            onSucceed = { futureTimeInSeconds ->
-                if (showDateDialog.value == "from"){
-                    fromThisDateTextState.value = "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
-                    filters.find { it.key == "created_ts" && it.operation == "gte" }?.value = futureTimeInSeconds.toString()
-                    filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation = fromThisDateTextState.value
-
-                }else{
-                    toThisDateTextState.value = "$to: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
-                    filters.find { it.key == "created_ts" && it.operation == "lte" }?.value = futureTimeInSeconds.toString()
-                    filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation = toThisDateTextState.value
-                }
-
-                isRefreshing.value = true
-                isShowClear.value = checkSize()
-                showDateDialog.value = null
-            }
-        )
-
-        AcceptedPageButton(
-            stringResource(strings.actionAcceptFilters),
-            Modifier
-                .align(Alignment.BottomCenter)
-                .padding(dimens.mediumPadding)
-        ){
-            onClose(filters)
         }
     }
 }

@@ -2,12 +2,9 @@ package market.engine.fragments.root.main.createSubscription
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -16,6 +13,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,7 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.checkboxs.DynamicCheckbox
@@ -58,6 +56,8 @@ fun CreateSubscriptionContent(
     val err = viewModel.errorMessage.collectAsState()
 
     val uiState = viewModel.createSubContentState.collectAsState()
+
+    val toastItem = viewModel.toastItem.collectAsState()
 
     val appBar = uiState.value.appBar
     val page = uiState.value.page
@@ -95,6 +95,12 @@ fun CreateSubscriptionContent(
         }
     }
 
+    LaunchedEffect(scaffoldState.bottomSheetState.currentValue){
+        if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded){
+            viewModel.closeCategory()
+        }
+    }
+
     BackHandler(
         backHandler = model.value.backHandler,
         onBack = {
@@ -102,7 +108,7 @@ fun CreateSubscriptionContent(
         }
     )
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
                 data = appBar
@@ -120,22 +126,22 @@ fun CreateSubscriptionContent(
         error = error,
         noFound = null,
         isLoading = isLoading.value,
-        toastItem = viewModel.toastItem.value,
-        modifier = Modifier.fillMaxSize()
-
-    ) {
+        toastItem = toastItem.value,
+        modifier = Modifier.pointerInput(Unit){
+            detectTapGestures {
+                focusManager.clearFocus()
+            }
+        }.fillMaxSize()
+    ) { contentPadding ->
         BottomSheetScaffold(
             scaffoldState = scaffoldState,
-            modifier = Modifier.fillMaxSize(),
-            sheetContentColor = colors.primaryColor,
             sheetContainerColor = colors.primaryColor,
-            contentColor = colors.primaryColor,
-            containerColor = colors.primaryColor,
             sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = false,
+            sheetSwipeEnabled = categoryState.openCategory,
             sheetContent = {
                 CategoryContent(
                     viewModel= categoryState.categoryViewModel,
+                    modifier = Modifier.padding(top = contentPadding.calculateTopPadding()),
                     onCompleted = {
                         viewModel.applyCategory(
                             categoryName = searchData.value.searchCategoryName,
@@ -149,100 +155,85 @@ fun CreateSubscriptionContent(
                 )
             },
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                },
-                contentAlignment = Alignment.TopCenter
-            ) {
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 2 else 1),
-                    modifier = Modifier.pointerInput(Unit){
-                        detectTapGestures {
-                            focusManager.clearFocus()
-                        }
-                    }.fillMaxSize().padding(dimens.mediumPadding),
-                    userScrollEnabled = true,
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimens.smallPadding,
-                        Alignment.CenterHorizontally
-                    ),
-                    verticalItemSpacing = dimens.smallPadding,
-                    content = {
-                        val items = page?.fields
-                        if (items != null) {
-                            items(
-                                items.size,
-                                key = { items[it].key ?: it }
-                            ) { index ->
-                                val field = items[index]
-                                when (field.widgetType) {
-                                    "input" -> {
-                                        if (field.key == "category_id"){
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.Start,
-                                                modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
-                                            ){
-                                                FilterButton(
-                                                    searchData.value.searchCategoryName,
-                                                    color = if(searchData.value.searchCategoryID == 1L)
-                                                        colors.simpleButtonColors else colors.themeButtonColors,
-                                                    onClick = {
-                                                        viewModel.openCategory()
-                                                    },
-                                                    onCancelClick =if(searchData.value.searchCategoryID != 1L) {
-                                                        {
-                                                            viewModel.clearCategory()
-                                                        }
-                                                    }else{
-                                                        null
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(if (isBigScreen.value) 2 else 1),
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(
+                    dimens.smallPadding,
+                    Alignment.CenterHorizontally
+                ),
+                verticalItemSpacing = dimens.smallPadding,
+                contentPadding = contentPadding,
+                content = {
+                    val items = page?.fields
+                    if (items != null) {
+                        items(
+                            items.size,
+                            key = { items[it].key ?: it }
+                        ) { index ->
+                            val field = items[index]
+                            when (field.widgetType) {
+                                "input" -> {
+                                    if (field.key == "category_id"){
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start,
+                                            modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
+                                        ){
+                                            FilterButton(
+                                                searchData.value.searchCategoryName,
+                                                color = if(searchData.value.searchCategoryID == 1L)
+                                                    colors.simpleButtonColors else colors.themeButtonColors,
+                                                onClick = {
+                                                    viewModel.openCategory()
+                                                },
+                                                onCancelClick =if(searchData.value.searchCategoryID != 1L) {
+                                                    {
+                                                        viewModel.clearCategory()
                                                     }
-                                                )
-                                            }
-                                        }else{
-                                            DynamicInputField(field)
+                                                }else{
+                                                    null
+                                                }
+                                            )
                                         }
-                                    }
-                                    "checkbox" -> {
-                                        DynamicCheckbox(field)
-                                    }
-                                    "select" -> {
-                                        DynamicSelect(field)
-                                    }
-                                    "checkbox_group" -> {
-                                        DynamicCheckboxGroup(field)
-                                    }
-                                    else -> {
-
+                                    }else{
+                                        DynamicInputField(field)
                                     }
                                 }
-                            }
-                        }
+                                "checkbox" -> {
+                                    DynamicCheckbox(field)
+                                }
+                                "select" -> {
+                                    DynamicSelect(field)
+                                }
+                                "checkbox_group" -> {
+                                    DynamicCheckboxGroup(field)
+                                }
+                                else -> {
 
-                        item {
-                            AcceptedPageButton(
-                                stringResource(if (model.value.editId == null)
-                                    strings.createNewSubscriptionTitle
-                                else
-                                    strings.editLabel),
-                                Modifier.align(Alignment.BottomCenter)
-                                    .wrapContentWidth()
-                                    .padding(dimens.mediumPadding),
-                                enabled = !isLoading.value
-                            ) {
-                                viewModel.postPage(model.value.editId){
-                                    component.onBackClicked()
                                 }
                             }
                         }
                     }
-                )
 
-                Spacer(modifier = Modifier.height(dimens.mediumSpacer))
-            }
+                    item {
+                        AcceptedPageButton(
+                            stringResource(if (model.value.editId == null)
+                                strings.createNewSubscriptionTitle
+                            else
+                                strings.editLabel),
+                            Modifier.align(Alignment.BottomCenter)
+                                .wrapContentWidth()
+                                .padding(dimens.mediumPadding),
+                            enabled = !isLoading.value
+                        ) {
+                            viewModel.postPage(model.value.editId){
+                                component.onBackClicked()
+                            }
+                        }
+                    }
+                }
+            )
         }
     }
 }

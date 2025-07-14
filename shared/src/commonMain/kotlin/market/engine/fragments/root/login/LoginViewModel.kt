@@ -283,14 +283,6 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
                                         "login_email" to body["identity"]
                                     )
                                     analyticsHelper.reportEvent("login_fail_need_code", events)
-                                    if (response.humanMessage != "") {
-                                        showToast(
-                                            errorToastItem.copy(
-                                                message = response.humanMessage
-                                                    ?: getString(strings.errorLogin)
-                                            )
-                                        )
-                                    }
 
                                     auth2ContentState.update {
                                         it.copy(

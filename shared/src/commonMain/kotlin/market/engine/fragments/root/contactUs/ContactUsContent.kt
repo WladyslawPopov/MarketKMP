@@ -1,5 +1,6 @@
 package market.engine.fragments.root.contactUs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,7 +35,7 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
@@ -64,6 +65,7 @@ fun ContactUsContent(
 
     val isLoading = model.isShowProgress.collectAsState()
     val err = model.errorMessage.collectAsState()
+    val toast = model.toastItem.collectAsState()
 
     val dataImage = model.dataImage.collectAsState()
 
@@ -104,8 +106,12 @@ fun ContactUsContent(
         }
     }
 
-    BaseContent(
-        modifier = modifier.fillMaxSize(),
+    EdgeToEdgeScaffold(
+        modifier = modifier.background(colors.primaryColor).pointerInput(Unit){
+            detectTapGestures {
+                focusManager.clearFocus()
+            }
+        }.fillMaxSize(),
         topBar = {
             SimpleAppBar(
                 data = SimpleAppBarData(
@@ -121,22 +127,16 @@ fun ContactUsContent(
                 )
             }
         },
-        toastItem = model.toastItem.value,
+        toastItem = toast.value,
         error = error,
         isLoading = isLoading.value,
         onRefresh = { model.getFields() }
-    ) {
+    ) { contentPadding ->
         LazyColumnWithScrollBars(
-            heightMod = Modifier.pointerInput(Unit){
-                detectTapGestures {
-                    focusManager.clearFocus()
-                }
-            }.fillMaxSize(),
             modifierList = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f)
-                .padding(dimens.smallPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = contentPadding
         ) {
             items(responseGetFields.value?.fields ?: emptyList()) { field ->
                 when (field.widgetType) {

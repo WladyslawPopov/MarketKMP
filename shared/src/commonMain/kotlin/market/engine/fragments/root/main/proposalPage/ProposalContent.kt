@@ -3,13 +3,11 @@ package market.engine.fragments.root.main.proposalPage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +16,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -37,7 +34,8 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.utils.getOfferImagePreview
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.root.main.messenger.DialogsHeader
@@ -59,9 +57,7 @@ fun ProposalContent(
     val isLoading = viewModel.isShowProgress.collectAsState()
     val isError = viewModel.errorMessage.collectAsState()
 
-    val state = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.firstVisibleItem.value
-    )
+    val scrollState = rememberLazyScrollState(viewModel)
 
     val subtitle : MutableState<AnnotatedString> = remember {
         mutableStateOf(buildAnnotatedString {  })
@@ -73,7 +69,7 @@ fun ProposalContent(
 
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(proposalState.value){
+    LaunchedEffect(proposalState.value) {
         proposalState.value?.bodyList?.firstOrNull()?.let { prs ->
             subtitle.value = buildAnnotatedString {
                 when (type) {
@@ -113,40 +109,36 @@ fun ProposalContent(
         }
     }
 
-    LaunchedEffect(state){
-        snapshotFlow {
-            state.firstVisibleItemIndex
-        }.collect {
-            viewModel.firstVisibleItem.value = it
-        }
-    }
-
-    val noFound : (@Composable () -> Unit)? = if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL){
-        {
-            NoItemsFoundLayout(
-                icon = drawables.proposalIcon,
-                title = stringResource(strings.notFoundProposalsLabel),
-            ){
-                component.update()
+    val noFound : (@Composable () -> Unit)? = remember(proposalState.value) {
+        if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
+            {
+                NoItemsFoundLayout(
+                    icon = drawables.proposalIcon,
+                    title = stringResource(strings.notFoundProposalsLabel),
+                ) {
+                    component.update()
+                }
             }
+        } else {
+            null
         }
-    }else{
-        null
     }
 
-    val error : (@Composable () ->Unit)? = if (isError.value.humanMessage.isNotBlank()){
-        {
-            OnError(
-                isError.value
-            ){
-                component.update()
+    val error : (@Composable () ->Unit)? = remember(isError.value){
+        if (isError.value.humanMessage.isNotBlank()){
+            {
+                OnError(
+                    isError.value
+                ){
+                    component.update()
+                }
             }
+        }else{
+            null
         }
-    }else{
-        null
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             ProposalAppBar(
                 goBack =  {
@@ -156,6 +148,37 @@ fun ProposalContent(
                      component.update()
                  }
             )
+
+            DialogsHeader(
+                MesHeaderItem(
+                    title = buildAnnotatedString {
+                        append(offer.value.title)
+                    },
+                    subtitle = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                color = colors.grayText,
+                            )
+                        ) {
+                            append(stringResource(strings.priceParameterName))
+                            append(": ")
+                        }
+                        withStyle(
+                            SpanStyle(
+                                color = colors.priceTextColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
+                            append(offer.value.currentPricePerItem.toString())
+                            append(" ")
+                            append(stringResource(strings.currencyCode))
+                        }
+                    },
+                    image = offer.value.getOfferImagePreview(),
+                ) {
+                    component.goToOffer(offer.value.id)
+                }
+            )
         },
         onRefresh = {
             component.update()
@@ -164,93 +187,54 @@ fun ProposalContent(
         noFound = noFound,
         isLoading = isLoading.value,
         toastItem = viewModel.toastItem.value,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier.pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            }.fillMaxSize(),
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        }.fillMaxSize()
+    ) { contentPadding ->
+        LazyColumnWithScrollBars(
+            state = scrollState.scrollState,
+            modifierList = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
+            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val mesHed = MesHeaderItem(
-                title = buildAnnotatedString {
-                    append(offer.value.title)
-                },
-                subtitle = buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            color = colors.grayText,
-                        )
+        )
+        {
+            item {
+                if(subtitle.value.text != "") {
+                    Row(
+                        modifier = Modifier
+                            .padding(dimens.smallPadding)
+                            .background(
+                                colors.actionTextColor.copy(alpha = 0.25f),
+                                MaterialTheme.shapes.medium
+                            ).padding(dimens.smallPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        append(stringResource(strings.priceParameterName))
-                        append(": ")
-                    }
-                    withStyle(
-                        SpanStyle(
-                            color = colors.priceTextColor,
-                            fontWeight = FontWeight.Bold
+                        Text(
+                            subtitle.value,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.darkBodyTextColor
                         )
-                    ) {
-                        append(offer.value.currentPricePerItem.toString())
-                        append(" ")
-                        append(stringResource(strings.currencyCode))
                     }
-                },
-                image = offer.value.getOfferImagePreview(),
-            ) {
-                component.goToOffer(offer.value.id)
+                }
             }
 
-            DialogsHeader(
-                mesHed,
-            )
-
-            LazyColumnWithScrollBars(
-                state = state,
-                modifierList = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                item {
-                    if(subtitle.value.text != "") {
-                        Row(
-                            modifier = Modifier
-                                .padding(dimens.smallPadding)
-                                .align(Alignment.CenterHorizontally)
-                                .background(
-                                    colors.actionTextColor.copy(alpha = 0.25f),
-                                    MaterialTheme.shapes.medium
-                                ).padding(dimens.smallPadding),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                subtitle.value,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = colors.darkBodyTextColor
-                            )
-                        }
+            items(proposalState.value?.bodyList ?: emptyList()){ body ->
+                ProposalsItemContent(
+                    offer.value,
+                    body,
+                    type,
+                    viewModel,
+                    goToUser = {
+                        component.goToUser(it)
+                    },
+                    refresh = {
+                        component.update()
                     }
-                }
-
-                items(proposalState.value?.bodyList ?: emptyList()){ body ->
-                    ProposalsItemContent(
-                        offer.value,
-                        body,
-                        type,
-                        viewModel,
-                        goToUser = {
-                            component.goToUser(it)
-                        },
-                        refresh = {
-                            component.update()
-                        }
-                    )
-                }
-
-                item {}
+                )
             }
         }
     }

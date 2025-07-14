@@ -17,4 +17,5 @@ interface SearchEvents {
     fun clickSearchFinished()
     fun onTabSelect(tab : Int)
     fun updateSearch(value : TextFieldValue)
+    fun clearSearch()
 }

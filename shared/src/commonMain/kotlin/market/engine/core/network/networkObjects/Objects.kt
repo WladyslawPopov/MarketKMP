@@ -204,7 +204,6 @@ data class Offer(
     @SerialName("quantity") var quantity: Int = 0,
     @SerialName("snapshot_id") val snapshotId: Long = 1L,
     @SerialName("price_per_item") val pricePerItem: String? = null,
-    @SerialName("is_proposal_enabled") var isProposalEnabled: Boolean = false,
     @SerialName("version") var version: JsonElement? = null,
     @SerialName("is_prototype") var isPrototype : Boolean = false,
     @SerialName("external_url") val externalUrl : String? = null,

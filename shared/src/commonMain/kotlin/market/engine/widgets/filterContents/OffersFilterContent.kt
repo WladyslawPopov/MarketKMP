@@ -1,23 +1,22 @@
 package market.engine.widgets.filterContents
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +34,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.types.LotsType
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
 import market.engine.widgets.checkboxs.RadioOptionRow
@@ -52,6 +52,7 @@ fun OfferFilterContent(
     initialFilters: List<Filter>,
     filtersCategoryState: CategoryState,
     typeFilters: LotsType,
+    modifier: Modifier = Modifier,
     onClose: (newFilters : List<Filter>) -> Unit,
 ) {
     var listingData by remember { mutableStateOf(initialFilters.map { it.copy() }) }
@@ -119,8 +120,6 @@ fun OfferFilterContent(
         }
     }
 
-    val scaffoldState = rememberBottomSheetScaffoldState()
-
     val defCat = stringResource(strings.categoryMain)
 
     val openCategory = remember { mutableStateOf(filtersCategoryState.openCategory) }
@@ -147,215 +146,211 @@ fun OfferFilterContent(
         )
     }
 
-    LaunchedEffect(openCategory.value) {
-        if (openCategory.value) {
-            scaffoldState.bottomSheetState.expand()
-        } else {
-            scaffoldState.bottomSheetState.partialExpand()
-        }
-    }
+    AnimatedVisibility(
+        visible = true,
+        enter = expandVertically(),
+        exit = shrinkVertically(),
+    )
+    {
 
-    LaunchedEffect(scaffoldState.bottomSheetState.currentValue){
-        if(scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded){
-            openCategory.value = false
-        }
-    }
-
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        modifier = Modifier.fillMaxSize(),
-        sheetContentColor = colors.primaryColor,
-        sheetContainerColor = colors.white,
-        contentColor = colors.primaryColor,
-        containerColor = colors.primaryColor,
-        sheetPeekHeight = 0.dp,
-        sheetSwipeEnabled = true,
-        sheetContent = {
-            CategoryContent(
-                viewModel = viewModel,
-                onClose = {
-                    openCategory.value = false
+        EdgeToEdgeScaffold(
+            modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
                 },
-                onCompleted = {
-                    val sd = viewModel.searchData.value
-                    if (sd.searchCategoryID != 1L) {
-                        listingData.find { it.key == "category" }?.value = sd.searchCategoryID.toString()
-                        listingData.find { it.key == "category" }?.interpretation =
-                            sd.searchCategoryName
-                        listingData.find { it.key == "category" }?.operation =
-                            sd.searchIsLeaf.toString()
+            topBar = {
+                FilterContentHeaderBar(
+                    title = stringResource(strings.filter),
+                    isShowClearBtn = isShowClear.value,
+                    onClear = {
+                        OfferFilters.clearTypeFilter(typeFilters)
+                        listingData = OfferFilters.getByTypeFilter(typeFilters)
+                        isRefreshing.value = true
+                        isShowClear.value = false
+                        onClose(listingData)
+                    },
+                    onClosed = {
+                        onClose(listingData)
                     }
-
-                    selectedCategory.value = sd.searchCategoryName
-                    activeCategory.value = sd.searchCategoryID
-                    trigger.value++
-                    openCategory.value = false
-                }
-            )
-        },
-    ) {
-        Box(
-            modifier = Modifier.background(colors.primaryColor).fillMaxSize().pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            }.padding(dimens.smallPadding),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            //Header Filters
-            FilterContentHeaderBar(
-                title = stringResource(strings.filter),
-                isShowClearBtn = isShowClear.value,
-                onClear = {
-                    OfferFilters.clearTypeFilter(typeFilters)
-                    listingData = OfferFilters.getByTypeFilter(typeFilters)
-                    isRefreshing.value = true
-                    isShowClear.value = false
-                    onClose(listingData)
-                },
-                onClosed = {
-                    onClose(listingData)
-                }
-            )
-            LazyColumnWithScrollBars(
-                modifierList = Modifier.fillMaxSize().padding(bottom = 60.dp, top = 60.dp),
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                contentPadding = dimens.smallPadding,
-            ) {
-                //Expands
-                when(typeFilters){
-                    LotsType.FAVORITES -> {
-                        item {
-                            ExpandableSection(
-                                title = stringResource(strings.offersState),
-                                isExpanded = isExpanded1,
-                                onExpandChange = { isExpanded1 = !isExpanded1 },
-                                content = {
-                                    Column {
-                                        favExpandChoice.forEach { pair ->
-                                            RadioOptionRow(
-                                                pair,
-                                                selectedFilterKey.value
-                                            ){ _, choice ->
-                                                listingData.find { it.key == "state" }?.value = choice
-                                                selectedFilterKey.value = choice
-                                                isShowClear.value = checkSize()
-                                                isRefreshing.value = true
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
-                    LotsType.MY_LOT_INACTIVE -> {
-                        item {
-                            ExpandableSection(
-                                title = stringResource(strings.offersState),
-                                isExpanded = isExpanded2,
-                                onExpandChange = { isExpanded2 = !isExpanded2 },
-                                content = {
-                                    Column {
-                                        myOfferExpandChoice.forEach { pair ->
-                                            RadioOptionRow(
-                                                pair,
-                                                expandChoice.value
-                                            ){ isChecked, choice ->
-                                                if (isChecked) {
-                                                    setNewType("clear", choice)
-                                                    expandChoice.value = null
-                                                }else{
-                                                    expandChoice.value = choice
-                                                    setNewType(choice, choice)
-                                                }
-
-                                                isShowClear.value = checkSize()
-                                                isRefreshing.value = true
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
-                    else -> {}
-                }
-
-                item {
-                    InputsOfferFilterContent(
-                        listingData,
-                        trigger.value,
-                        onFiltersUpdated = {
-                            trigger.value++
-                            isRefreshing.value = true
-                            isShowClear.value = checkSize()
-                        },
-                        openCategory = {
-                            openCategory.value = true
-                        },
-                        clearCategory = {
-                            listingData.find { it.key == "category" }?.value = ""
-                            listingData.find { it.key == "category" }?.interpretation = null
-                            listingData.find { it.key == "category" }?.operation = null
-                            filtersCategoryState.categoryViewModel.resetToRoot()
-
-                            activeCategory.value = 1L
-                            selectedCategory.value = defCat
-                            trigger.value++
-                        }
-                    )
-                }
-
-                item {
-                    val title = stringResource(strings.saleTypeParameterName)
-
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ){
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleSmall
-                        )
-
-                        getDropdownMenu(
-                            selectedType.value,
-                            offersType[0].second,
-                            offersTypeFilterMap,
-                            modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-                            onItemClick = { type ->
-                                offersType.find { it.second == type }?.let { pair ->
-                                    listingData.find { it.key == "sale_type" }?.value =
-                                        pair.first
-                                    listingData.find { it.key == "sale_type" }?.interpretation =
-                                        pair.second
-                                    selectedType.value = pair.second
-                                }
-
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            },
-                            onClearItem = {
-                                listingData.find { it.key == "sale_type" }?.value =
-                                    ""
-                                listingData.find { it.key == "sale_type" }?.interpretation =
-                                    null
-                                selectedType.value = offersType[0].second
-                                isRefreshing.value = true
-                                isShowClear.value = checkSize()
-                            }
-                        )
-                    }
-                }
+                )
             }
+        ) { padding ->
+            if (openCategory.value) {
+                CategoryContent(
+                    modifier = Modifier.padding(top = padding.calculateTopPadding()),
+                    viewModel = viewModel,
+                    onClose = {
+                        openCategory.value = false
+                    },
+                    onCompleted = {
+                        val sd = viewModel.searchData.value
+                        if (sd.searchCategoryID != 1L) {
+                            listingData.find { it.key == "category" }?.value =
+                                sd.searchCategoryID.toString()
+                            listingData.find { it.key == "category" }?.interpretation =
+                                sd.searchCategoryName
+                            listingData.find { it.key == "category" }?.operation =
+                                sd.searchIsLeaf.toString()
+                        }
 
-            AcceptedPageButton(
-                stringResource(strings.actionAcceptFilters),
-                Modifier.align(Alignment.BottomCenter)
-                    .padding(dimens.mediumPadding)
-            ){
-                onClose(listingData)
+                        selectedCategory.value = sd.searchCategoryName
+                        activeCategory.value = sd.searchCategoryID
+                        trigger.value++
+                        openCategory.value = false
+                    }
+                )
+            } else {
+                Box(
+                    Modifier.padding(padding).fillMaxWidth()
+                )
+                {
+                    LazyColumnWithScrollBars(
+                        verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        contentPadding = PaddingValues(bottom = padding.calculateBottomPadding())
+                    )
+                    {
+                        //Expands
+                        when (typeFilters) {
+                            LotsType.FAVORITES -> {
+                                item {
+                                    ExpandableSection(
+                                        title = stringResource(strings.offersState),
+                                        isExpanded = isExpanded1,
+                                        onExpandChange = { isExpanded1 = !isExpanded1 },
+                                        content = {
+                                            Column {
+                                                favExpandChoice.forEach { pair ->
+                                                    RadioOptionRow(
+                                                        pair,
+                                                        selectedFilterKey.value
+                                                    ) { _, choice ->
+                                                        listingData.find { it.key == "state" }?.value =
+                                                            choice
+                                                        selectedFilterKey.value = choice
+                                                        isShowClear.value = checkSize()
+                                                        isRefreshing.value = true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+
+                            LotsType.MY_LOT_INACTIVE -> {
+                                item {
+                                    ExpandableSection(
+                                        title = stringResource(strings.offersState),
+                                        isExpanded = isExpanded2,
+                                        onExpandChange = { isExpanded2 = !isExpanded2 },
+                                        content = {
+                                            Column {
+                                                myOfferExpandChoice.forEach { pair ->
+                                                    RadioOptionRow(
+                                                        pair,
+                                                        expandChoice.value
+                                                    ) { isChecked, choice ->
+                                                        if (isChecked) {
+                                                            setNewType("clear", choice)
+                                                            expandChoice.value = null
+                                                        } else {
+                                                            expandChoice.value = choice
+                                                            setNewType(choice, choice)
+                                                        }
+
+                                                        isShowClear.value = checkSize()
+                                                        isRefreshing.value = true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+
+                            else -> {}
+                        }
+
+                        item {
+                            InputsOfferFilterContent(
+                                listingData,
+                                trigger.value,
+                                onFiltersUpdated = {
+                                    trigger.value++
+                                    isRefreshing.value = true
+                                    isShowClear.value = checkSize()
+                                },
+                                openCategory = {
+                                    openCategory.value = true
+                                },
+                                clearCategory = {
+                                    listingData.find { it.key == "category" }?.value = ""
+                                    listingData.find { it.key == "category" }?.interpretation =
+                                        null
+                                    listingData.find { it.key == "category" }?.operation = null
+                                    filtersCategoryState.categoryViewModel.resetToRoot()
+
+                                    activeCategory.value = 1L
+                                    selectedCategory.value = defCat
+                                    trigger.value++
+                                }
+                            )
+                        }
+
+                        item {
+                            val title = stringResource(strings.saleTypeParameterName)
+
+                            Column(
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+
+                                getDropdownMenu(
+                                    selectedType.value,
+                                    offersType[0].second,
+                                    offersTypeFilterMap,
+                                    modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                                    onItemClick = { type ->
+                                        offersType.find { it.second == type }?.let { pair ->
+                                            listingData.find { it.key == "sale_type" }?.value =
+                                                pair.first
+                                            listingData.find { it.key == "sale_type" }?.interpretation =
+                                                pair.second
+                                            selectedType.value = pair.second
+                                        }
+
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    },
+                                    onClearItem = {
+                                        listingData.find { it.key == "sale_type" }?.value =
+                                            ""
+                                        listingData.find { it.key == "sale_type" }?.interpretation =
+                                            null
+                                        selectedType.value = offersType[0].second
+                                        isRefreshing.value = true
+                                        isShowClear.value = checkSize()
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    AcceptedPageButton(
+                        stringResource(strings.actionAcceptFilters),
+                        Modifier.align(Alignment.BottomCenter)
+                    ) {
+                        onClose(listingData)
+                    }
+                }
             }
         }
     }

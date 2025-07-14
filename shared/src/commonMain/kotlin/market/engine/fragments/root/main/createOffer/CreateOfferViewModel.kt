@@ -192,7 +192,7 @@ class CreateOfferViewModel(
         CreateOfferContentState(
             appBarState = SimpleAppBarData(
                 onBackClick = {
-                    onBack()
+                    component.onBackClicked()
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -280,13 +280,6 @@ class CreateOfferViewModel(
         }
     }
 
-    fun onBack(){
-        if (!_isEditCat.value || searchData.value.searchCategoryID == 1L) {
-            component.onBackClicked()
-        }else{
-            categoryViewModel.navigateBack()
-        }
-    }
 
     fun setCatHistory() {
         getCategoriesHistory(catPath?.firstOrNull())

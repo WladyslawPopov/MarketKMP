@@ -4,13 +4,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
@@ -29,11 +33,12 @@ import market.engine.core.network.networkObjects.Reports
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
 
-class UserViewModel : CoreViewModel() {
+class UserViewModel(val userId: Long, val component: UserComponent) : CoreViewModel() {
 
     private val _userInfo = MutableStateFlow<User?>(null)
     val userInfo : StateFlow<User?> = _userInfo.asStateFlow()
@@ -45,33 +50,64 @@ class UserViewModel : CoreViewModel() {
 
     private val pagingRepository: PagingRepository<Reports> = PagingRepository()
 
-    val listingData = mutableStateOf(ListingData())
     val currentFilter = mutableStateOf("")
 
     val userOperations : UserOperations by lazy { getKoin().get() }
 
-    fun initFeedback(type : ReportPageType, userId : Long) : Flow<PagingData<Reports>> {
+    val listingBaseViewModel = ListingBaseViewModel()
 
-        when(type){
-            ReportPageType.ABOUT_ME ->{}
-            else -> {
-                listingData.value.data.filters = ReportFilters.getByTypeFilter(type)
-                listingData.value.data.filters.find { it.key == "user_id" }?.value = userId.toString()
-            }
-        }
-        listingData.value.data.methodServer = "get_public_listing"
-        listingData.value.data.objServer = "feedbacks"
+    private val listingData = listingBaseViewModel.listingData
 
-        val serializer = Reports.serializer()
-        return pagingRepository.getListing(listingData.value, apiService, serializer).cachedIn(viewModelScope)
+    init {
+        getUserInfo()
+
+        analyticsHelper.reportEvent("open_user_profile", hashMapOf("user_id" to userId.toString()))
     }
+
+    fun refreshListing(type : ReportPageType, userId : Long){
+        refresh()
+        ReportFilters.clearTypeFilter(type)
+        val newFilters = ReportFilters.getByTypeFilter(type)
+        newFilters.find { it.key == "user_id" }?.value = userId.toString()
+        listingBaseViewModel.setListingData(
+            ListingData(
+                data = LD(
+                    filters = newFilters,
+                    methodServer = "get_public_listing",
+                    objServer = "feedbacks"
+                )
+            )
+        )
+    }
+
+    val pagingParamsFlow: Flow<ListingData> = combine(
+        listingData,
+        updatePage
+    ) { listingData, _ ->
+        listingData
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagingDataFlow: Flow<PagingData<Reports>> = pagingParamsFlow.flatMapLatest{ listingData ->
+        val serializer = Reports.serializer()
+        pagingRepository.getListing(
+            listingData,
+            apiService,
+            serializer,
+            onTotalCountReceived = {
+                listingBaseViewModel.setTotalCount(it)
+            }
+        )
+    }.stateIn(
+        viewModelScope,
+        started = SharingStarted.Lazily,
+        PagingData.empty()
+    ).cachedIn(viewModelScope)
 
     private fun initializeUserData(user: User) {
         viewModelScope.launch {
             try {
-                coroutineScope {
-                    launch { _statusList.value = checkStatusSeller(user.id) }
-                }
+                _statusList.value = checkStatusSeller(user.id)
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Initialization error", ""))
             }
@@ -96,11 +132,12 @@ class UserViewModel : CoreViewModel() {
         return check
     }
 
-    fun getUserInfo(id : Long) {
+    fun getUserInfo() {
+        refresh()
         viewModelScope.launch {
             try {
                 val res =  withContext(Dispatchers.IO){
-                    userOperations.getUsers(id)
+                    userOperations.getUsers(userId)
                 }
 
                 withContext(Dispatchers.Main){

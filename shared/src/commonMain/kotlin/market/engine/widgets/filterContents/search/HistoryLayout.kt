@@ -95,7 +95,7 @@ fun HistoryLayout(
             heightMod = Modifier.fillMaxWidth()
                 .background(color = colors.primaryColor),
             modifierList = Modifier.fillMaxWidth(),
-            contentPadding = dimens.mediumPadding,
+//            contentPadding = dimens.mediumPadding,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.Start
         ) {

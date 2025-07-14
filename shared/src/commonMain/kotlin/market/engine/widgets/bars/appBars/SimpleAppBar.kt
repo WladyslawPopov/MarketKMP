@@ -27,7 +27,6 @@ fun SimpleAppBar(
     color: Color = colors.white,
     content : @Composable () -> Unit = {}
 ) {
-
     TopAppBar(
         modifier = modifier,
         title = {

@@ -100,9 +100,6 @@ class OfferViewModel(
     private val _showDialog = MutableStateFlow("")
     val showDialog = _showDialog.asStateFlow()
 
-    private val _errorString = MutableStateFlow("")
-    val errorString = _errorString.asStateFlow()
-
     val goToBids = 6
 
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
@@ -523,7 +520,7 @@ class OfferViewModel(
         }
     }
 
-    fun addToSubscriptions(offer: Offer){
+    fun addToSubscriptions(offer: Offer, errorCallback: (String) -> Unit){
         if (UserData.token != "") {
             addNewSubscribe(
                 LD(),
@@ -536,7 +533,7 @@ class OfferViewModel(
                     updateUserState(offer.sellerData?.id ?: 1L)
                 },
                 errorCallback = { es ->
-                    _errorString.value = es
+                    errorCallback(es)
                 }
             )
         } else {

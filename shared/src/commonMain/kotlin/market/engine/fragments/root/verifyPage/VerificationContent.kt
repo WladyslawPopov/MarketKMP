@@ -29,7 +29,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.screens.OnError
@@ -49,19 +49,23 @@ fun VerificationContent(
 
     val err = viewModel.errorMessage.collectAsState()
 
+    val toastItem = viewModel.toastItem.collectAsState()
+
     val focusManager = LocalFocusManager.current
 
-    val error: (@Composable () -> Unit)? = if (err.value.humanMessage.isNotBlank()) {
-        { OnError(err.value) { viewModel.onError(ServerErrorException()) } }
-    } else {
-        null
+    val error: (@Composable () -> Unit)? = remember(err.value) {
+        if (err.value.humanMessage.isNotBlank()) {
+            { OnError(err.value) { viewModel.onError(ServerErrorException()) } }
+        } else {
+            null
+        }
     }
 
     BackHandler(model.backHandler){
         component.onBack()
     }
 
-    BaseContent(
+    EdgeToEdgeScaffold(
         topBar = {
             VerificationAppBar(
                 navigateBack = {
@@ -69,21 +73,20 @@ fun VerificationContent(
                 }
             )
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.pointerInput(Unit){
+            detectTapGestures {
+                focusManager.clearFocus()
+            }
+        }.fillMaxSize(),
         isLoading = isLoading.value,
         onRefresh = {
-            viewModel.onError(ServerErrorException())
             viewModel.init(model.settingsType, model.owner, model.code)
         },
-        toastItem = viewModel.toastItem.value,
+        toastItem = toastItem.value,
         error = error
-    ) {
+    ) { contentPadding ->
         LazyColumnWithScrollBars(
-            modifierList = Modifier.pointerInput(Unit){
-                detectTapGestures {
-                    focusManager.clearFocus()
-                }
-            }.fillMaxSize().padding(dimens.mediumPadding),
+            contentPadding = contentPadding,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {

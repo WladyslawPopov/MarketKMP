@@ -30,7 +30,8 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun O2AuthContent(
-    auth2ContentState: Auth2ContentState
+    auth2ContentState: Auth2ContentState,
+    modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
     val userEmail = auth2ContentState.obfuscatedIdentity
@@ -41,7 +42,7 @@ fun O2AuthContent(
     val codeState = auth2ContentState.codeState.collectAsState()
 
     Column(
-        modifier = Modifier.pointerInput(Unit) {
+        modifier = modifier.pointerInput(Unit) {
             detectTapGestures(onTap = {
                 focusManager.clearFocus()
             })

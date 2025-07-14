@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.favPages
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -20,6 +21,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.Tab
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
@@ -33,16 +35,15 @@ import org.jetbrains.compose.resources.getString
 
 data class FavPagesState(
     val appState : SimpleAppBarData = SimpleAppBarData(),
-    val favTabList: List<FavoriteListItem> = emptyList(),
-    val initPosition: Int = 0,
+    val favTabList: List<Tab> = emptyList(),
     val isDragMode: Boolean = false
 )
 
-class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
+class FavPagesViewModel() : CoreViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
 
-    private val _favoritesTabList = MutableStateFlow(emptyList<FavoriteListItem>())
+    private val _favoritesTabList = MutableStateFlow(emptyList<Tab>())
     val favoritesTabList = _favoritesTabList.asStateFlow()
 
     private val _initPosition = MutableStateFlow(0)
@@ -50,9 +51,9 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
 
     private val _isDragMode = MutableStateFlow(false)
 
-    private val _menuItems = MutableStateFlow(
-        listOf<MenuItem>()
-    )
+    val menuItems = mutableStateOf(listOf<MenuItem>())
+
+    private val _isMenuVisible = MutableStateFlow(false)
 
     private val _customDialogState = MutableStateFlow(CustomDialogState())
     val customDialogState = _customDialogState.asStateFlow()
@@ -61,9 +62,9 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
         _favoritesTabList,
         _initPosition,
         _isDragMode,
-        _menuItems
+        _isMenuVisible
     )
-    { favTabList, currentTab, isDragMode, menuItems ->
+    { favTabList, currentTab, isDragMode, isMenuVisible ->
 
         val isVisibleMenu = if(favTabList.isNotEmpty() && favTabList.size > currentTab)
             favTabList[currentTab].id > 1000 else false
@@ -77,7 +78,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
                 isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
                 badgeCount = null,
                 onClick = {
-                    fullRefresh()
+                    updatePage()
                 }
             ),
             NavigationItem(
@@ -108,23 +109,27 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
                 isVisible = isVisibleMenu && !isDragMode,
                 badgeCount = null,
                 onClick = {
-                    getOperationFavTab(favTabList[currentTab].id){ menuItems ->
-                       _menuItems.value = menuItems
-                    }
+                    _isMenuVisible.value = true
                 }
             ),
         )
 
+        if(favTabList.isNotEmpty() && favTabList.size > currentTab) {
+            getOperationFavTab(favTabList[currentTab].id) {
+                menuItems.value = it
+            }
+        }
+
         FavPagesState(
             appState = SimpleAppBarData(
-                menuItems = menuItems,
+                isMenuVisible = isMenuVisible,
+                menuItems = menuItems.value,
                 listItems = listItems,
                 closeMenu = {
-                    _menuItems.value = emptyList()
+                    _isMenuVisible.value = false
                 }
             ),
             favTabList = favTabList,
-            initPosition = currentTab,
             isDragMode = isDragMode
         )
     }.stateIn(
@@ -178,7 +183,28 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
                 newList.sortBy { !it.markedAsPrimary }
 
                 if (newList != _favoritesTabList.value) {
-                    _favoritesTabList.value = newList
+                    _favoritesTabList.value = newList.map {
+                        Tab(
+                            id = it.id,
+                            title = it.title ?: "",
+                            image = it.images.firstOrNull(),
+                            isPined = it.markedAsPrimary,
+                            onClick = {
+                                selectPage(newList.indexOf(it))
+                            },
+                            onLongClick = {
+                                if (it.id > 1000) {
+                                    getOperationFavTab(it.id){ menu->
+                                        menuItems.value = menu
+                                    }
+                                }else{
+                                    getDefOperationFavTab { menu ->
+                                        menuItems.value = menu
+                                    }
+                                }
+                            },
+                        )
+                    }
                 }
 
                 onSuccess()
@@ -186,7 +212,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
         }
     }
 
-    fun updateFavTabList(list: List<FavoriteListItem>){
+    fun updateFavTabList(list: List<Tab>){
         viewModelScope.launch {
             try {
                 list.forEachIndexed { index, it ->
@@ -335,7 +361,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
                                 0,
                                 _favoritesTabList.value.size - 1
                             )
-                        fullRefresh()
+                        updatePage()
                     },
                     errorCallback = {}
                 )
@@ -347,7 +373,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
                     type,
                     "offers_lists",
                     onSuccess = {
-                        fullRefresh()
+                        updatePage()
                     },
                     errorCallback = {}
                 )
@@ -375,7 +401,7 @@ class FavPagesViewModel(val fullRefresh: () -> Unit) : CoreViewModel() {
             onSuccess = {
                 closeDialog()
                 getFavTabList {
-                    fullRefresh()
+                    updatePage()
                     _initPosition.value = _favoritesTabList.value.lastIndex + 1
                 }
             },

@@ -2,10 +2,8 @@ package market.engine.fragments.root.registration
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +21,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
@@ -46,6 +44,7 @@ fun RegistrationContent(
 
     val isLoading = model.isShowProgress.collectAsState()
     val err = model.errorMessage.collectAsState()
+    val toastItem = model.toastItem.collectAsState()
 
     BackHandler(modelState.value.backHandler){
         component.onBack()
@@ -62,8 +61,15 @@ fun RegistrationContent(
 
     val showSuccessReg = remember { mutableStateOf(false) }
 
-    BaseContent(
-        modifier = modifier,
+    EdgeToEdgeScaffold(
+        modifier = modifier.fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        focusManager.clearFocus()
+                    }
+                )
+            },
         topBar = {
             RegistrationAppBar(
                 title = stringResource(strings.registration),
@@ -73,64 +79,51 @@ fun RegistrationContent(
                 }
             )
         },
-        toastItem = model.toastItem.value,
+        toastItem = toastItem.value,
         error = error,
         isLoading = isLoading.value,
         onRefresh = { model.getRegFields() }
-    ) {
-        Box(
-            contentAlignment = Alignment.TopCenter,
-            modifier = modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            focusManager.clearFocus()
+    ) { contentPadding ->
+        LazyColumnWithScrollBars(
+            modifierList = Modifier
+                .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f),
+            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        )
+        {
+            if (!showSuccessReg.value){
+                item(getRegFields.value?.fields?.size) {
+                    getRegFields.value?.fields?.let { SetUpDynamicFields(it) }
+                }
+
+                item {
+                    SimpleTextButton(
+                        stringResource(strings.registration),
+                        backgroundColor = colors.brightGreen,
+                        textStyle = MaterialTheme.typography.titleMedium,
+                    ){
+                        model.postRegistration{
+                            showSuccessReg.value = true
                         }
+                    }
+                }
+
+                item {
+                    Text(
+                        stringResource(strings.registrationDisclaimer),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.grayText
                     )
-                },
-        ) {
-            LazyColumnWithScrollBars(
-                modifierList = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f)
-                    .padding(dimens.smallPadding),
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (!showSuccessReg.value){
-                    item(getRegFields.value?.fields?.size) {
-                        getRegFields.value?.fields?.let { SetUpDynamicFields(it) }
-                    }
-
-                    item {
-                        SimpleTextButton(
-                            stringResource(strings.registration),
-                            backgroundColor = colors.brightGreen,
-                            textStyle = MaterialTheme.typography.titleMedium,
-                        ){
-                            model.postRegistration{
-                                showSuccessReg.value = true
-                            }
-                        }
-                    }
-
-                    item {
-                        Text(
-                            stringResource(strings.registrationDisclaimer),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.grayText
-                        )
-                    }
-                } else {
-                    item {
-                        NoItemsFoundLayout(
-                            icon = drawables.mail,
-                            title = stringResource(strings.registrationSuccessLabel),
-                            textButton = stringResource(strings.goBackLabel)
-                        ) {
-                            component.onBack()
-                        }
+                }
+            } else {
+                item {
+                    NoItemsFoundLayout(
+                        icon = drawables.mail,
+                        title = stringResource(strings.registrationSuccessLabel),
+                        textButton = stringResource(strings.goBackLabel)
+                    ) {
+                        component.onBack()
                     }
                 }
             }

@@ -42,9 +42,8 @@ fun ReorderTabRow(
     tabs: List<Tab>,
     selectedTab: Int,
     lazyListState: LazyListState,
-    onTabSelected: (Int) -> Unit, // Callback when a tab is clicked
     onTabsReordered: (List<Tab>) -> Unit, // Callback when tabs are reordered
-    getOperations: (Long, (List<MenuItem>) -> Unit) -> Unit,
+    menuList: List<MenuItem>,
     isDragMode: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -101,10 +100,6 @@ fun ReorderTabRow(
             itemsIndexed(currentTabsState.value, key = { _, item -> item.id }) { index, item ->
                 ReorderableItem(reorderableState, key = item.id) {
                     val interactionSource = remember { MutableInteractionSource() }
-                    val menuList = remember {
-                        mutableStateOf(emptyList<MenuItem>())
-                    }
-
                     val isOpenMenu = remember { mutableStateOf(false) }
 
                     PageTab(
@@ -116,16 +111,12 @@ fun ReorderTabRow(
                             .combinedClickable(
                                 onClick = {
                                     if (!isDragMode) {
-                                        onTabSelected(index)
+                                        item.onClick()
                                     }
                                 },
                                 onLongClick = {
-                                    if (!isDragMode) {
-                                        getOperations(item.id) { menuItems ->
-                                            menuList.value = menuItems
-                                            isOpenMenu.value = true
-                                        }
-                                    }
+                                    item.onLongClick()
+                                    isOpenMenu.value = true
                                 }
                             )
                             .draggableHandle(
@@ -178,7 +169,7 @@ fun ReorderTabRow(
 
                     PopUpMenu(
                         openPopup = isOpenMenu.value,
-                        menuList = menuList.value,
+                        menuList = menuList,
                         onClosed = {
                             isOpenMenu.value = false
                         }

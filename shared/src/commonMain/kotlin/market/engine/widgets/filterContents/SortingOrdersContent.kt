@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.strings
 import org.jetbrains.compose.resources.stringResource
@@ -12,6 +13,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun SortingOrdersContent(
     initSort: Sort?,
+    modifier: Modifier = Modifier,
     onClose: (Sort?) -> Unit,
 ) {
     var sort by remember { mutableStateOf(initSort?.copy()) }
@@ -24,6 +26,7 @@ fun SortingOrdersContent(
     )
 
     ContentSort(
+        modifier = modifier,
         currentSort = sort,
         sortSections = sortSections,
         onClose = {

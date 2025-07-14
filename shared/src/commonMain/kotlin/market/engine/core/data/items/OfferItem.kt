@@ -43,6 +43,5 @@ data class OfferItem(
     val createdTs : Long = getCurrentDate().toLongOrNull() ?: 1,
     var state : String? = null,
     var session : Session? = null,
-    var isProposalEnabled : Boolean = false,
     var externalImages : List<String>? = null,
 )

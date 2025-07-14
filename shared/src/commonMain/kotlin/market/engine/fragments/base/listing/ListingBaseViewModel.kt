@@ -3,7 +3,6 @@ package market.engine.fragments.base.listing
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +29,6 @@ import market.engine.core.data.items.Tab
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.SearchUiState
-import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.states.SwipeTabsBarState
 import market.engine.core.data.types.ActiveWindowListingType
@@ -70,6 +68,8 @@ data class SearchEventsImpl(
     override fun onTabSelect(tab : Int) = viewModel.changeSearchTab(tab)
 
     override fun updateSearch(value: TextFieldValue) = viewModel.onUpdateSearchString(value)
+    override fun clearSearch() = viewModel.clearSearch()
+
 }
 
 class ListingBaseViewModel(
@@ -93,12 +93,7 @@ class ListingBaseViewModel(
     private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
     val activeWindowType : StateFlow<ActiveWindowListingType> = _activeWindowType.asStateFlow()
 
-    val catDef = MutableStateFlow("")
-
     private val _changeSearchTab = MutableStateFlow(0)
-
-    private val _selectedItem = MutableStateFlow(SelectedOfferItemState())
-    val selectedItem : StateFlow<SelectedOfferItemState> = _selectedItem.asStateFlow()
 
     private val _responseHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
     val searchCategoryModel = CategoryViewModel(isFilters = true)
@@ -112,19 +107,6 @@ class ListingBaseViewModel(
     private val _listItemsNavigationFilterBar = MutableStateFlow<List<NavigationItem>>(emptyList())
 
     private val _searchString = MutableStateFlow(TextFieldValue(""))
-
-    init {
-        viewModelScope.launch {
-            catDef.value = getString(strings.categoryMain)
-        }
-    }
-
-    val pagingParamsFlow: Flow<ListingData> = combine(
-        _listingData,
-        updatePage
-    ) { listingData, _ ->
-        listingData
-    }
 
     val filterBarUiState : StateFlow<FilterBarUiState> = combine(
         _listingType,
@@ -679,19 +661,21 @@ class ListingBaseViewModel(
     }
 
     fun clearListingData() {
-        _listingData.update { listingData ->
-            val sd = listingData.searchData.copy()
-            sd.clear(catDef.value)
+        viewModelScope.launch {
+            _listingData.update { listingData ->
+                val sd = listingData.searchData.copy()
+                sd.clear(getString(strings.categoryMain))
 
-            listingData.copy(
-                searchData = sd,
-                data = listingData.data.copy(
-                    filters = ListingFilters.getEmpty()
+                listingData.copy(
+                    searchData = sd,
+                    data = listingData.data.copy(
+                        filters = ListingFilters.getEmpty()
+                    )
                 )
-            )
-        }
+            }
 
-        refresh()
+            refresh()
+        }
     }
 
     fun selectUserSearch(){
@@ -715,9 +699,11 @@ class ListingBaseViewModel(
     }
 
     fun clearSearchCategory() {
-        _listingData.update { currentListingData ->
-            currentListingData.searchData.clear(catDef.value)
-            currentListingData.copy()
+        viewModelScope.launch {
+            _listingData.update { currentListingData ->
+                currentListingData.searchData.clear(getString(strings.categoryMain))
+                currentListingData.copy()
+            }
         }
     }
 

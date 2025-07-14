@@ -263,8 +263,6 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
     fun changeOpenCategory(complete: Boolean = false) {
         listingCategoryModel.run {
             if (activeType.value == ActiveWindowListingType.LISTING) {
-                listingCategoryModel.updateFromSearchData(ld.value.searchData)
-                listingCategoryModel.initialize(ld.value.data.filters)
                 listingBaseVM.setActiveWindowType(ActiveWindowListingType.CATEGORY)
                 val eventParameters = mapOf(
                     "category_name" to ld.value.searchData.searchCategoryName,

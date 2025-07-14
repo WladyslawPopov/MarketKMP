@@ -1,40 +1,38 @@
 package market.engine.fragments.root.main.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.listTopCategory
-import market.engine.core.data.states.ScrollDataState
-import market.engine.fragments.base.BaseContent
-import market.engine.widgets.rows.CategoryList
+import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.rows.FooterRow
 import market.engine.widgets.grids.GridPopularCategory
 import market.engine.widgets.grids.GridPromoOffers
 import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.DrawerAppBar
+import market.engine.widgets.items.CategoryItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
+import market.engine.widgets.rows.LazyRowWithScrollBars
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -46,39 +44,28 @@ fun HomeContent(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
-    val homeViewModel = model.homeViewModel
+    val viewModel = model.homeViewModel
 
-    val uiState = homeViewModel.uiState.collectAsState()
+    val uiState = viewModel.uiState.collectAsState()
     val state = uiState.value
 
-    val isLoading = homeViewModel.isShowProgress.collectAsState()
-    val error = homeViewModel.errorMessage.collectAsState()
-    val toastItem = homeViewModel.toastItem.collectAsState()
+    val isLoading = viewModel.isShowProgress.collectAsState()
+    val error = viewModel.errorMessage.collectAsState()
+    val toastItem = viewModel.toastItem.collectAsState()
+
+    val listingState = rememberLazyScrollState(viewModel)
 
     val listTopCategory = remember(listTopCategory) { listTopCategory }
 
     val errorContent: (@Composable () -> Unit)? = remember(error.value.humanMessage) {
         if (error.value.humanMessage.isNotBlank()) {
-            { OnError(error.value) { homeViewModel.updateModel() } }
+            { OnError(error.value) { viewModel.updateModel() } }
         } else {
             null
         }
     }
 
     BackHandler(model.backHandler) {}
-
-    val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = homeViewModel.scrollState.value.scrollItem,
-        initialFirstVisibleItemScrollOffset = homeViewModel.scrollState.value.scrollItem
-    )
-
-    LaunchedEffect(scrollState) {
-        snapshotFlow {
-            scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
-        }.collect { (index, offset) ->
-            homeViewModel.updateScroll(ScrollDataState(index, offset))
-        }
-    }
 
     ModalNavigationDrawer(
         modifier = modifier,
@@ -92,32 +79,28 @@ fun HomeContent(
                 list = state.drawerList
             )
         },
-        gesturesEnabled = drawerState.isOpen,
+        gesturesEnabled = true,
     ) {
-        BaseContent(
+        EdgeToEdgeScaffold(
             topBar = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                DrawerAppBar(
+                    data = state.appBarData,
+                    drawerState = drawerState,
+                    color = colors.white.copy(0.7f)
                 ) {
-                    DrawerAppBar(
-                        data = state.appBarData,
-                        drawerState = drawerState,
-                        color = colors.white.copy(0.7f)
-                    ) {
-                        Image(
-                            painter = painterResource(drawables.logo),
-                            contentDescription = stringResource(strings.homeTitle),
-                            modifier = Modifier.size(140.dp, 68.dp),
-                        )
-                    }
+                    Image(
+                        painter = painterResource(drawables.logo),
+                        contentDescription = stringResource(strings.homeTitle),
+                        modifier = Modifier.size(140.dp, 68.dp),
+                    )
+                }
 
-                    SearchBar {
-                        component.goToNewSearch()
-                    }
+                SearchBar {
+                    component.goToNewSearch()
                 }
             },
             isLoading = isLoading.value,
-            onRefresh = { homeViewModel.updateModel() },
+            onRefresh = { viewModel.updateModel() },
             floatingActionButton = {
                 floatingCreateOfferButton {
                     component.goToCreateOffer()
@@ -127,22 +110,25 @@ fun HomeContent(
             noFound = null,
             toastItem = toastItem.value,
             modifier = Modifier.fillMaxSize()
-        ) { contentPaddings ->
+        ) { contentPadding ->
             LazyColumnWithScrollBars(
-                state = scrollState,
+                state = listingState.scrollState,
+                contentPadding = contentPadding,
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
             )
             {
                 item {
-                    Spacer(Modifier.height(contentPaddings.calculateTopPadding()))
-                }
-
-                item {
-                    CategoryList(
-                        categories = state.categories
-                    ) { category ->
-                        homeViewModel.goToCategory(category)
+                    LazyRowWithScrollBars(
+                        heightMod = Modifier.fillMaxWidth()
+                    ) {
+                        items(state.categories) { category ->
+                            CategoryItem(category = category){
+                                viewModel.goToCategory(category)
+                            }
+                        }
                     }
                 }
+
                 item {
                     GridPromoOffers(
                         state.promoOffers1,
@@ -150,13 +136,13 @@ fun HomeContent(
                             component.goToOffer(it)
                         },
                         onAllClickButton = {
-                            homeViewModel.goToAllPromo()
+                            viewModel.goToAllPromo()
                         }
                     )
                 }
                 item {
                     GridPopularCategory(listTopCategory) { topCategory ->
-                        homeViewModel.goToCategory(topCategory)
+                        viewModel.goToCategory(topCategory)
                     }
                 }
                 item {
@@ -166,16 +152,12 @@ fun HomeContent(
                             component.goToOffer(it)
                         },
                         onAllClickButton = {
-                            homeViewModel.goToAllPromo()
+                            viewModel.goToAllPromo()
                         }
                     )
                 }
                 item {
                     FooterRow(state.listFooter)
-                }
-
-                item {
-                    Spacer(Modifier.height(contentPaddings.calculateBottomPadding()))
                 }
             }
         }

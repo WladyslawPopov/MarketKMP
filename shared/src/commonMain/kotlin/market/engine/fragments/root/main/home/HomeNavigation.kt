@@ -52,9 +52,9 @@ import market.engine.fragments.root.main.notificationsHistory.NotificationsHisto
 import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
+import market.engine.fragments.root.main.proposalPage.DefaultProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
-import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
@@ -136,7 +136,7 @@ fun HomeNavigation (
                 HomeContent(screen.component, modifier)
             }
             is OfferChild ->{
-                OfferContent(screen.component, modifier)
+                OfferContent(screen.component)
             }
             is ListingChild ->{
                 ListingContent(screen.component, modifier)
@@ -442,24 +442,22 @@ fun createHomeChild(
         )
 
         is ProposalScreen -> ProposalChild(
-            component = proposalFactory(
-                componentContext = componentContext,
+            component = DefaultProposalComponent(
                 offerId = config.offerId,
                 proposalType = config.proposalType,
-                navigateBack = {
-                    homeNavigation.pop()
-                },
+                componentContext = componentContext,
                 navigateToOffer = {
-                    homeNavigation.pop()
                     homeNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate(), false)
+                        OfferScreen(it, getCurrentDate())
                     )
                 },
                 navigateToUser = {
-                    homeNavigation.pop()
                     homeNavigation.pushNew(
                         UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                navigateBack = {
+                    homeNavigation.pop()
                 }
             )
         )

@@ -62,9 +62,9 @@ import market.engine.fragments.root.main.profile.myOffers.ProfileMyOffersNavigat
 import market.engine.fragments.root.main.profile.myOrders.ProfileMyOrdersNavigation
 import market.engine.fragments.root.main.profile.myProposals.ProfileMyProposalsNavigation
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsNavigation
+import market.engine.fragments.root.main.proposalPage.DefaultProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
-import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserContent
 
@@ -163,7 +163,7 @@ fun ProfileNavigation(
                 modifier,
                 publicProfileNavigationItems
             )
-            is ChildProfile.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildProfile.OfferChild -> OfferContent(screen.component)
             is ChildProfile.ListingChild -> ListingContent(screen.component, modifier)
             is ChildProfile.UserChild -> UserContent(screen.component, modifier)
             is ChildProfile.CreateOfferChild -> CreateOfferContent(screen.component)
@@ -485,13 +485,10 @@ fun createProfileChild(
         )
 
         is ProposalScreen -> ChildProfile.ProposalChild(
-            component = proposalFactory(
-                config.offerId,
-                config.proposalType,
-                componentContext,
-                navigateBack = {
-                    profileNavigation.pop()
-                },
+            component = DefaultProposalComponent(
+                offerId = config.offerId,
+                proposalType = config.proposalType,
+                componentContext = componentContext,
                 navigateToOffer = {
                     profileNavigation.pushNew(
                         OfferScreen(it, getCurrentDate())
@@ -501,6 +498,9 @@ fun createProfileChild(
                     profileNavigation.pushNew(
                         UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                navigateBack = {
+                    profileNavigation.pop()
                 }
             )
         )

@@ -17,6 +17,7 @@ class NotificationsHistoryViewModel : CoreViewModel() {
     val responseGetPage : StateFlow<List<NotificationItem>?> = _responseGetPage.asStateFlow()
 
     fun getPage() {
+        refresh()
         viewModelScope.launch {
             setLoading(true)
             try {

@@ -47,9 +47,9 @@ import market.engine.fragments.root.main.messenger.DialogsContent
 import market.engine.fragments.root.main.offer.DefaultOfferComponent
 import market.engine.fragments.root.main.offer.OfferComponent
 import market.engine.fragments.root.main.offer.OfferContent
+import market.engine.fragments.root.main.proposalPage.DefaultProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalComponent
 import market.engine.fragments.root.main.proposalPage.ProposalContent
-import market.engine.fragments.root.main.proposalPage.proposalFactory
 import market.engine.fragments.root.main.user.DefaultUserComponent
 import market.engine.fragments.root.main.user.UserComponent
 import market.engine.fragments.root.main.user.UserContent
@@ -120,7 +120,7 @@ fun BasketNavigation(
         when (val screen = child.instance) {
             is ChildBasket.BasketChild -> BasketContent(screen.component)
             is ChildBasket.ListingChild -> ListingContent(screen.component, modifier)
-            is ChildBasket.OfferChild -> OfferContent(screen.component, modifier)
+            is ChildBasket.OfferChild -> OfferContent(screen.component)
             is ChildBasket.CreateOfferChild -> CreateOfferContent(screen.component)
             is ChildBasket.UserChild -> UserContent(screen.component, modifier)
             is ChildBasket.CreateOrderChild -> CreateOrderContent(screen.component)
@@ -371,20 +371,22 @@ fun createBasketChild(
                 )
         )
         is BasketConfig.ProposalScreen -> ChildBasket.ProposalChild(
-            component = proposalFactory(
-                config.offerId,
-                config.proposalType,
-                componentContext,
-                navigateBack = {
-                    basketNavigation.pop()
-                },
+            component = DefaultProposalComponent(
+                offerId = config.offerId,
+                proposalType = config.proposalType,
+                componentContext = componentContext,
                 navigateToOffer = {
-                    basketNavigation.pop()
+                    basketNavigation.pushNew(
+                        OfferScreen(it, getCurrentDate())
+                    )
                 },
                 navigateToUser = {
                     basketNavigation.pushNew(
                         UserScreen(it, getCurrentDate(), false)
                     )
+                },
+                navigateBack = {
+                    basketNavigation.pop()
                 }
             )
         )

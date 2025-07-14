@@ -15,11 +15,14 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.base.listing.ListingBaseContent
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.BaseContent
+import market.engine.fragments.base.EdgeToEdgeScaffold
+import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.widgets.bars.DeletePanel
+import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
@@ -44,6 +47,11 @@ fun FavoritesContent(
     val updateItem = viewModel.updateItem.collectAsState()
 
     val ld = listingDataState.value.data
+
+    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
+    val selectedItems = listingBaseViewModel.selectItems.collectAsState()
+    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
+    val listingState = rememberLazyScrollState(viewModel)
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
@@ -82,53 +90,69 @@ fun FavoritesContent(
         }
     }
 
-    BaseContent(
-        topBar = null,
-        onRefresh = {
-            component.onRefresh()
-        },
-        error = error,
-        noFound = null,
-        isLoading = isLoading.value,
-        toastItem = viewModel.toastItem.value,
-        modifier = modifier.fillMaxSize()
-    ) { contentPaddings ->
-        ListingBaseContent(
-            data = data,
-            viewModel = listingBaseViewModel,
-            noFound = noFound,
-            contentPadding = contentPaddings,
-            filtersContent = { activeWindowType ->
-                when (activeWindowType) {
-                    ActiveWindowListingType.FILTERS -> {
-                        OfferFilterContent(
-                            ld.filters,
-                            categoryState,
-                            LotsType.FAVORITES,
-                        ){ newFilters ->
-                            listingBaseViewModel.applyFilters(newFilters)
-                        }
-                    }
+    when (activeType.value) {
+        ActiveWindowListingType.FILTERS -> {
+            OfferFilterContent(
+                ld.filters,
+                categoryState,
+                LotsType.FAVORITES,
+                modifier
+            ) { newFilters ->
+                listingBaseViewModel.applyFilters(newFilters)
+            }
+        }
 
-                    ActiveWindowListingType.SORTING -> {
-                        SortingOffersContent(
-                            ld.sort,
-                            isCabinet = true,
-                        ){ newSort ->
-                            listingBaseViewModel.applySorting(newSort)
-                        }
-                    }
-                    else -> {
-
-                    }
+        ActiveWindowListingType.SORTING -> {
+            SortingOffersContent(
+                ld.sort,
+                isCabinet = true,
+                modifier,
+                onClose = { newSort ->
+                    listingBaseViewModel.applySorting(newSort)
                 }
-            },
-            item = { offer ->
-                CabinetOfferItem(
-                    offer,
-                    updateItem.value
+            )
+        }
+
+        else -> {
+            EdgeToEdgeScaffold(
+                topBar = {
+                    DeletePanel(
+                        selectedItems.value.size,
+                        onCancel = {
+                            listingBaseViewModel.clearSelectedItems()
+                        },
+                        onDelete = {
+                            listingBaseViewModel.deleteSelectedItems()
+                        }
+                    )
+
+                    FiltersBar(
+                        filterBarUiState.value,
+                        isVisible = listingState.areBarsVisible.value,
+                    )
+                },
+                onRefresh = {
+                    component.onRefresh()
+                },
+                error = error,
+                noFound = noFound,
+                isLoading = isLoading.value,
+                toastItem = viewModel.toastItem.value,
+                modifier = modifier.fillMaxSize()
+            ) { contentPadding ->
+                PagingLayout(
+                    data = data,
+                    viewModel = listingBaseViewModel,
+                    state = listingState.scrollState,
+                    contentPadding = contentPadding,
+                    content = { offer ->
+                        CabinetOfferItem(
+                            offer,
+                            updateItem.value
+                        )
+                    },
                 )
-            },
-        )
+            }
+        }
     }
 }
