@@ -33,7 +33,7 @@ fun BidsListItem(
     i: Int,
     bid: Bids,
     offer: Offer,
-    onRebidClick: (Long) -> Unit,
+    onRebidClick: (String) -> Unit,
     goToUser: (Long) -> Unit
 ) {
     var isRebidShown = false
@@ -97,7 +97,7 @@ fun BidsListItem(
                         ),
                         modifier = Modifier.heightIn(max = 35.dp),
                     ) {
-                        onRebidClick(offer.id)
+                        onRebidClick(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "0")
                     }
                 }
             }

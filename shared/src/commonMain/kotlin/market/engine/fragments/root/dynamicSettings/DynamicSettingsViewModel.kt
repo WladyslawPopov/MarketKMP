@@ -675,6 +675,8 @@ class DynamicSettingsViewModel(
             eventParameters
         )
 
+        updateUserInfo()
+
         setUpPage()
     }
 

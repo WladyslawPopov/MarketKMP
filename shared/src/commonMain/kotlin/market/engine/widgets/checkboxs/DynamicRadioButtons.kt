@@ -53,7 +53,8 @@ fun DynamicRadioButtons(
             RadioOptionRow(
                 it.toPair(),
                 selectedFilterKey.value,
-                moodColor = moodColor,
+                rbColor = moodColor,
+                textColor = moodColor
             ){ isChecked, choice ->
                 if(!isChecked) {
                     selectedFilterKey.value = choice

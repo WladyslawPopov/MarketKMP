@@ -709,9 +709,9 @@ class OfferRepository(
         _isMenuVisible.value = false
     }
 
-    fun onAddBidClick(bid : Long){
+    fun onAddBidClick(bid : String){
         if (UserData.token != "") {
-            _myMaximalBid.value = bid.toString()
+            _myMaximalBid.value = bid
 
             viewModel.viewModelScope.launch {
                 val conversationTitle = getString(strings.acceptAddBidsAction)

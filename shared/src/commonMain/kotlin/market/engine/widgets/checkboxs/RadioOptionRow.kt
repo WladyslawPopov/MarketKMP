@@ -22,7 +22,8 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 fun <T : Any>RadioOptionRow(
     filter: Pair<T, String>,
     selectedOption: T?,
-    moodColor: Color = colors.grayText,
+    rbColor: Color = colors.grayText,
+    textColor: Color = colors.black,
     onOptionSelected: (Boolean, T) -> Unit
 ) {
     val (filterKey, filterText) = filter
@@ -42,7 +43,7 @@ fun <T : Any>RadioOptionRow(
                 onOptionSelected(isChecked, filterKey)
             },
             colors = RadioButtonDefaults.colors(
-                selectedColor = moodColor,
+                selectedColor = rbColor,
                 unselectedColor = colors.black
             )
         )
@@ -52,7 +53,7 @@ fun <T : Any>RadioOptionRow(
         Text(
             filterText,
             style = MaterialTheme.typography.bodySmall,
-            color = moodColor
+            color = textColor
         )
 
         Spacer(modifier = Modifier.width(dimens.smallPadding))

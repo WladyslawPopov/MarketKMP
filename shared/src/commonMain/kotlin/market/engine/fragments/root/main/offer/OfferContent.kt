@@ -586,7 +586,7 @@ fun OfferContent(
                                         offer = offer,
                                         onAddBidClick = { bid ->
                                             offerRepository.value.onAddBidClick(
-                                                bid.toLongOrNull() ?: 1
+                                                bid
                                             )
                                         },
                                         modifier = Modifier
@@ -1518,7 +1518,7 @@ fun ParametersSection(
 fun AuctionBidsSection(
     offer: Offer,
     isDeletesBids : Boolean,
-    onRebidClick: (id: Long) -> Unit,
+    onRebidClick: (id: String) -> Unit,
     goToUser: (id: Long) -> Unit = {}
 ) {
     val bids = if(isDeletesBids) offer.removedBids else offer.bids

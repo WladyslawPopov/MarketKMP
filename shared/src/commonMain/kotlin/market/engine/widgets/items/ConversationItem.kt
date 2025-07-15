@@ -41,6 +41,7 @@ fun ConversationItem(
     val conversation = data.conversation
     val events = data.events
 
+
     LaunchedEffect(updateItem) {
         if (updateItem == conversation.id){
             events.updateItem()

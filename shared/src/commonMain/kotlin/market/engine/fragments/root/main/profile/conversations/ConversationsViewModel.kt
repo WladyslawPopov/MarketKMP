@@ -82,6 +82,7 @@ class ConversationsViewModel(val component: ConversationsComponent): CoreViewMod
                             onSelectionChange = { id ->
                                 if (!selectItems.value.contains(id)) {
                                     listingBaseViewModel.addSelectItem(id)
+                                    setUpdateItem(id)
                                 } else {
                                     listingBaseViewModel.removeSelectItem(id)
                                 }
