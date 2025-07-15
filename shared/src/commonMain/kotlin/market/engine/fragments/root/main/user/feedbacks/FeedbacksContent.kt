@@ -37,6 +37,7 @@ import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.items.FeedbackItem
+import market.engine.widgets.rows.ColumnWithScrollBars
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
@@ -111,7 +112,7 @@ fun FeedbacksContent(
                 )
                 {
                     Row(
-                        modifier = Modifier.background(colors.primaryColor.copy(0.5f))
+                        modifier = Modifier.background(colors.primaryColor.copy(0.8f))
                             .fillMaxWidth()
                             .padding(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically,
@@ -140,16 +141,18 @@ fun FeedbacksContent(
     ) { contentPadding ->
         when {
             model.type == ReportPageType.ABOUT_ME -> {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(contentPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = htmlText.annotatedString,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colors.darkBodyTextColor
-                    )
+                ColumnWithScrollBars {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(contentPadding),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = htmlText.annotatedString,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.darkBodyTextColor
+                        )
+                    }
                 }
             }
             else -> {

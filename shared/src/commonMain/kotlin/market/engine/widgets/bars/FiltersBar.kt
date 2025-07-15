@@ -5,7 +5,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +16,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,8 +32,8 @@ fun FiltersBar(
     uiFilterBarUiState: FilterBarUiState,
     isVisible : Boolean = true
 ) {
-    val swipeTabsBarState = remember(uiFilterBarUiState.swipeTabsBarState) { uiFilterBarUiState.swipeTabsBarState }
-    val listNavigation = remember(uiFilterBarUiState.listNavigation) {  uiFilterBarUiState.listNavigation }
+    val swipeTabsBarState = uiFilterBarUiState.swipeTabsBarState
+    val listNavigation = uiFilterBarUiState.listNavigation
 
     val color = if (!isVisible)
         colors.primaryColor.copy(0.8f)
@@ -44,12 +42,13 @@ fun FiltersBar(
 
     AnimatedVisibility(
         visible = isVisible,
-        modifier = Modifier.background(color),
         enter = expandVertically(),
         exit = shrinkVertically()
     )
     {
-        Column {
+        Column(
+            modifier = Modifier.background(color),
+        ) {
             if (swipeTabsBarState != null) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -111,14 +110,7 @@ fun FiltersBar(
                 ) {
                     listNavigation.forEach { item ->
                         if (item.isVisible) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .background(colors.grayLayout, MaterialTheme.shapes.medium)
-                                    .padding(dimens.smallSpacer)
-                            ) {
-                                BadgedButton(item)
-                            }
+                            BadgedButton(item, colorBackground = colors.grayLayout)
                         }
                     }
                 }

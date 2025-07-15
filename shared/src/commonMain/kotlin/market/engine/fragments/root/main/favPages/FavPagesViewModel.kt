@@ -22,6 +22,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.Tab
+import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
@@ -122,12 +123,14 @@ class FavPagesViewModel() : CoreViewModel() {
 
         FavPagesState(
             appState = SimpleAppBarData(
-                isMenuVisible = isMenuVisible,
-                menuItems = menuItems.value,
+                menuData = MenuData(
+                    isMenuVisible = isMenuVisible,
+                    menuItems = menuItems.value,
+                    closeMenu = {
+                        _isMenuVisible.value = false
+                    }
+                ),
                 listItems = listItems,
-                closeMenu = {
-                    _isMenuVisible.value = false
-                }
             ),
             favTabList = favTabList,
             isDragMode = isDragMode

@@ -27,6 +27,8 @@ fun SimpleAppBar(
     color: Color = colors.white.copy(0.8f),
     content : @Composable () -> Unit = {}
 ) {
+    val menuData = data.menuData
+
     TopAppBar(
         modifier = modifier,
         title = {
@@ -62,10 +64,10 @@ fun SimpleAppBar(
                 }
 
                 PopUpMenu(
-                    openPopup = data.isMenuVisible,
-                    menuList = data.menuItems,
+                    openPopup = menuData.isMenuVisible,
+                    menuList = menuData.menuItems,
                 ) {
-                    data.closeMenu()
+                    menuData.closeMenu()
                 }
             }
         }

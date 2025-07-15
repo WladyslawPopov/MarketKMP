@@ -74,18 +74,20 @@ fun ProposalContent(
             subtitle.value = buildAnnotatedString {
                 when (type) {
                     ProposalType.ACT_ON_PROPOSAL -> {
-                        append(offerLeftLabel)
-                        append(" ")
-                        withStyle(
-                            SpanStyle(
-                                color = colors.titleTextColor,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        ) {
-                            append(offer.value.currentQuantity.toString())
+                        if(offer.value.id != 1L) {
+                            append(offerLeftLabel)
+                            append(" ")
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.titleTextColor,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            ) {
+                                append(offer.value.currentQuantity.toString())
+                            }
+                            append(" ")
+                            append(countsSign)
                         }
-                        append(" ")
-                        append(countsSign)
                     }
 
                     ProposalType.MAKE_PROPOSAL -> {

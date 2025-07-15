@@ -29,6 +29,7 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.BasketGroupUiState
 import market.engine.core.data.states.BasketUiState
+import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.SelectedBasketList
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
@@ -51,10 +52,7 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
     private var showExpanded = MutableStateFlow<List<Pair<Long, Int>>>(emptyList())
 
     private val basketsEvents = BasketEventsImpl(this, component)
-
-    private val _menuItems = MutableStateFlow(
-        listOf<MenuItem>()
-    )
+    private val _isMenuVisibility = MutableStateFlow(false)
     private val _subtitle = MutableStateFlow("")
     private val _deleteIds = MutableStateFlow(emptyList<Long>())
 
@@ -87,10 +85,10 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
     )
 
     val uiState: StateFlow<BasketUiState> = combine(
-        _menuItems,
         _subtitle,
-        _deleteIds
-    ) { menuItems, subtitle, deleteIds ->
+        _deleteIds,
+                _isMenuVisibility
+    ) { subtitle, deleteIds, isMenuVisibility ->
         val menuString = getString(strings.menuTitle)
         val clearBasketString = getString(strings.actionClearBasket)
 
@@ -115,25 +113,28 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
                         hasNews = false,
                         badgeCount = null,
                         onClick = {
-                           _menuItems.value = listOf(
-                               MenuItem(
-                                   id = "delete_basket",
-                                   title = clearBasketString,
-                                   icon = drawables.deleteIcon,
-                                   onClick = {
-                                       clearBasket{
-                                           refresh()
-                                       }
-                                   }
-                               )
-                           )
+                           _isMenuVisibility.value = true
                         }
                     ),
                 ),
-                closeMenu = {
-                    _menuItems.value = emptyList()
-                },
-                menuItems = menuItems,
+                menuData = MenuData(
+                    menuItems = listOf(
+                        MenuItem(
+                            id = "delete_basket",
+                            title = clearBasketString,
+                            icon = drawables.deleteIcon,
+                            onClick = {
+                                clearBasket{
+                                    refresh()
+                                }
+                            }
+                        )
+                    ),
+                    isMenuVisible = isMenuVisibility,
+                    closeMenu = {
+                       _isMenuVisibility.value = false
+                    }
+                ),
             ),
             basketEvents = basketsEvents,
             subtitle = subtitle,

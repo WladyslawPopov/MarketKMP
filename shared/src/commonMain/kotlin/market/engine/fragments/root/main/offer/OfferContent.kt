@@ -59,6 +59,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
@@ -215,7 +216,13 @@ fun OfferContent(
 
     val appbarData = remember(isMenuVisible.value, menuItems, listItems) {
         SimpleAppBarData(
-            isMenuVisible = isMenuVisible.value,
+            menuData = MenuData(
+                isMenuVisible = isMenuVisible.value,
+                menuItems = menuItems,
+                closeMenu = {
+                    offerRepository.value.closeMenu()
+                }
+            ),
             onBackClick = {
                 if (isImageViewerVisible.value) {
                     isImageViewerVisible.value = false
@@ -224,10 +231,6 @@ fun OfferContent(
                 }
             },
             listItems = listItems,
-            menuItems = menuItems,
-            closeMenu = {
-                offerRepository.value.closeMenu()
-            }
         )
     }
 
@@ -235,7 +238,7 @@ fun OfferContent(
         topBar = {
             SimpleAppBar(
                 data = appbarData,
-                color = colors.white.copy(0.5f)
+                color = colors.white.copy(0.8f)
             ) {
                 TextAppBar(
                     stringResource(

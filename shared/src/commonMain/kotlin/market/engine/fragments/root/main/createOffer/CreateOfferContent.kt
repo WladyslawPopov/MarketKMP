@@ -684,7 +684,8 @@ fun SessionStartContent(
         saleTypeFilters.forEach {
             RadioOptionRow(
                 it,
-                selectedFilterKey.value
+                selectedFilterKey.value,
+                moodColor = colors.inactiveBottomNavIconColor
             ) { isChecked, choice ->
                 if(!isChecked) {
                     selectedFilterKey.value = choice

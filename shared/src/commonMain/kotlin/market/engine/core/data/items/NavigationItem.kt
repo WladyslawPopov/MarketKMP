@@ -14,8 +14,8 @@ data class NavigationItem(
     val tint : Color = colors.black,
     val tintSelected : Color = colors.titleTextColor,
     val tooltipData: TooltipData? = null,
-    val hasNews : Boolean = false,
-    val badgeCount : Int? = null,
+    var hasNews : Boolean = false,
+    var badgeCount : Int? = null,
     val isVisible: Boolean = true,
     val onClick : () -> Unit = {}
 )

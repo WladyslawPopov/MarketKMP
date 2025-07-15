@@ -46,14 +46,8 @@ import org.koin.mp.KoinPlatform.getKoin
 import kotlin.toString
 
 data class OfferViewState(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(
-        onBackClick = {},
-        listItems = emptyList(),
-        menuItems = emptyList(),
-        closeMenu = {}
-    ),
+    val appBarData: SimpleAppBarData = SimpleAppBarData(),
     val offer: Offer = Offer(),
-
     val statusList: List<String> = emptyList(),
     val images: List<String> = emptyList(),
     val columns: StaggeredGridCells = StaggeredGridCells.Fixed(1),

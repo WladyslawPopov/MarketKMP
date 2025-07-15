@@ -21,7 +21,7 @@ fun getBadge(badgeCount: Int?, hasNews: Boolean, color: Color = colors.negativeR
             contentColor = colors.alwaysWhite
         ){
             Text(
-                text = if (badgeCount > 99999) "9999+" else badgeCount.toString(),
+                text = if (badgeCount > 999999) "999999+" else badgeCount.toString(),
                 fontSize = dimens.smallText,
                 color = colors.alwaysWhite,
                 fontWeight = FontWeight.Bold,

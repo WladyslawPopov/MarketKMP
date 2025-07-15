@@ -47,6 +47,7 @@ import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.MessengerBarState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.DealTypeGroup
@@ -116,9 +117,7 @@ class DialogsViewModel(
     private val offerOperations : OfferOperations by lazy { getKoin().get() }
     private val orderOperations : OrderOperations by lazy { getKoin().get() }
 
-    private val _menuItems = MutableStateFlow(
-        listOf<MenuItem>()
-    )
+    private val _isMenuVisible = MutableStateFlow(false)
 
     val messageBarEvents = MessageBarEventsImpl(this)
 
@@ -146,13 +145,13 @@ class DialogsViewModel(
     )
 
     val dialogContentState : StateFlow<DialogContentState> = combine(
-        _menuItems,
+        _isMenuVisible,
         _responseGetConversation,
         _responseGetOfferInfo,
         _responseGetOrderInfo,
         listingData
     )
-    { menu, conversation, offerInfo, orderInfo, listingData ->
+    { isMenuVisible, conversation, offerInfo, orderInfo, listingData ->
         val copyId = getString(strings.idCopied)
 
         val offer = offerInfo
@@ -264,63 +263,66 @@ class DialogsViewModel(
 
         DialogContentState(
             appBarState = SimpleAppBarData(
-               listItems = listOf(
-                   NavigationItem(
-                       title = "",
-                       icon = drawables.recycleIcon,
-                       tint = colors.inactiveBottomNavIconColor,
-                       hasNews = false,
-                       badgeCount = null,
-                       onClick = {
-                           updatePage()
-                       }
-                   ),
-                   NavigationItem(
-                       title = getString(strings.menuTitle),
-                       icon = drawables.menuIcon,
-                       tint = colors.black,
-                       hasNews = false,
-                       badgeCount = null,
-                       onClick = {
-                           _menuItems.value = listOf(
-                               MenuItem(
-                                   id = "copyId",
-                                   title = if(conversation?.aboutObjectClass == "offer")
-                                       copyOfferId
-                                   else copyOrderId,
-                                   icon = drawables.copyIcon,
-                               ){
-                                   clipBoardEvent(conversation?.aboutObjectId.toString())
-                                   showToast(
-                                       successToastItem.copy(
-                                           message = copyId
-                                       )
-                                   )
-                               },
-                               MenuItem(
-                                   id = "delete_dialog",
-                                   title = deleteDialogLabel,
-                                   icon = drawables.deleteIcon,
-                               ) {
-                                   deleteConversation(conversation?.id ?: 1L){
-                                       component.onBackClicked()
-                                   }
-                               }
-                           )
-                       }
-                   )
-               ),
-                menuItems = menu,
+                menuData = MenuData(
+                    isMenuVisible = isMenuVisible,
+                    menuItems = listOf(
+                        MenuItem(
+                            id = "copyId",
+                            title = if (conversation?.aboutObjectClass == "offer")
+                                copyOfferId
+                            else copyOrderId,
+                            icon = drawables.copyIcon,
+                        ) {
+                            clipBoardEvent(conversation?.aboutObjectId.toString())
+                            showToast(
+                                successToastItem.copy(
+                                    message = copyId
+                                )
+                            )
+                        },
+                        MenuItem(
+                            id = "delete_dialog",
+                            title = deleteDialogLabel,
+                            icon = drawables.deleteIcon,
+                        ) {
+                            deleteConversation(conversation?.id ?: 1L) {
+                                component.onBackClicked()
+                            }
+                        }
+                    ),
+                    closeMenu = {
+                        _isMenuVisible.value = false
+                    }
+                ),
+                listItems = listOf(
+                    NavigationItem(
+                        title = "",
+                        icon = drawables.recycleIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        hasNews = false,
+                        badgeCount = null,
+                        onClick = {
+                            updatePage()
+                        }
+                    ),
+                    NavigationItem(
+                        title = getString(strings.menuTitle),
+                        icon = drawables.menuIcon,
+                        tint = colors.black,
+                        hasNews = false,
+                        badgeCount = null,
+                        onClick = {
+                            _isMenuVisible.value = true
+                        }
+                    )
+                ),
                 onBackClick = {
                     if (!images.value.isNotEmpty()) {
                         component.onBackClicked()
-                    }else{
+                    } else {
                         closeImages()
                     }
                 },
-                closeMenu = {
-                    _menuItems.value = emptyList()
-                }
             ),
             responseGetOfferInfo = offerInfo,
             responseGetOrderInfo = orderInfo,

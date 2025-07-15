@@ -133,6 +133,14 @@ class ListingBaseViewModel(
             else -> allString
         }
 
+        listItemsNavigation.find {
+            it.title == getString(strings.filter)
+        }?.badgeCount = if(filters.isNotEmpty()) filters.size else null
+
+        listItemsNavigation.find {
+            it.title == getString(strings.sort)
+        }?.hasNews = ld.sort != null
+
         val tabs = listOf(
             Tab(
                 title = allString,

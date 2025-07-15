@@ -231,7 +231,7 @@ fun UserContent(
                selectedTab = selectedTabIndex.value,
                containerColor = colors.primaryColor,
                modifier = Modifier
-                   .background(colors.primaryColor.copy(0.5f))
+                   .background(colors.primaryColor.copy(0.8f))
                    .fillMaxWidth(),
            ) { index, tab ->
                PageTab(
