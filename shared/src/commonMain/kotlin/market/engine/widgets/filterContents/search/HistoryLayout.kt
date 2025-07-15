@@ -17,11 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.DismissValue
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,7 +36,6 @@ import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HistoryLayout(
     historyItems: List<SearchHistoryItem>,
@@ -101,9 +98,9 @@ fun HistoryLayout(
         ) {
             // List Items
             items(historyItems.reversed(), key = { it.id }) { historyItem ->
-                val dismissState = rememberDismissState(
-                    confirmStateChange = { dismissValue ->
-                        if (dismissValue == DismissValue.DismissedToStart) {
+                val dismissState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { dismissValue ->
+                        if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
                             showClearHistoryItem.value = historyItem.id
                             false
                         } else {
@@ -112,17 +109,19 @@ fun HistoryLayout(
                     }
                 )
                 AnimatedVisibility(
-                    dismissState.currentValue != DismissValue.DismissedToStart,
+                    dismissState.currentValue != SwipeToDismissBoxValue.EndToStart,
                     enter = expandIn(),
                 ) {
-                    SwipeToDismiss(
+                    SwipeToDismissBox(
                         state = dismissState,
-                        directions = setOf(DismissDirection.EndToStart),
-                        background = { dismissBackground() },
-                        dismissContent = {
-                            historyItem(historyItem, onItemClick, goToListing)
-                        }
-                    )
+                        backgroundContent = { dismissBackground() },
+                        modifier = Modifier.fillMaxWidth(),
+                        enableDismissFromStartToEnd = false,
+                        enableDismissFromEndToStart = true,
+                        gesturesEnabled = true,
+                    ){
+                        historyItem(historyItem, onItemClick, goToListing)
+                    }
                 }
             }
         }

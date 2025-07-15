@@ -6,7 +6,7 @@ CREATE TABLE NotificationsHistory (
   body     TEXT NOT NULL,
   type     TEXT NOT NULL,
   timestemp INTEGER NOT NULL,
-  data     TEXT NOT NULL,
+  data_     TEXT NOT NULL,
   isRead   INTEGER NOT NULL,
   UNIQUE(id)
 );
@@ -24,13 +24,13 @@ INSERT INTO NotificationsHistory (
   body,
   type,
   timestemp,
-  data,
+  data_,
   isRead
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 insertOrReplaceNotification:
-INSERT OR REPLACE INTO NotificationsHistory(id, owner, title, body, type, timestemp, data, isRead)
+INSERT OR REPLACE INTO NotificationsHistory(id, owner, title, body, type, timestemp, data_, isRead)
 VALUES(?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Delete a specific entry by ID
@@ -57,6 +57,6 @@ SET
   body     = ?,
   type     = ?,
   timestemp= ?,
-  data     = ?,
+  data_     = ?,
   isRead   = ?
 WHERE (id = ?);

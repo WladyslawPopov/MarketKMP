@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.favPages.subscriptions
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -141,7 +142,7 @@ fun SubscriptionsContent(
                     data = data,
                     viewModel = listingBaseViewModel,
                     state = listingScroll.scrollState,
-                    contentPadding = contentPadding,
+                    contentPadding = PaddingValues(top = contentPadding.calculateTopPadding()),
                     content = { subscription ->
                         SubscriptionItem(
                             subscription,

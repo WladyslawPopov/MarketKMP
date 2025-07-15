@@ -148,7 +148,7 @@ fun FavPagesNavigation(
                     is FavPagesComponents.SubscribedChild -> {
                         SubscriptionsContent(
                             page.component,
-                            Modifier.padding(top = contentPadding.calculateTopPadding())
+                            Modifier.padding(contentPadding)
                         )
                     }
 

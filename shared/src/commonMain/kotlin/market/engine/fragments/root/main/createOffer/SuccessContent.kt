@@ -40,14 +40,15 @@ fun SuccessContent(
     title : String,
     isActive : Boolean = true,
     futureTime : Long?,
+    modifier: Modifier = Modifier,
     goToOffer : () -> Unit,
     createNewOffer : () -> Unit,
     addSimilarOffer : () -> Unit,
 ){
     Column(
-        modifier = Modifier.fillMaxWidth()
-            .padding(dimens.mediumPadding)
-            .background(colors.white, MaterialTheme.shapes.medium),
+        modifier = modifier
+            .background(colors.white, MaterialTheme.shapes.small)
+            .fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

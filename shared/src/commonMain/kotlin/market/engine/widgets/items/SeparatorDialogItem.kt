@@ -2,7 +2,7 @@ package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +25,7 @@ fun SeparatorDialogItem(
         modifier = Modifier
             .padding(dimens.mediumPadding)
     ) {
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically),
@@ -41,7 +41,7 @@ fun SeparatorDialogItem(
             color = colors.grayText,
             modifier = Modifier.padding(horizontal = dimens.mediumPadding)
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier
                 .weight(1f)
                 .align(Alignment.CenterVertically),

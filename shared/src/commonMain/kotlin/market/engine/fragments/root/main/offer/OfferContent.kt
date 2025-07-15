@@ -284,7 +284,7 @@ fun OfferContent(
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
                     images = images,
-                    modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
         ) {

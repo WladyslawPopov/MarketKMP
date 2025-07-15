@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -98,7 +98,7 @@ fun BasketItemContent(
             }
         }
 
-        Divider(
+        HorizontalDivider(
             color = colors.primaryColor,
             thickness = 1.dp,
             modifier = Modifier.fillMaxWidth()
@@ -261,7 +261,7 @@ fun BasketItemContent(
             }
         }
 
-        Divider(
+        HorizontalDivider(
             color = colors.primaryColor,
             thickness = 1.dp,
             modifier = Modifier.fillMaxWidth()

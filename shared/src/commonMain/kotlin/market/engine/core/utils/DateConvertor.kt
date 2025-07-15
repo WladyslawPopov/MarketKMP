@@ -1,20 +1,17 @@
 package market.engine.core.utils
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
+import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class)
 fun getCurrentDate(): String {
     val currentInstant: Instant = Clock.System.now()
     val currentTimeInSeconds = currentInstant.epochSeconds
     return currentTimeInSeconds.toString()
 }
 
-@OptIn(ExperimentalTime::class)
 fun getRemainingMinutesTime(endTimestamp: Long): Long {
     val endInstant = Instant.fromEpochSeconds(endTimestamp)
     val nowInstant = Clock.System.now()
@@ -28,20 +25,21 @@ fun getRemainingMinutesTime(endTimestamp: Long): Long {
     return totalMinutes
 }
 
+fun Instant.toCurrentSystemLocalDateTime(): LocalDateTime {
+    return this.toLocalDateTime(TimeZone.UTC)
+}
 
-@OptIn(ExperimentalTime::class)
 fun String.convertDateWithMinutes(): String {
     try {
-        // Validate that the input date string is not empty
         if (this.isEmpty()) {
             return ""
         }
 
         val instant = Instant.fromEpochSeconds(this.toLongOrNull() ?: this.toDouble().toLong())
-        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        val localDateTime = instant.toCurrentSystemLocalDateTime()
 
-        val day = localDateTime.day.toString().padStart(2, '0')
-        val month = localDateTime.month.number.toString().padStart(2, '0')
+        val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+        val month = localDateTime.monthNumber.toString().padStart(2, '0')
         val year = localDateTime.year
         val hour = localDateTime.hour.toString().padStart(2, '0')
         val minute = localDateTime.minute.toString().padStart(2, '0')
@@ -53,7 +51,6 @@ fun String.convertDateWithMinutes(): String {
     }
 }
 
-@OptIn(ExperimentalTime::class)
 fun String.convertHoursAndMinutes(): String {
     try {
         // Validate that the input date string is not empty
@@ -62,7 +59,7 @@ fun String.convertHoursAndMinutes(): String {
         }
 
         val instant = Instant.fromEpochSeconds(this.toLongOrNull() ?: this.toDouble().toLong())
-        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        val localDateTime = instant.toCurrentSystemLocalDateTime()
 
         val hour = localDateTime.hour.toString().padStart(2, '0')
         val minute = localDateTime.minute.toString().padStart(2, '0')
@@ -74,7 +71,6 @@ fun String.convertHoursAndMinutes(): String {
     }
 }
 
-@OptIn(ExperimentalTime::class)
 fun String.convertDateYear(): String{
     try {
         // Validate that the input date string is not empty
@@ -83,10 +79,10 @@ fun String.convertDateYear(): String{
         }
 
         val instant = Instant.fromEpochSeconds(this.toLong())
-        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        val localDateTime = instant.toCurrentSystemLocalDateTime()
 
-        val day = localDateTime.day.toString().padStart(2, '0')
-        val month = localDateTime.month.number.toString().padStart(2, '0')
+        val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+        val month = localDateTime.monthNumber.toString().padStart(2, '0')
         val year = localDateTime.year
 
         return "$day.$month.$year"
@@ -96,7 +92,6 @@ fun String.convertDateYear(): String{
     }
 }
 
-@OptIn(ExperimentalTime::class)
 fun String.convertDateOnlyYear(): String {
     try {
         // Validate that the input date string is not empty
@@ -105,7 +100,7 @@ fun String.convertDateOnlyYear(): String {
         }
 
         val instant = Instant.fromEpochSeconds(this.toLong())
-        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+        val localDateTime = instant.toCurrentSystemLocalDateTime()
 
         val year = localDateTime.year
 
@@ -115,6 +110,3 @@ fun String.convertDateOnlyYear(): String {
         return ""
     }
 }
-
-
-

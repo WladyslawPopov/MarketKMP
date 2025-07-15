@@ -636,6 +636,8 @@ fun CreateOfferContent(
                     images,
                     title,
                     payloadState?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
+                    modifier = Modifier.padding(contentPadding)
+                        .padding(dimens.mediumPadding),
                     futureTime = selectedDate.value ?: getCurrentDate().toLong(),
                     goToOffer = {
                         component.goToOffer(newOfferId.value!!)
@@ -657,6 +659,7 @@ fun CreateOfferContent(
 fun SessionStartContent(
     selectedDate : Long?,
     field: Fields,
+    modifier: Modifier = Modifier,
     onSetSelectedDate : (Long) -> Unit
 ){
     val saleTypeFilters = listOf(
@@ -677,7 +680,7 @@ fun SessionStartContent(
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
+        modifier = modifier.fillMaxWidth().padding(dimens.mediumPadding),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

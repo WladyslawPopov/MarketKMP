@@ -26,18 +26,17 @@ import androidx.compose.ui.window.DialogProperties
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.utils.convertDateOnlyYear
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.toCurrentSystemLocalDateTime
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import kotlinx.datetime.Instant
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateDialog(
     showDialog : Boolean,
@@ -49,22 +48,25 @@ fun DateDialog(
         showDialog,
         enter = fadeIn(),
         exit = fadeOut()
-    ) {
+    )
+    {
         val selectedDate = remember { mutableStateOf<String?>(null) }
-        val currentDate = getCurrentDate()
+        val currentDate = remember { getCurrentDate() }
 
-        val year = currentDate.convertDateOnlyYear().toInt()
+        val year = remember { currentDate.convertDateOnlyYear().toIntOrNull() }
 
-        val selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis > currentDate.toLong()*1000
+        val selectableDates = remember {
+            object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return utcTimeMillis > currentDate.toLong() * 1000L
+                }
             }
         }
 
-        val oneDayInMillis = 24 * 60 * 60 * 1000
+        val oneDayInMillis = 24 * 60 * 60 * 1000L
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = currentDate.toLong()*1000 + oneDayInMillis,
-            yearRange = year..(year + 100),
+            initialSelectedDateMillis = currentDate.toLong()*1000L + oneDayInMillis,
+            yearRange = (year ?: 1900)..((year ?: 2000) + 100),
             selectableDates = if (isSelectableDates) selectableDates else DatePickerDefaults. AllDates
         )
 
@@ -99,7 +101,7 @@ fun DateDialog(
 
                             val localDateTime = Instant
                                 .fromEpochMilliseconds(selectedDateMillis)
-                                .toLocalDateTime(TimeZone.currentSystemDefault())
+                                .toCurrentSystemLocalDateTime()
                                 .date
                                 .atTime(selectedHour, selectedMinute)
 

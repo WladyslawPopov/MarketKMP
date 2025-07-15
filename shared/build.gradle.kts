@@ -16,7 +16,7 @@ sqldelight {
             packageName.set("market.engine.shared")
             schemaOutputDirectory.set(file("src/main/sqldelight"))
             migrationOutputDirectory.set(file("src/main/sqldelight/migrations"))
-            version = 12
+            version = 13
             verifyMigrations.set(true)
         }
     }
@@ -39,7 +39,6 @@ kotlin {
             implementation(libs.zoomable)
             implementation(compose.ui)
             implementation(compose.runtime)
-            implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -58,7 +57,7 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
 
-            implementation(libs.kotlinx.datetime)
+            api(libs.kotlinx.datetime)
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.json)
@@ -110,13 +109,10 @@ kotlin {
             implementation(libs.android.driver)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.system.ui.controller)
 
             implementation(libs.koin.android)
             implementation(libs.ktor.client.android)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.accompanist.permissions)
-            implementation(libs.accompanist.swiperefresh)
         }
     }
 }

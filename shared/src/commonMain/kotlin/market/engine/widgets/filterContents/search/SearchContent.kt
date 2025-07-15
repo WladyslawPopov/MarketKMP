@@ -82,7 +82,7 @@ fun SearchContent(
         },
     ){ contentPadding ->
         if(!openCategory) {
-            Column(modifier = Modifier.padding(contentPadding)) {
+            Column(modifier = Modifier.padding(top = contentPadding.calculateTopPadding())) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -161,7 +161,7 @@ fun SearchContent(
                 AcceptedPageButton(
                     stringResource(strings.categoryEnter),
                     Modifier.fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
-                        .padding(dimens.smallPadding),
+                        .padding(bottom = contentPadding.calculateBottomPadding()),
                 ) {
                     searchEvents.goToListing()
                 }

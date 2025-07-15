@@ -11,15 +11,28 @@ import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
 actual fun createSqlDriver(): SqlDriver {
-   try {
-      return NativeSqliteDriver(MarketDB.Schema, DATABASE_NAME)
+   return try {
+      // Первая попытка создать/открыть драйвер
+      val driver = NativeSqliteDriver(MarketDB.Schema, DATABASE_NAME)
+
+      // **Ключевое изменение: принудительная проверка схемы**
+      // Мы пытаемся выполнить простой запрос к таблице, которая вызывает сбой.
+      // Если таблицы нет, этот вызов вызовет исключение, и мы перейдем в блок catch.
+      MarketDB(driver).notificationsHistoryQueries.selectNotificationById("test").executeAsOneOrNull()
+
+      // Если проверка прошла успешно, возвращаем драйвер
+      driver
    } catch (e: Exception) {
-      println("!!! Initial database opening failed. Will try to recover by deleting and recreating the database. Error: ${e.message}")
+      println("!!! Initial database opening or verification failed. Will try to recover by deleting and recreating the database. Error: ${e.message}")
       e.printStackTrace()
 
       try {
+         // Удаляем поврежденную БД
          deleteDatabase(DATABASE_NAME)
-         return NativeSqliteDriver(MarketDB.Schema, DATABASE_NAME)
+         // Вторая попытка создания, которая теперь должна сработать на чистой БД
+         val driver = NativeSqliteDriver(MarketDB.Schema, DATABASE_NAME)
+         println("--- Successfully recreated database after corruption.")
+         return driver
       } catch (finalException: Exception) {
          println("!!! FATAL: Failed to recreate database after deletion. Crashing is now unavoidable. Final Error: ${finalException.message}")
          throw finalException
