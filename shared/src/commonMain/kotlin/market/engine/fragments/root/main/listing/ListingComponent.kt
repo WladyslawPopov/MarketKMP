@@ -64,6 +64,8 @@ class DefaultListingComponent(
     private val searchData = listingData.searchData
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
+    private val updateBackHandlerItem = MutableValue(1L)
+
     override val searchPages: Value<ChildPages<*, SearchPagesComponents>> = childPages(
         source = navigator,
         serializer = SearchPagesConfig.serializer(),
@@ -104,6 +106,13 @@ class DefaultListingComponent(
     )
 
     init {
+        lifecycle.doOnResume {
+            if (updateBackHandlerItem.value != 1L) {
+                listingViewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
+            }
+        }
+
         listingViewModel.init(listingData)
 
         val eventParameters = mapOf(
@@ -158,10 +167,8 @@ class DefaultListingComponent(
                 eventParameters
             )
         }
+        updateBackHandlerItem.value = offer.id
         selectOffer(offer.id)
-        lifecycle.doOnResume {
-//            listingViewModel.updateItem.value = offer.id
-        }
     }
 
     override fun goBack() {

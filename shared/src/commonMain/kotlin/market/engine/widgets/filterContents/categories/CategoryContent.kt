@@ -46,6 +46,8 @@ fun CategoryContent(
     val categories = viewModel.categories.collectAsState()
     val selectedId = viewModel.selectedId.collectAsState()
 
+    val pageState = viewModel.pageState.collectAsState()
+
     val onBack = remember {{
         if (searchData.value.searchCategoryID != 1L) {
             viewModel.navigateBack()
@@ -94,7 +96,7 @@ fun CategoryContent(
                 TextAppBar(
                     buildString {
                         if (searchData.value.searchCategoryID == 1L) {
-                            append(viewModel.catDef.value)
+                            append(pageState.value.catDef)
                         } else {
                             append(searchData.value.searchCategoryName)
                         }
@@ -137,19 +139,19 @@ fun CategoryContent(
                     val icon = getCategoryIcon(category.name)
 
                     val isSelected = remember(selectedId.value) {
-                        if (viewModel.categoryWithoutCounter)
+                        if (pageState.value.categoryWithoutCounter)
                             selectedId.value == category.id else category.isLeaf
                     }
 
                     val item = remember(category) {
                         NavigationItem(
-                            title = category.name ?: viewModel.catDef.value,
+                            title = category.name ?: pageState.value.catDef,
                             image = icon,
-                            badgeCount = if (!viewModel.categoryWithoutCounter)
+                            badgeCount = if (!pageState.value.categoryWithoutCounter)
                                 category.estimatedActiveOffersCount else null,
                             onClick = {
                                 viewModel.selectCategory(category)
-                                if (category.isLeaf && !viewModel.categoryWithoutCounter) {
+                                if (category.isLeaf && !pageState.value.categoryWithoutCounter) {
                                     onCompleted()
                                 }
                             }
@@ -175,10 +177,10 @@ fun CategoryContent(
             }
 
             AcceptedPageButton(
-                viewModel.catBtn.value,
+                pageState.value.catBtn,
                 Modifier.fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
                     .padding(dimens.smallPadding).align(Alignment.BottomCenter),
-                enabled = viewModel.enabledBtn.value || searchData.value.searchIsLeaf
+                enabled = pageState.value.enabledBtn || searchData.value.searchIsLeaf
             ) {
                 onCompleted()
             }

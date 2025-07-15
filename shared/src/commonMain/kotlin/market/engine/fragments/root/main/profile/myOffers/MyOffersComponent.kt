@@ -53,26 +53,33 @@ class DefaultMyOffersComponent(
     override val model: Value<MyOffersComponent.Model> = _model
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
+    private val updateBackHandlerItem = MutableValue(1L)
+
     init {
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
             if (UserData.token == ""){
                 goToBack()
             }
+
+            if (updateBackHandlerItem.value != 1L) {
+                viewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
+            }
         }
+
         val eventParameters = mapOf(
             "user_id" to UserData.login.toString(),
             "profile_source" to "offers"
         )
+
         analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
         offerSelected(offer.id)
 
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(offer.id)
-        }
+        updateBackHandlerItem.value = offer.id
     }
 
     override fun selectMyOfferPage(select: LotsType) {
@@ -81,24 +88,17 @@ class DefaultMyOffersComponent(
 
     override fun goToCreateOffer(type: CreateOfferType, offerId: Long?, catPath : List<Long>?) {
         navigateToCreateOffer(type, offerId, catPath)
-
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(offerId)
-        }
+        updateBackHandlerItem.value = offerId ?: 1L
     }
 
     override fun goToProposals(offerId: Long, proposalType: ProposalType) {
         navigateToProposal(offerId, proposalType)
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(offerId)
-        }
+        updateBackHandlerItem.value = offerId
     }
 
     override fun goToDynamicSettings(type: String, id : Long?) {
         navigateToDynamicSettings(type, id)
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(id)
-        }
+        updateBackHandlerItem.value = id ?: 1L
     }
 
     override fun goToBack() {

@@ -47,10 +47,16 @@ class DefaultSubscriptionsComponent(
     )
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    private val updateBackHandlerItem = MutableValue(1L)
 
     init {
         lifecycle.doOnResume {
             subViewModel.updateUserInfo()
+
+            if (updateBackHandlerItem.value != 1L) {
+                subViewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
+            }
         }
 
         analyticsHelper.reportEvent("open_subscribes", mapOf())

@@ -3,12 +3,13 @@ package market.engine.widgets.filterContents.search
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,21 +23,20 @@ import com.arkivanov.decompose.value.Value
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.states.SearchUiState
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsContent
 import market.engine.fragments.root.main.listing.SearchPagesComponents
-import market.engine.widgets.bars.appBars.CloseAppBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.buttons.AcceptedPageButton
+import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.tabs.PageTab
 import market.engine.widgets.tabs.TabRow
 import market.engine.widgets.textFields.SearchTextField
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun SearchContent(
     uiSearchUiState: SearchUiState,
@@ -74,18 +74,37 @@ fun SearchContent(
                         }
                     )
                 }
-            } else {
-                CloseAppBar {
-                    searchEvents.openSearchCategory(value = false, complete = false)
-                }
+            }else{
+                Spacer(Modifier.safeContentPadding())
             }
         },
     ){ contentPadding ->
-        if(!openCategory) {
-            Column(modifier = Modifier.padding(top = contentPadding.calculateTopPadding())) {
+        CustomBottomSheet(
+            initValue = openCategory,
+            contentPadding = contentPadding,
+            onClosed = {
+                searchEvents.openSearchCategory(value = false, complete = false)
+            },
+            sheetContent = {
+                CategoryContent(
+                    viewModel = uiSearchUiState.categoryState.categoryViewModel,
+                    onCompleted = {
+                        searchEvents.openSearchCategory(value = false, complete = true)
+                    },
+                    onClose = {
+                        searchEvents.openSearchCategory(value = false, complete = false)
+                    }
+                )
+            }
+        ){
+            Box(
+                modifier = Modifier
+                .padding(contentPadding)
+            ) {
                 Column(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxSize()
+                        .padding(bottom = dimens.largePadding)
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = {
                                 focusManager.clearFocus()
@@ -151,7 +170,7 @@ fun SearchContent(
                             is SearchPagesComponents.SubscriptionsChild -> {
                                 SubscriptionsContent(
                                     page.component,
-                                    Modifier,
+                                    Modifier.padding(bottom = dimens.largePadding),
                                 )
                             }
                         }
@@ -160,23 +179,11 @@ fun SearchContent(
 
                 AcceptedPageButton(
                     stringResource(strings.categoryEnter),
-                    Modifier.fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
-                        .padding(bottom = contentPadding.calculateBottomPadding()),
+                    Modifier.align(Alignment.BottomCenter)
                 ) {
                     searchEvents.goToListing()
                 }
             }
-        }else{
-            CategoryContent(
-                modifier = Modifier.padding(top = contentPadding.calculateTopPadding()),
-                viewModel = uiSearchUiState.categoryState.categoryViewModel,
-                onCompleted = {
-                    searchEvents.openSearchCategory(value = false, complete = true)
-                },
-                onClose = {
-                    searchEvents.openSearchCategory(value = false, complete = false)
-                }
-            )
         }
     }
 }

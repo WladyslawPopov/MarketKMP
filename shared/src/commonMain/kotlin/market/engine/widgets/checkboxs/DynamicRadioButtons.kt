@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -17,7 +16,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Fields
 
-@OptIn(ExperimentalSerializationApi::class)
+
 @Composable
 fun DynamicRadioButtons(
     field: Fields,
@@ -61,7 +60,7 @@ fun DynamicRadioButtons(
                     field.data = JsonPrimitive(choice)
                 }else{
                     selectedFilterKey.value = 0
-                    field.data = JsonPrimitive(null)
+                    field.data = null
                 }
                 selectedChoice(!isChecked, choice)
             }

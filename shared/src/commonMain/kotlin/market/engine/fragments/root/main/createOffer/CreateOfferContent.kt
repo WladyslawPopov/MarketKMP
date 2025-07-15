@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +38,6 @@ import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -85,7 +83,6 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateOfferContent(
     component: CreateOfferComponent
@@ -654,7 +651,7 @@ fun CreateOfferContent(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
+
 @Composable
 fun SessionStartContent(
     selectedDate : Long?,
@@ -694,7 +691,7 @@ fun SessionStartContent(
                     field.data = JsonPrimitive(choice)
                 }else{
                     selectedFilterKey.value = 0
-                    field.data = JsonPrimitive(null)
+                    field.data = null
                 }
             }
         }

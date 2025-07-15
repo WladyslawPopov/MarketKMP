@@ -51,10 +51,16 @@ class DefaultFavoritesComponent(
     override val model: Value<FavoritesComponent.Model> = _model
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    private val updateBackHandlerItem = MutableValue(1L)
 
     init {
         lifecycle.doOnResume {
             favViewModel.updateUserInfo()
+
+            if (updateBackHandlerItem.value != 1L) {
+                favViewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
+            }
         }
 
         analyticsHelper.reportEvent("open_favorites", mapOf("type" to favType.name))
@@ -77,9 +83,7 @@ class DefaultFavoritesComponent(
 
     override fun goToCreateOffer(createOfferType: CreateOfferType, id: Long) {
         navigateToCreateOffer(createOfferType, id)
-        lifecycle.doOnResume {
-            favViewModel.setUpdateItem(id)
-        }
+        updateBackHandlerItem.value = id
     }
 
     override fun onRefresh() {

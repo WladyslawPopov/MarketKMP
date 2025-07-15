@@ -9,23 +9,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -40,11 +33,12 @@ import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
+import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.textFields.DynamicInputField
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun CreateSubscriptionContent(
     component : CreateSubscriptionComponent,
@@ -78,28 +72,7 @@ fun CreateSubscriptionContent(
     }
 
     val focusManager: FocusManager = LocalFocusManager.current
-
-    val scaffoldState = rememberBottomSheetScaffoldState()
-
     val searchData = categoryState.categoryViewModel.searchData.collectAsState()
-
-    LaunchedEffect(categoryState.openCategory){
-        snapshotFlow {
-            categoryState.openCategory
-        }.collect {
-            if (it) {
-                scaffoldState.bottomSheetState.expand()
-            }else{
-                scaffoldState.bottomSheetState.partialExpand()
-            }
-        }
-    }
-
-    LaunchedEffect(scaffoldState.bottomSheetState.currentValue){
-        if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded){
-            viewModel.closeCategory()
-        }
-    }
 
     BackHandler(
         backHandler = model.value.backHandler,
@@ -133,15 +106,15 @@ fun CreateSubscriptionContent(
             }
         }.fillMaxSize()
     ) { contentPadding ->
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetContainerColor = colors.primaryColor,
-            sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = categoryState.openCategory,
+        CustomBottomSheet(
+            initValue = categoryState.openCategory,
+            contentPadding = contentPadding,
+            onClosed = {
+                viewModel.closeCategory()
+            },
             sheetContent = {
                 CategoryContent(
-                    viewModel= categoryState.categoryViewModel,
-                    modifier = Modifier.padding(top = contentPadding.calculateTopPadding()),
+                    viewModel = categoryState.categoryViewModel,
                     onCompleted = {
                         viewModel.applyCategory(
                             categoryName = searchData.value.searchCategoryName,
@@ -174,41 +147,46 @@ fun CreateSubscriptionContent(
                             val field = items[index]
                             when (field.widgetType) {
                                 "input" -> {
-                                    if (field.key == "category_id"){
+                                    if (field.key == "category_id") {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Start,
-                                            modifier = Modifier.fillMaxWidth(0.8f).padding(dimens.mediumPadding)
-                                        ){
+                                            modifier = Modifier.fillMaxWidth(0.8f)
+                                                .padding(dimens.mediumPadding)
+                                        ) {
                                             FilterButton(
                                                 searchData.value.searchCategoryName,
-                                                color = if(searchData.value.searchCategoryID == 1L)
+                                                color = if (searchData.value.searchCategoryID == 1L)
                                                     colors.simpleButtonColors else colors.themeButtonColors,
                                                 onClick = {
                                                     viewModel.openCategory()
                                                 },
-                                                onCancelClick =if(searchData.value.searchCategoryID != 1L) {
+                                                onCancelClick = if (searchData.value.searchCategoryID != 1L) {
                                                     {
                                                         viewModel.clearCategory()
                                                     }
-                                                }else{
+                                                } else {
                                                     null
                                                 }
                                             )
                                         }
-                                    }else{
+                                    } else {
                                         DynamicInputField(field)
                                     }
                                 }
+
                                 "checkbox" -> {
                                     DynamicCheckbox(field)
                                 }
+
                                 "select" -> {
                                     DynamicSelect(field)
                                 }
+
                                 "checkbox_group" -> {
                                     DynamicCheckboxGroup(field)
                                 }
+
                                 else -> {
 
                                 }
@@ -218,16 +196,18 @@ fun CreateSubscriptionContent(
 
                     item {
                         AcceptedPageButton(
-                            stringResource(if (model.value.editId == null)
-                                strings.createNewSubscriptionTitle
-                            else
-                                strings.editLabel),
+                            stringResource(
+                                if (model.value.editId == null)
+                                    strings.createNewSubscriptionTitle
+                                else
+                                    strings.editLabel
+                            ),
                             Modifier.align(Alignment.BottomCenter)
                                 .wrapContentWidth()
                                 .padding(dimens.mediumPadding),
                             enabled = !isLoading.value
                         ) {
-                            viewModel.postPage(model.value.editId){
+                            viewModel.postPage(model.value.editId) {
                                 component.onBackClicked()
                             }
                         }

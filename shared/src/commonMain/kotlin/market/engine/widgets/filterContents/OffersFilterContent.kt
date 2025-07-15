@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +45,7 @@ import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.TextFieldWithState
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun OfferFilterContent(
     initialFilters: List<Filter>,
@@ -178,33 +177,41 @@ fun OfferFilterContent(
                 )
             }
         ) { padding ->
-            if (openCategory.value) {
-                CategoryContent(
-                    modifier = Modifier.padding(top = padding.calculateTopPadding()),
-                    viewModel = viewModel,
-                    onClose = {
-                        openCategory.value = false
-                    },
-                    onCompleted = {
-                        val sd = viewModel.searchData.value
-                        if (sd.searchCategoryID != 1L) {
-                            listingData.find { it.key == "category" }?.value =
-                                sd.searchCategoryID.toString()
-                            listingData.find { it.key == "category" }?.interpretation =
-                                sd.searchCategoryName
-                            listingData.find { it.key == "category" }?.operation =
-                                sd.searchIsLeaf.toString()
-                        }
+            CustomBottomSheet(
+                initValue = openCategory.value,
+                contentPadding = padding,
+                onClosed = {
+                    openCategory.value = false
+                },
+                sheetContent = {
+                    CategoryContent(
+                        viewModel = viewModel,
+                        onClose = {
+                            openCategory.value = false
+                        },
+                        onCompleted = {
+                            val sd = viewModel.searchData.value
+                            if (sd.searchCategoryID != 1L) {
+                                listingData.find { it.key == "category" }?.value =
+                                    sd.searchCategoryID.toString()
+                                listingData.find { it.key == "category" }?.interpretation =
+                                    sd.searchCategoryName
+                                listingData.find { it.key == "category" }?.operation =
+                                    sd.searchIsLeaf.toString()
+                            }
 
-                        selectedCategory.value = sd.searchCategoryName
-                        activeCategory.value = sd.searchCategoryID
-                        trigger.value++
-                        openCategory.value = false
-                    }
-                )
-            } else {
+                            selectedCategory.value = sd.searchCategoryName
+                            activeCategory.value = sd.searchCategoryID
+                            trigger.value++
+                            openCategory.value = false
+                        }
+                    )
+                }
+            ){
                 Box(
-                    Modifier.padding(padding).fillMaxWidth()
+                    Modifier
+                        .padding(padding)
+                        .fillMaxWidth()
                 )
                 {
                     LazyColumnWithScrollBars(

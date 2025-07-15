@@ -27,9 +27,12 @@ fun DialogsHeader(
     headerItem : MesHeaderItem
 ) {
     Row(
-        modifier = Modifier.clickable {
-            headerItem.onClick()
-        }.background(color = colors.white).fillMaxWidth().padding(dimens.smallPadding),
+        modifier = Modifier
+            .clickable {
+                headerItem.onClick()
+            }
+            .background(color = colors.white)
+            .fillMaxWidth().padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ){

@@ -23,22 +23,24 @@ fun FullScreenImageViewer(
         modifier = modifier
             .background(colors.grayLayout.copy(alpha = 0.8f))
     ) {
-        HorizontalImageViewer(
-            images = images,
-            pagerState = pagerFullState,
-            isUpdate = isUpdate,
-            modifier = Modifier.fillMaxSize().zoomable(
-                zoomState,
-                onDoubleTap = { position ->
-                    val targetScale = when {
-                        zoomState.scale < 2f -> 2f
-                        zoomState.scale < 4f -> 4f
-                        else -> 1f
+        if (images.isNotEmpty()) {
+            HorizontalImageViewer(
+                images = images,
+                pagerState = pagerFullState,
+                isUpdate = isUpdate,
+                modifier = Modifier.fillMaxSize().zoomable(
+                    zoomState,
+                    onDoubleTap = { position ->
+                        val targetScale = when {
+                            zoomState.scale < 2f -> 2f
+                            zoomState.scale < 4f -> 4f
+                            else -> 1f
+                        }
+                        zoomState.changeScale(targetScale, position)
                     }
-                    zoomState.changeScale(targetScale, position)
-                }
+                )
             )
-        )
+        }
     }
 }
 

@@ -24,7 +24,7 @@ import market.engine.widgets.dropdown_menu.PopUpMenu
 fun SimpleAppBar(
     modifier: Modifier = Modifier,
     data: SimpleAppBarData,
-    color: Color = colors.white,
+    color: Color = colors.white.copy(0.8f),
     content : @Composable () -> Unit = {}
 ) {
     TopAppBar(

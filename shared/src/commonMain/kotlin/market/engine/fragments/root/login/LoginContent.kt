@@ -13,15 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,12 +44,13 @@ import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.CaptchaView
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
+import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun LoginContent(
     component: LoginComponent,
@@ -95,22 +91,6 @@ fun LoginContent(
         }
     }
 
-    val scaffoldState = rememberBottomSheetScaffoldState()
-
-    LaunchedEffect(openBottomSheet.value){
-        if(openBottomSheet.value){
-            scaffoldState.bottomSheetState.expand()
-        }else{
-            scaffoldState.bottomSheetState.partialExpand()
-        }
-    }
-
-    LaunchedEffect(scaffoldState.bottomSheetState.currentValue){
-        if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded){
-            viewModel.closeAuth2Content()
-        }
-    }
-
     BackHandler(modelState.value.backHandler) {
         component.onBack()
     }
@@ -141,21 +121,20 @@ fun LoginContent(
         }
     )
     { contentPadding ->
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetContainerColor = colors.white,
-            sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = openBottomSheet.value,
+        CustomBottomSheet(
+            initValue = openBottomSheet.value,
+            contentPadding = contentPadding,
+            onClosed = {
+                viewModel.closeAuth2Content()
+            },
             sheetContent = {
                 O2AuthContent(
                     auth2ContentState,
                 )
             }
-        )
-        {
+        ){
             LazyColumnWithScrollBars(
-                modifierList = Modifier
-                    .background(color = colors.white)
+                heightMod = Modifier.background(colors.white)
                     .fillMaxSize(),
                 state = scrollState,
                 contentPadding = contentPadding,

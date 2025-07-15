@@ -20,12 +20,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.coroutines.launch
 import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -90,6 +88,7 @@ import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
+import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.items.BidsListItem
 import market.engine.widgets.items.RemovedBidsListItem
 import market.engine.widgets.rows.ColumnWithScrollBars
@@ -105,7 +104,6 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.toString
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OfferContent(
     component: OfferComponent
@@ -153,7 +151,6 @@ fun OfferContent(
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
 
-    val scaffoldState = rememberBottomSheetScaffoldState()
     val valuesPickerState = rememberPickerState()
 
     val toastItem = viewModel.toastItem.collectAsState()
@@ -165,6 +162,8 @@ fun OfferContent(
     }
 
     val scrollState = rememberLazyScrollState(viewModel)
+
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(scrollPos.value) {
         snapshotFlow {
@@ -185,23 +184,10 @@ fun OfferContent(
 
     LaunchedEffect(isImageViewerVisible.value) {
         if (!isImageViewerVisible.value) {
-            scaffoldState.bottomSheetState.partialExpand()
             pagerState.scrollToPage(pagerFullState.currentPage)
         } else {
             if (pagerState.currentPage != pagerFullState.currentPage) {
                 pagerFullState.scrollToPage(pagerState.currentPage)
-            }
-            if (images.isNotEmpty()) {
-                scaffoldState.bottomSheetState.expand()
-            }
-        }
-    }
-
-    LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
-        if (scaffoldState.bottomSheetState.targetValue == SheetValue.PartiallyExpanded) {
-            isImageViewerVisible.value = false
-            if (pagerState.pageCount > 0 && pagerFullState.currentPage < pagerState.pageCount) {
-                pagerState.scrollToPage(pagerFullState.currentPage)
             }
         }
     }
@@ -275,21 +261,27 @@ fun OfferContent(
             .fillMaxSize()
     )
     { contentPadding ->
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetContainerColor = colors.primaryColor.copy(0.5f),
-            sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = isImageViewerVisible.value,
+        CustomBottomSheet(
+            initValue = isImageViewerVisible.value,
+            contentPadding = contentPadding,
+            sheetBackgroundColor = colors.transparent,
+            onClosed = {
+                isImageViewerVisible.value = false
+                scope.launch {
+                    if (pagerState.pageCount > 0 && pagerFullState.currentPage < pagerState.pageCount) {
+                        pagerState.scrollToPage(pagerFullState.currentPage)
+                    }
+                }
+            },
             sheetContent = {
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
                     images = images,
-                    modifier = Modifier.padding(contentPadding)
+                    modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                 )
             }
-        ) {
+        ){
             LazyColumnWithScrollBars(
-                heightMod = Modifier.background(colors.primaryColor),
                 state = scrollState.scrollState,
                 contentPadding = contentPadding
             )

@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -581,7 +580,7 @@ class CreateOfferViewModel(
         _isEditCat.value = false
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
+
     fun createJsonBody() : JsonObject {
         val fields = _responseGetPage.value?.fields?.filter { it.data != null }
         val categoryID = searchData.value.searchCategoryID
@@ -624,18 +623,18 @@ class CreateOfferViewModel(
 
                     "session_start" -> {
                         if (selectedDate == null) {
-                            put(field.key, field.data ?: JsonPrimitive(null))
+                            put(field.key, field.data ?: JsonPrimitive("null"))
                         }
 
                     }
                     "future_time" ->{
                         if (selectedDate != null) {
-                            put(field.key, field.data ?: JsonPrimitive(null))
+                            put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }
 
                     else -> {
-                        put(field.key ?: "", field.data ?: JsonPrimitive(null))
+                        put(field.key ?: "", field.data ?: JsonPrimitive("null"))
                     }
                 }
             }

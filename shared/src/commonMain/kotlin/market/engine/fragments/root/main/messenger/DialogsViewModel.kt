@@ -106,9 +106,6 @@ class DialogsViewModel(
     private val _isDisabledSendMes = MutableStateFlow(true)
     private val _isDisabledAddPhotos = MutableStateFlow(true)
 
-    private val _imageSize = MutableStateFlow(0)
-    val imageSize = _imageSize.asStateFlow()
-
     private val _selectedImageIndex = MutableStateFlow<Int?>(null)
     val selectedImageIndex = _selectedImageIndex.asStateFlow()
 
@@ -658,19 +655,14 @@ class DialogsViewModel(
     }
 
     fun openImages(index: Int, dialogItem: Dialog){
-        viewModelScope.launch {
-            _images.value = dialogItem.images?.map {
-                it.url ?: ""
-            } ?: emptyList()
-            _imageSize.value = _images.value.size
-            _selectedImageIndex.value = index
-        }
+        _images.value = dialogItem.images?.map {
+            it.url ?: ""
+        } ?: emptyList()
+        _selectedImageIndex.value = index
     }
 
     fun closeImages(){
-        _imageSize.value = 0
         _selectedImageIndex.value = null
-        _images.value = emptyList()
     }
 }
 

@@ -8,30 +8,33 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.flow.collectLatest
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
@@ -42,12 +45,12 @@ import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
+import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.items.SeparatorDialogItem
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogsContent(
     component: DialogsComponent,
@@ -63,7 +66,6 @@ fun DialogsContent(
     val messageBarData = viewModel.messageBarState.collectAsState()
 
     val images = viewModel.images.collectAsState()
-    val imageSize = viewModel.imageSize.collectAsState()
     val selectIndex = viewModel.selectedImageIndex.collectAsState()
 
     val listingData = viewModel.listingData.value.data
@@ -76,17 +78,22 @@ fun DialogsContent(
 
     val focusManager = LocalFocusManager.current
 
-    val scaffoldState = rememberBottomSheetScaffoldState()
-
     val toastItem = viewModel.toastItem.collectAsState()
 
     val pagerFullState = rememberPagerState(
-        pageCount = { imageSize.value },
+        pageCount = { images.value.size },
     )
 
-    LaunchedEffect(selectIndex.value ) {
-        if (selectIndex.value != null) {
-            pagerFullState.scrollToPage(selectIndex.value!!)
+    var mesBarHeight by remember { mutableStateOf(dimens.zero) }
+    val density = LocalDensity.current
+
+    LaunchedEffect(images.value, selectIndex.value) {
+        snapshotFlow {
+            images.value to selectIndex.value
+        }.collectLatest { (images, selectedIndex) ->
+            if (selectedIndex != null && images.isNotEmpty() && images.size > selectedIndex) {
+                pagerFullState.scrollToPage(selectedIndex)
+            }
         }
     }
 
@@ -119,24 +126,11 @@ fun DialogsContent(
         }
     }
 
-    LaunchedEffect(images.value) {
-        if (images.value.isNotEmpty()) {
-            scaffoldState.bottomSheetState.expand()
-        } else {
-            scaffoldState.bottomSheetState.partialExpand()
-        }
-    }
-
-    LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
-        if (scaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded) {
-            viewModel.closeImages()
-        }
-    }
-
     EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
-                data = appBarData
+                data = appBarData,
+                color = colors.white
             ){
                 if (conversation?.interlocutor != null) {
                     UserRow(
@@ -173,22 +167,23 @@ fun DialogsContent(
         toastItem = toastItem.value,
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            sheetContentColor = colors.primaryColor.copy(0.5f),
-            sheetPeekHeight = 0.dp,
-            sheetSwipeEnabled = images.value.isNotEmpty(),
+        CustomBottomSheet(
+            initValue = selectIndex.value != null,
+            contentPadding = contentPadding,
+            onClosed = {
+                viewModel.closeImages()
+            },
             sheetContent = {
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
                     images = images.value,
                     isUpdate = images.value.isNotEmpty(),
+                    modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                 )
-            },
-        ) {
+            }
+        ){
             Box(
                 modifier = Modifier
-                    .padding(contentPadding)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = {
                             focusManager.clearFocus()
@@ -201,6 +196,10 @@ fun DialogsContent(
                     data = data,
                     viewModel = listingBaseViewModel,
                     state = listingState.scrollState,
+                    contentPadding = PaddingValues(
+                        top = contentPadding.calculateTopPadding(),
+                        bottom = mesBarHeight
+                    ),
                     content = { messageItem ->
                         when (messageItem) {
                             is DialogsData.MessageItem -> {
@@ -223,6 +222,11 @@ fun DialogsContent(
                         .align(Alignment.BottomCenter)
                         .background(colors.primaryColor.copy(0.5f))
                         .clip(MaterialTheme.shapes.medium)
+                        .onSizeChanged {
+                            val newHeight = with(density) { it.height.toDp() }
+                            mesBarHeight = newHeight
+                        }
+                        .padding(bottom = contentPadding.calculateBottomPadding())
                         .zIndex(15f)
                 ) {
                     MessengerBar(

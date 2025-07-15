@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -44,13 +43,10 @@ fun PublicOfferItemGrid(
     val onItemClick = state.onItemClick
     val addToFavorites = state.addToFavorites
 
+
     LaunchedEffect(updateItem) {
-        snapshotFlow {
-            updateItem
-        }.collect { id ->
-            if (id == item.id){
-                state.updateItemState()
-            }
+        if (updateItem == item.id){
+            state.updateItemState()
         }
     }
 

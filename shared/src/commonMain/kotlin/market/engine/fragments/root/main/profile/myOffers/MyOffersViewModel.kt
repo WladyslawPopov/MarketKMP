@@ -188,7 +188,7 @@ class MyOffersViewModel(
             }
 
             LotsType.MY_LOT_INACTIVE -> {
-                offer.state == "active" || offer.session == null
+                offer.state == "active"
             }
 
             LotsType.MY_LOT_IN_FUTURE -> {
@@ -250,7 +250,9 @@ data class OfferRepositoryEventsImpl(
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
     override fun goToUserPage() {}
 
-    override fun openCabinetOffer() {}
+    override fun openCabinetOffer() {
+        component.goToOffer(offer)
+    }
 
     override fun isHideCabinetOffer(): Boolean {
         return viewModel.isHideItem(offer)

@@ -122,7 +122,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
                     },
                     addToFavorites = {
                         addToFavorites(item) {
-                            listingBaseVM.setUpdateItem(offer.id)
+                            setUpdateItem(offer.id)
                         }
                     },
                     updateItemState = {
@@ -339,7 +339,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
                 if (offer != null) {
                     item?.setNewParams(offer)
                 }
-                listingBaseVM.setUpdateItem(null)
+                setUpdateItem(null)
             }
         }
     }

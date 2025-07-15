@@ -1,6 +1,5 @@
 package market.engine.widgets.filterContents.categories
 
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
@@ -17,6 +17,13 @@ import market.engine.core.network.networkObjects.Category
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
+@Serializable
+data class CategoryPageState(
+    val catDef : String = "",
+    val catBtn : String = "",
+    val enabledBtn : Boolean = true,
+    val categoryWithoutCounter : Boolean = false,
+)
 
 class CategoryViewModel(
     val isFilters: Boolean = false,
@@ -39,32 +46,47 @@ class CategoryViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    val catDef = mutableStateOf("")
-    val catBtn = mutableStateOf("")
-    val enabledBtn = mutableStateOf(true)
 
-    val categoryWithoutCounter = (isFilters || isCreateOffer)
+    private val _pageState = MutableStateFlow(CategoryPageState())
+    val pageState = _pageState.asStateFlow()
+
 
     init {
         viewModelScope.launch {
             try {
-                when {
-                    isFilters -> {
-                        catDef.value = getString(strings.selectCategory)
-                        catBtn.value = getString(strings.actionAcceptFilters)
+                _pageState.update {
+
+                    var catDef = ""
+                    var catBtn = ""
+                    var enabledBtn = true
+
+                    when {
+                        isFilters -> {
+                            catDef = getString(strings.selectCategory)
+                            catBtn = getString(strings.actionAcceptFilters)
+                        }
+
+                        isCreateOffer -> {
+                            catDef = getString(strings.selectCategory)
+                            catBtn = getString(strings.continueLabel)
+                            enabledBtn = selectedId.value != 1L
+                        }
+
+                        else -> {
+                            catDef = getString(strings.categoryMain)
+                            catBtn = getString(strings.categoryEnter)
+                        }
                     }
-                    isCreateOffer -> {
-                        catDef.value = getString(strings.selectCategory)
-                        catBtn.value = getString(strings.continueLabel)
-                        enabledBtn.value = selectedId.value != 1L
-                    }
-                    else -> {
-                        catDef.value = getString(strings.categoryMain)
-                        catBtn.value = getString(strings.categoryEnter)
-                    }
+
+                    it.copy(
+                        catDef = catDef,
+                        catBtn = catBtn,
+                        enabledBtn = enabledBtn,
+                        categoryWithoutCounter = (isFilters || isCreateOffer)
+                    )
                 }
                 fetchCategories()
-            }catch (_ : Exception){ }
+            } catch (_ : Exception){ }
         }
     }
 
@@ -80,7 +102,7 @@ class CategoryViewModel(
             getCategories(
                 searchData.value,
                 LD(filters.value),
-                categoryWithoutCounter
+                pageState.value.categoryWithoutCounter
             ) {
                 _categories.value = it
                 _isLoading.value = false
@@ -102,7 +124,7 @@ class CategoryViewModel(
 
     fun resetToRoot() {
         if (searchData.value.searchCategoryID != 1L) {
-            setUpNewParams(Category(id = 1L, name = catDef.value))
+            setUpNewParams(Category(id = 1L, name = pageState.value.catDef))
         }
         fetchCategories()
     }
@@ -142,7 +164,7 @@ class CategoryViewModel(
         _searchData.update {
             it.copy(
                 searchCategoryID = newCat.id,
-                searchCategoryName = newCat.name ?: catDef.value,
+                searchCategoryName = newCat.name ?: pageState.value.catDef,
                 searchParentID = newCat.parentId,
                 searchIsLeaf = newCat.isLeaf
             )

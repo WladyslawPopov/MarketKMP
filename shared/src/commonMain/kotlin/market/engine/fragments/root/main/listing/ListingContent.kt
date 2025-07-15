@@ -57,7 +57,7 @@ fun ListingContent(
 
     val err = viewModel.errorMessage.collectAsState()
     val listingBaseModel = viewModel.listingBaseVM
-    val updateItem = listingBaseModel.updateItem.collectAsState()
+    val updateItem = viewModel.updateItem.collectAsState()
     val searchDataState = listingBaseModel.searchDataState.collectAsState()
 
     val isLoadingListing: State<Boolean> =

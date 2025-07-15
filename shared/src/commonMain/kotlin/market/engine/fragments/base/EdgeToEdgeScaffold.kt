@@ -58,8 +58,8 @@ fun EdgeToEdgeScaffold(
 
     LaunchedEffect(topBarHeight, bottomBarHeight){
         contentPadding = PaddingValues(
-            top = topBarHeight,
-            bottom = bottomBarHeight,
+            top = dimens.smallPadding + topBarHeight,
+            bottom = dimens.smallPadding + bottomBarHeight,
             start = dimens.smallPadding,
             end = dimens.smallPadding
         )
