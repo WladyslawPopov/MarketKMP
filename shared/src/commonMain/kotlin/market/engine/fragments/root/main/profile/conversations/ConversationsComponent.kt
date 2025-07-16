@@ -5,7 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Conversations
 
@@ -39,22 +38,7 @@ class DefaultConversationsComponent(
     )
     override val model: Value<ConversationsComponent.Model> = _model
 
-    override fun goToMessenger(conversation : Conversations){
-        if (conversation.countUnreadMessages > 0){
-            viewModel.markReadConversation(conversation.id)
-        }
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(conversation.id)
-        }
-        navigateToMessenger(conversation.id, model.value.message)
-        model.value.message = null
-    }
-
-    override fun onBack() {
-        navigateBack()
-    }
-
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    private val updateBackHandlerItem = MutableValue(1L)
 
     init {
         lifecycle.doOnResume {
@@ -62,11 +46,24 @@ class DefaultConversationsComponent(
             if (UserData.token == ""){
                 navigateBack()
             }
+            if (updateBackHandlerItem.value != 1L) {
+                viewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
+            }
         }
-        val eventParameters = mapOf(
-            "user_id" to UserData.login.toString(),
-            "profile_source" to "messages"
-        )
-        analyticsHelper.reportEvent("view_seller_profile", eventParameters)
+    }
+
+
+    override fun goToMessenger(conversation : Conversations){
+        if (conversation.countUnreadMessages > 0){
+            viewModel.markReadConversation(conversation.id)
+        }
+        updateBackHandlerItem.value = conversation.id
+        navigateToMessenger(conversation.id, model.value.message)
+        model.value.message = null
+    }
+
+    override fun onBack() {
+        navigateBack()
     }
 }

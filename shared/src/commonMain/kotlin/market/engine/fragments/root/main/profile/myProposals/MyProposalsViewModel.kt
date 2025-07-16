@@ -34,7 +34,6 @@ import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
@@ -104,7 +103,7 @@ class MyProposalsViewModel(
     init {
         viewModelScope.launch {
             listingBaseViewModel.setListingData(
-                listingBaseViewModel.listingData.value.copy(
+                ListingData(
                     data = LD(
                         filters = OfferFilters.getByTypeFilter(type),
                         methodServer = "get_cabinet_listing_my_price_proposals",
@@ -179,37 +178,7 @@ class MyProposalsViewModel(
                     oldItem.session = null
                     oldItem.state = null
                 }
-                if (!isHideItem(oldItem)) {
-                    updatePage()
-                }
                 setUpdateItem(null)
-            }
-        }
-    }
-
-    fun isHideItem(offer: OfferItem): Boolean {
-        return when (type) {
-            LotsType.MY_LOT_ACTIVE -> {
-                offer.state != "active" && offer.session == null
-            }
-
-            LotsType.MY_LOT_INACTIVE -> {
-                offer.state == "active"
-            }
-
-            LotsType.MY_LOT_IN_FUTURE -> {
-                val currentDate: Long? = getCurrentDate().toLongOrNull()
-                if (currentDate != null) {
-                    val initD = (offer.session?.start?.toLongOrNull() ?: 1L) - currentDate
-
-                    offer.state != "active" && initD < 0
-                }else{
-                    false
-                }
-            }
-
-            else -> {
-                false
             }
         }
     }
@@ -265,7 +234,7 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun isHideCabinetOffer(): Boolean {
-        return viewModel.isHideItem(offer)
+        return false
     }
 
     override fun scrollToBids() {}

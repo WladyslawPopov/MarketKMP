@@ -133,11 +133,12 @@ fun MyBidsContent(
                 isLoading = isLoading.value,
                 toastItem = toastItem.value,
                 modifier = modifier.fillMaxSize()
-            ) {
+            ) { padding ->
                 PagingLayout(
                     data = data,
                     viewModel = listingBaseViewModel,
                     state = listingState.scrollState,
+                    contentPadding = padding,
                     content = { offer ->
                         CabinetBidsItem(
                             offer,

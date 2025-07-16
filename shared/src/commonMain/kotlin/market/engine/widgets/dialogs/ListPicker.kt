@@ -54,74 +54,75 @@ fun ListPicker(
     textStyle: TextStyle = LocalTextStyle.current,
     dividerColor: Color = LocalContentColor.current,
 ) {
+    if(items.isNotEmpty()) {
+        val visibleItemsMiddle = visibleItemsCount / 2
+        val listScrollCount = Int.MAX_VALUE
+        val listScrollMiddle = listScrollCount / 2
+        val listStartIndex =
+            listScrollMiddle - listScrollMiddle % items.size - visibleItemsMiddle + startIndex
 
-    val visibleItemsMiddle = visibleItemsCount / 2
-    val listScrollCount = Int.MAX_VALUE
-    val listScrollMiddle = listScrollCount / 2
-    val listStartIndex =
-        listScrollMiddle - listScrollMiddle % items.size - visibleItemsMiddle + startIndex
+        fun getItem(index: Int) = items[index % items.size]
 
-    fun getItem(index: Int) = items[index % items.size]
+        val listState = rememberLazyListState(initialFirstVisibleItemIndex = listStartIndex)
+        val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
 
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = listStartIndex)
-    val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+        val itemHeightPixels = remember { mutableIntStateOf(0) }
+        val itemHeightDp = pixelsToDp(itemHeightPixels.value)
 
-    val itemHeightPixels = remember { mutableIntStateOf(0) }
-    val itemHeightDp = pixelsToDp(itemHeightPixels.value)
-
-    val fadingEdgeGradient = remember {
-        Brush.verticalGradient(
-            0f to Color.Transparent,
-            0.5f to Color.Black,
-            1f to Color.Transparent
-        )
-    }
-
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .map { index -> getItem(index + visibleItemsMiddle) }
-            .distinctUntilChanged()
-            .collect { item -> state.selectedItem = item }
-    }
-
-    Box(modifier = modifier) {
-        HorizontalDivider(
-            modifier = Modifier
-                .padding(top = itemHeightDp * visibleItemsMiddle)
-                .height(1.dp),
-            color = dividerColor
-        )
-
-        LazyColumnWithScrollBars(
-            state = listState,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            flingBehavior = flingBehavior,
-            heightMod = Modifier
-                .fillMaxWidth()
-                .height(itemHeightDp * visibleItemsCount)
-                .fadingEdge(fadingEdgeGradient)
-        ) {
-            items(listScrollCount) { index ->
-                Text(
-                    text = getItem(index),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = textStyle,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onSizeChanged { size -> itemHeightPixels.value = size.height }
-                        .then(textModifier)
-                )
-            }
+        val fadingEdgeGradient = remember {
+            Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.5f to Color.Black,
+                1f to Color.Transparent
+            )
         }
 
-        HorizontalDivider(
-            modifier = Modifier
-                .padding(top = (itemHeightDp * visibleItemsMiddle) + itemHeightDp)
-                .height(1.dp),
-            color = dividerColor
-        )
+        LaunchedEffect(listState) {
+            snapshotFlow { listState.firstVisibleItemIndex }
+                .map { index -> getItem(index + visibleItemsMiddle) }
+                .distinctUntilChanged()
+                .collect { item -> state.selectedItem = item }
+        }
+
+        Box(modifier = modifier) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(top = itemHeightDp * visibleItemsMiddle)
+                    .height(1.dp),
+                color = dividerColor
+            )
+
+            LazyColumnWithScrollBars(
+                state = listState,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                flingBehavior = flingBehavior,
+                heightMod = Modifier
+                    .fillMaxWidth()
+                    .height(itemHeightDp * visibleItemsCount)
+                    .fadingEdge(fadingEdgeGradient)
+            ) {
+                items(listScrollCount) { index ->
+                    Text(
+                        text = getItem(index),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = textStyle,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onSizeChanged { size -> itemHeightPixels.value = size.height }
+                            .then(textModifier)
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(top = (itemHeightDp * visibleItemsMiddle) + itemHeightDp)
+                    .height(1.dp),
+                color = dividerColor
+            )
+        }
     }
 }
 

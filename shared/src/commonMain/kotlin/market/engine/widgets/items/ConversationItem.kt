@@ -3,7 +3,6 @@ package market.engine.widgets.items
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,11 +31,13 @@ import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
-@OptIn(ExperimentalFoundationApi::class)
+
 @Composable
 fun ConversationItem(
     data: CabinetConversationsItemState,
     updateItem: Long? = null,
+    selected : Boolean = false,
+    onSelected : (Long) -> Unit = {}
 ) {
     val conversation = data.conversation
     val events = data.events
@@ -60,7 +61,7 @@ fun ConversationItem(
                         events.goToMessenger()
                     },
                     onLongClick = {
-                        data.selectedItem?.onSelectionChange?.invoke(conversation.id)
+                        onSelected(conversation.id)
                     }
                 ).fillMaxWidth().padding(dimens.smallPadding),
                 verticalAlignment = Alignment.Top,
@@ -71,14 +72,14 @@ fun ConversationItem(
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     AnimatedVisibility(
-                        data.selectedItem?.selected?.isNotEmpty() == true,
+                        selected,
                         enter = expandIn(),
                         exit = fadeOut()
                     ) {
                         ThemeCheckBox(
-                            isSelected = data.selectedItem?.selected?.contains(conversation.id) == true,
+                            isSelected = selected,
                             onSelectionChange = {
-                                data.selectedItem?.onSelectionChange?.invoke(conversation.id)
+                                onSelected(conversation.id)
                             },
                             modifier = Modifier
                         )

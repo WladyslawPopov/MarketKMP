@@ -11,8 +11,6 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import market.engine.common.AnalyticsFactory
 import market.engine.common.showReviewManager
 import market.engine.core.analytics.AnalyticsHelper
@@ -84,31 +82,33 @@ class DefaultRootComponent(
     override val model = _model
 
     override fun updateURL(url: DeepLink) {
-        viewModel.viewModelScope.launch {
-            delay(300)
-            deepLink = url
-            when {
-                childStack.active.instance is RootComponent.Child.MainChild -> {
-                    (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(
-                        url
-                    )
-                }
+        try {
+            var component =
+                (childStack.active.instance as? RootComponent.Child.MainChild)?.component
 
-                else -> {
-                    navigation.replaceAll(RootConfig.Main)
-                    (childStack.active.instance as? RootComponent.Child.MainChild)?.component?.handleDeepLink(
-                        url
-                    )
-                }
+            if (component != null) {
+                component.model.value.viewModel.handleDeepLink(url)
+            } else {
+                navigation.replaceAll(RootConfig.Main)
+                component =
+                    (childStack.active.instance as? RootComponent.Child.MainChild)?.component
+                component?.model?.value?.viewModel?.handleDeepLink(url)
             }
+        } catch (e: Exception) {
+            println("Ignoring deep link update during navigation: ${e.message}")
         }
     }
 
     override fun updateOrientation(orientation: Int) {
         try {
-            val activeChild = childStack.value.active.instance
-            if (activeChild is RootComponent.Child.MainChild) {
-                activeChild.component.updateOrientation(orientation)
+            var component = (childStack.active.instance as? RootComponent.Child.MainChild)?.component
+
+            if (component != null) {
+                component.model.value.viewModel.updateOrientation(orientation)
+            }else{
+                navigation.replaceAll(RootConfig.Main)
+                component = (childStack.active.instance as? RootComponent.Child.MainChild)?.component
+                component?.model?.value?.viewModel?.updateOrientation(orientation)
             }
         } catch (e: Exception) {
             println("Ignoring orientation update during navigation: ${e.message}")

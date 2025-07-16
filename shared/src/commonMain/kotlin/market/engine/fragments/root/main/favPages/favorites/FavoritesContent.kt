@@ -148,7 +148,16 @@ fun FavoritesContent(
                     content = { offer ->
                         CabinetOfferItem(
                             offer,
-                            updateItem.value
+                            updateItem.value,
+                            selectedItems.value.contains(offer.item.id),
+                            onSelected = {
+                                if (selectedItems.value.contains(offer.item.id)) {
+                                    listingBaseViewModel.removeSelectItem(offer.item.id)
+                                } else {
+                                    listingBaseViewModel.addSelectItem(offer.item.id)
+                                }
+
+                            }
                         )
                     },
                 )

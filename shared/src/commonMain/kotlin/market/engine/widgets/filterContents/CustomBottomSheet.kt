@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetValue
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.isBigScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,13 +68,17 @@ fun CustomBottomSheet(
             sheetContainerColor = containerColor,
             sheetPeekHeight = 0.dp,
             sheetSwipeEnabled = initValue,
+            sheetMaxWidth = if(isBigScreen.value) 1000.dp else BottomSheetDefaults.SheetMaxWidth,
             sheetContent = {
                 Box(Modifier.background(sheetBackgroundColor)){
                     sheetContent()
                 }
             },
-            content = {
-                Box(Modifier.background(colors.primaryColor)) {
+            content = { contentPadding ->
+                Box(
+                    Modifier.background(colors.primaryColor)
+                        .padding(contentPadding),
+                ) {
                     content()
                 }
             }

@@ -52,11 +52,18 @@ class DefaultMyBidsComponent(
 
     private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
+    private val updateBackHandlerItem = MutableValue(1L)
+
     init {
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
             if (UserData.token == ""){
                 goToBack()
+            }
+
+            if (updateBackHandlerItem.value != 1L) {
+                viewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
             }
         }
         val eventParameters = mapOf(
@@ -67,11 +74,8 @@ class DefaultMyBidsComponent(
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
+        updateBackHandlerItem.value = offer.id
         offerSelected(offer.id)
-
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(offer.id)
-        }
     }
 
     override fun selectMyBidsPage(select: LotsType) {
@@ -91,6 +95,7 @@ class DefaultMyBidsComponent(
     }
 
     override fun goToUser(userId: Long) {
+        updateBackHandlerItem.value = userId
         navigateToUser(userId)
     }
 

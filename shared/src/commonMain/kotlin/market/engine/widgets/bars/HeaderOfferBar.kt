@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -19,7 +20,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.OfferItem
-import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dropdown_menu.PopUpMenu
@@ -29,14 +29,18 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun HeaderOfferBar(
     offer: OfferItem,
-    selectedState: SelectedOfferItemState?,
     defOptions: List<MenuItem>,
+    updateItem : Long?,
+    selected : Boolean = false,
+    onSelected : ((Long) -> Unit)? = null
 ) {
     val isOpenPopup = remember { mutableStateOf(false) }
 
     val menuList = remember(defOptions) {
         mutableStateOf(defOptions)
     }
+
+    LaunchedEffect(updateItem) {}
 
     Row(
         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
@@ -48,11 +52,11 @@ fun HeaderOfferBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
-            if (selectedState != null) {
+            if (onSelected != null) {
                ThemeCheckBox(
-                   isSelected = selectedState.selected.contains(offer.id),
+                   isSelected = selected,
                    onSelectionChange = {
-                       selectedState.onSelectionChange(offer.id)
+                       onSelected(offer.id)
                    },
                    modifier = Modifier.size(dimens.smallIconSize)
                )

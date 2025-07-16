@@ -53,7 +53,6 @@ data class OfferViewState(
     val columns: StaggeredGridCells = StaggeredGridCells.Fixed(1),
     val countString : String = "",
     val buyNowCounts : List<String> = emptyList(),
-
     val dealTypeString : String = "",
     val deliveryMethodString : String = "",
     val paymentMethodString : String = "",
@@ -180,7 +179,7 @@ class OfferViewModel(
         val columns =
             if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
 
-        val counts = (1..offer.quantity).map { it.toString() }
+        val counts = (1..offer.currentQuantity).map { it.toString() }
         setLoading(false)
         flowOf(
             OfferViewState(

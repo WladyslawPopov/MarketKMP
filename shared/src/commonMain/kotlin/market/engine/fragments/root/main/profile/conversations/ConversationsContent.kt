@@ -1,21 +1,16 @@
 package market.engine.fragments.root.main.profile.conversations
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -28,7 +23,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
@@ -38,11 +32,11 @@ import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
-import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.appBars.DrawerAppBar
+import market.engine.widgets.filterContents.CustomModalDrawer
 import market.engine.widgets.filterContents.DialogsFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.ConversationItem
@@ -68,8 +62,6 @@ fun ConversationsContent(
     val updateItem = viewModel.updateItem.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
 
     val toastItem = viewModel.toastItem.collectAsState()
 
@@ -118,9 +110,11 @@ fun ConversationsContent(
         component.onBack()
     }
 
-    val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
-
-    val content : @Composable (Modifier) -> Unit = {
+    CustomModalDrawer(
+        modifier = modifier,
+        title = stringResource(strings.messageTitle),
+        publicProfileNavigationItems = publicProfileNavigationItems,
+    ) { mod, drawerState ->
         EdgeToEdgeScaffold(
             topBar = {
                 DrawerAppBar(
@@ -175,7 +169,7 @@ fun ConversationsContent(
                 FiltersBar(
                     filterBarUiState.value,
                     isVisible = listingState.areBarsVisible.value &&
-                    activeType.value == ActiveWindowListingType.LISTING,
+                            activeType.value == ActiveWindowListingType.LISTING,
                 )
             },
             onRefresh = {
@@ -215,46 +209,20 @@ fun ConversationsContent(
                         content = { conversation ->
                             ConversationItem(
                                 conversation,
-                                updateItem.value
+                                updateItem.value,
+                                selectedItems.value.contains(conversation.conversation.id),
+                                onSelected = {
+                                    if (selectedItems.value.contains(it)) {
+                                        listingBaseViewModel.removeSelectItem(it)
+                                    } else {
+                                        listingBaseViewModel.addSelectItem(it)
+                                    }
+                                }
                             )
                         }
                     )
                 }
             }
-        }
-    }
-
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (isBigScreen.value) {
-                    AnimatedVisibility(hideDrawer.value) {
-                        ProfileDrawer(
-                            stringResource(strings.messageTitle),
-                            publicProfileNavigationItems
-                        )
-                    }
-                }else {
-                    ProfileDrawer(
-                        stringResource(strings.messageTitle),
-                        publicProfileNavigationItems
-                    )
-                }
-
-                if (isBigScreen.value) {
-                    content(Modifier.weight(1f))
-                }
-            }
-
-        },
-        gesturesEnabled = drawerState.isOpen,
-    ) {
-        if(!isBigScreen.value) {
-            content(Modifier.fillMaxWidth())
         }
     }
 }

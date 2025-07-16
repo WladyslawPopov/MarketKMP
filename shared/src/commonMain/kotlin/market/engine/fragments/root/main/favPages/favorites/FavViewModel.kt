@@ -29,7 +29,6 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
-import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
@@ -105,16 +104,6 @@ class FavViewModel(
                     val item = offer.parseToOfferItem()
                     CabinetOfferItemState(
                         item = item,
-                        selectedItem = SelectedOfferItemState(
-                            selected = selectItems.value,
-                            onSelectionChange = { id ->
-                                if (!selectItems.value.contains(id)) {
-                                    listingBaseViewModel.addSelectItem(id)
-                                } else {
-                                    listingBaseViewModel.removeSelectItem(id)
-                                }
-                            }
-                        ),
                         offerRepository = OfferRepository(
                             item,
                             OfferRepositoryEventsImpl(this, item, component),

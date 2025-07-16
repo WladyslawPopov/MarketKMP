@@ -52,11 +52,18 @@ class DefaultMyProposalsComponent(
 
     private val analyticsHelper = viewModel.analyticsHelper
 
+    private val updateBackHandlerItem = MutableValue(1L)
+
     init {
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
             if (UserData.token == ""){
                 goToBack()
+            }
+
+            if (updateBackHandlerItem.value != 1L) {
+                viewModel.setUpdateItem(updateBackHandlerItem.value)
+                updateBackHandlerItem.value = 1L
             }
         }
         val eventParameters = mapOf(
@@ -67,11 +74,8 @@ class DefaultMyProposalsComponent(
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
+        updateBackHandlerItem.value = offer.id
         offerSelected(offer.id)
-
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(offer.id)
-        }
     }
 
     override fun selectMyProposalsPage(select: LotsType) {
@@ -95,9 +99,7 @@ class DefaultMyProposalsComponent(
     }
 
     override fun goToProposal(offerId: Long, proposalType: ProposalType) {
+        updateBackHandlerItem.value = offerId
         navigateToProposal(offerId, proposalType)
-        lifecycle.doOnResume {
-            viewModel.setUpdateItem(offerId)
-        }
     }
 }

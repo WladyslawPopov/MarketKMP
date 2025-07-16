@@ -151,7 +151,6 @@ fun OfferFilterContent(
         exit = shrinkVertically(),
     )
     {
-
         EdgeToEdgeScaffold(
             modifier
                 .fillMaxSize()
@@ -209,15 +208,14 @@ fun OfferFilterContent(
                 }
             ){
                 Box(
-                    Modifier
-                        .padding(padding)
-                        .fillMaxWidth()
+                    Modifier.padding(padding),
                 )
                 {
                     LazyColumnWithScrollBars(
+                        modifierList = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        contentPadding = PaddingValues(bottom = padding.calculateBottomPadding())
+                        contentPadding = PaddingValues(bottom = dimens.extraLargePadding)
                     )
                     {
                         //Expands

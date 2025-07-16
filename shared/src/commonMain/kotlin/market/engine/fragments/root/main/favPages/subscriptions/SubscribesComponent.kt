@@ -65,10 +65,8 @@ class DefaultSubscriptionsComponent(
     override val model: Value<SubscriptionsComponent.Model> = _model
 
     override fun goToCreateNewSubscription(editId: Long?) {
+        updateBackHandlerItem.value = editId ?: 1L
         navigateToCreateNewSubscription(editId)
-        lifecycle.doOnResume {
-            subViewModel.setUpdateItem(editId)
-        }
     }
 
     override fun goToListing(item: Subscription) {

@@ -62,6 +62,10 @@ fun MainNavigation(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
     val showLogoutDialog = viewModel.showLogoutDialog.collectAsState()
+    val showBottomBar = viewModel.showBottomBar.collectAsState()
+    val publicProfileNavigationItems = viewModel.publicProfileNavigationItems.collectAsState()
+    val bottomList = viewModel.bottomList.collectAsState()
+
     var bottomBarHeight by mutableStateOf(LocalBottomBarHeight.current)
     val density = LocalDensity.current
 
@@ -74,9 +78,9 @@ fun MainNavigation(
             ) { child ->
                 Box {
                     Row {
-                        if (!model.value.showBottomBar.value) {
+                        if (!showBottomBar.value) {
                             getRailNavBar(
-                                listItems = model.value.bottomList.value,
+                                listItems = bottomList.value,
                                 currentScreen = currentScreen
                             )
                         }
@@ -103,8 +107,24 @@ fun MainNavigation(
                                 ProfileNavigation(
                                     Modifier.weight(1f),
                                     component.childProfileStack,
-                                    model.value.publicProfileNavigationItems.value
+                                    publicProfileNavigationItems.value
                                 )
+                        }
+                    }
+
+                    if (showBottomBar.value) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .zIndex(300f)
+                                .onSizeChanged {
+                                    bottomBarHeight = with(density) {
+                                        it.height.toDp()
+                                    }
+                                },
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            GetBottomNavBar(bottomList.value, currentScreen)
                         }
                     }
 
@@ -116,20 +136,6 @@ fun MainNavigation(
                             goToLogin(true)
                         }
                     )
-
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .zIndex(300f)
-                            .onSizeChanged {
-                                bottomBarHeight = with(density) {
-                                    it.height.toDp()
-                                }
-                            },
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        GetBottomNavBar(model.value.bottomList.value, currentScreen)
-                    }
                 }
             }
         }

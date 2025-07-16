@@ -21,10 +21,12 @@ import market.engine.core.data.events.OrderItemEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.MyOrderItemState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.DealType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
@@ -49,6 +51,12 @@ class MyOrdersViewModel(
     val listingBaseViewModel = ListingBaseViewModel()
     private val ld = listingBaseViewModel.listingData
     private val activeType = listingBaseViewModel.activeWindowType
+
+    val typeGroup = if (type in arrayOf(
+            DealType.BUY_ARCHIVE,
+            DealType.BUY_IN_WORK
+        )
+    ) DealTypeGroup.SELL else DealTypeGroup.BUY
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         ld,
@@ -155,6 +163,13 @@ class MyOrdersViewModel(
                     )
                 }
             )
+
+            val eventParameters = mapOf(
+                "user_id" to UserData.login.toString(),
+                "profile_source" to "deals",
+                "type" to typeGroup.name
+            )
+            analyticsHelper.reportEvent("view_seller_profile", eventParameters)
         }
     }
 

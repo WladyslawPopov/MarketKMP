@@ -134,6 +134,7 @@ fun OrderFilterContent(
         ) { contentPadding ->
             Box(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
                 LazyColumnWithScrollBars(
+                    modifierList = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding()),

@@ -22,9 +22,9 @@ import market.engine.core.data.events.CabinetConversationsItemEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.CabinetConversationsItemState
-import market.engine.core.data.states.SelectedOfferItemState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
@@ -68,25 +68,12 @@ class ConversationsViewModel(val component: ConversationsComponent): CoreViewMod
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { conversation  ->
-                    val selectItems = listingBaseViewModel.selectItems
-
                     CabinetConversationsItemState(
                         conversation = conversation,
                         events = ConversationEventsImpl(
                             conversation = conversation,
                             viewModel = this,
                             component = component
-                        ),
-                        selectedItem = SelectedOfferItemState(
-                            selected = selectItems.value,
-                            onSelectionChange = { id ->
-                                if (!selectItems.value.contains(id)) {
-                                    listingBaseViewModel.addSelectItem(id)
-                                    setUpdateItem(id)
-                                } else {
-                                    listingBaseViewModel.removeSelectItem(id)
-                                }
-                            }
                         )
                     )
                 }
@@ -143,6 +130,12 @@ class ConversationsViewModel(val component: ConversationsComponent): CoreViewMod
                     )
                 }
             )
+
+            val eventParameters = mapOf(
+                "user_id" to UserData.login.toString(),
+                "profile_source" to "messages"
+            )
+            analyticsHelper.reportEvent("view_seller_profile", eventParameters)
         }
     }
 

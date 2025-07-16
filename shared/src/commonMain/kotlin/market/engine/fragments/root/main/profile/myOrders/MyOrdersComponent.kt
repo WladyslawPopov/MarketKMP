@@ -5,7 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.DealType
 import market.engine.core.network.networkObjects.Offer
@@ -52,8 +51,6 @@ class DefaultMyOrdersComponent(
     override val model: Value<MyOrdersComponent.Model> = _model
 
 
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
     init {
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
@@ -61,11 +58,6 @@ class DefaultMyOrdersComponent(
                 goToBack()
             }
         }
-        val eventParameters = mapOf(
-            "user_id" to UserData.login.toString(),
-            "profile_source" to "deals"
-        )
-        analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
 
     override fun goToOffer(offer: Offer) {

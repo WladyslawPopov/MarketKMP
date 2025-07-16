@@ -77,9 +77,8 @@ class DefaultMyOffersComponent(
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {
-        offerSelected(offer.id)
-
         updateBackHandlerItem.value = offer.id
+        offerSelected(offer.id)
     }
 
     override fun selectMyOfferPage(select: LotsType) {

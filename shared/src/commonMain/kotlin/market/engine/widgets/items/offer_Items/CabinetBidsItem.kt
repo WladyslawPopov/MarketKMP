@@ -80,19 +80,19 @@ fun CabinetBidsItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth().padding(dimens.smallPadding),
-                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                 horizontalAlignment = Alignment.Start
             ) {
                 HeaderOfferBar(
                     offer = offer,
-                    selectedState = state.selectedItem,
                     defOptions = defOptions.value,
+                    updateItem
                 )
 
                 Row(
                     modifier = Modifier.clickable {
                         events.openCabinetOffer()
-                    }.fillMaxWidth().padding(dimens.extraSmallPadding),
+                    }.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -102,7 +102,8 @@ fun CabinetBidsItem(
                         modifier = Modifier.padding(dimens.smallPadding),
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ) {
+                    )
+                    {
                         Box(
                             modifier = Modifier.size(imageSize),
                         ) {
@@ -112,34 +113,37 @@ fun CabinetBidsItem(
                             )
                         }
 
-                        SimpleTextButton(
-                            text = stringResource(strings.actionsLabel),
-                            textStyle = MaterialTheme.typography.labelSmall,
-                            textColor = colors.actionTextColor,
-                            backgroundColor = colors.grayLayout,
-                            leadIcon = {
-                                Icon(
-                                    painter = painterResource(drawables.shareMenuIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.extraSmallIconSize),
-                                    tint = colors.actionTextColor
-                                )
-                            },
-                        ) {
-                            openMenu.value = true
-                        }
+                        Column {
+                            SimpleTextButton(
+                                text = stringResource(strings.actionsLabel),
+                                textStyle = MaterialTheme.typography.labelSmall,
+                                textColor = colors.actionTextColor,
+                                backgroundColor = colors.grayLayout,
+                                leadIcon = {
+                                    Icon(
+                                        painter = painterResource(drawables.shareMenuIcon),
+                                        contentDescription = "",
+                                        modifier = Modifier.size(dimens.extraSmallIconSize),
+                                        tint = colors.actionTextColor
+                                    )
+                                },
+                            ) {
+                                openMenu.value = true
+                            }
 
-                        PopUpMenu(
-                            openPopup = openMenu.value,
-                            menuList = menuList.value,
-                            onClosed = { openMenu.value = false }
-                        )
+                            PopUpMenu(
+                                openPopup = openMenu.value,
+                                menuList = menuList.value,
+                                onClosed = { openMenu.value = false }
+                            )
+                        }
                     }
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ) {
+                    )
+                    {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             TitleText(offer.title, color = colors.actionTextColor)
                         }
@@ -236,7 +240,8 @@ fun CabinetBidsItem(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
-                ) {
+                )
+                {
                     if (!isActive) {
                         SimpleTextButton(
                             stringResource(strings.orderLabel),

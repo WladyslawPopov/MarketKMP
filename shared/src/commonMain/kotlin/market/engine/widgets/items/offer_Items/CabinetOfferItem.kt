@@ -57,6 +57,8 @@ import org.jetbrains.compose.resources.stringResource
 fun CabinetOfferItem(
     state : CabinetOfferItemState,
     updateItem : Long? = null,
+    selected : Boolean = false,
+    onSelected : ((Long) -> Unit)? = null
 ) {
     val item = state.item
     val offerRepository = state.offerRepository
@@ -95,8 +97,10 @@ fun CabinetOfferItem(
         ) {
             HeaderOfferBar(
                 offer = item,
-                selectedState = state.selectedItem,
-                defOptions = defOptions.value
+                defOptions = defOptions.value,
+                selected = selected,
+                onSelected = onSelected,
+                updateItem = updateItem
             )
 
             Row(

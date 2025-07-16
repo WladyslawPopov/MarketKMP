@@ -6,6 +6,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,7 +63,7 @@ fun ContentSort(
             LazyColumnWithScrollBars(
                 heightMod = Modifier.background(colors.primaryColor)
                     .fillMaxWidth(if (isBigScreen.value) 0.7f else 1f),
-                modifierList = Modifier,
+                modifierList = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                 contentPadding = padding

@@ -82,16 +82,18 @@ fun CabinetProposalItem(
         ) {
             HeaderOfferBar(
                 offer = offer,
-                selectedState = state.selectedItem,
-                defOptions = defOptions.value
+                defOptions = defOptions.value,
+                updateItem = updateItem,
             )
+
             Row(
                 modifier = Modifier.clickable {
                     events.openCabinetOffer()
                 }.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 val imageSize = 100.dp
 
                 Column(
@@ -233,7 +235,8 @@ fun CabinetProposalItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 SimpleTextButton(
                     stringResource(strings.proposalTitle),
                     leadIcon = {

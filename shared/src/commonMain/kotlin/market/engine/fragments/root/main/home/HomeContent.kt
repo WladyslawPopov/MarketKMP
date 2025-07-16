@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -67,97 +68,100 @@ fun HomeContent(
 
     BackHandler(model.backHandler) {}
 
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            DrawerContent(
-                drawerState = drawerState,
-                goToLogin = {
-                    component.goToLogin()
-                },
-                list = state.drawerList
-            )
-        },
-        gesturesEnabled = true,
-    ) {
-        EdgeToEdgeScaffold(
-            topBar = {
-                DrawerAppBar(
-                    data = state.appBarData,
+    Scaffold {
+        ModalNavigationDrawer(
+            modifier = modifier,
+            drawerState = drawerState,
+            drawerContent = {
+                DrawerContent(
                     drawerState = drawerState,
-                    color = colors.white.copy(0.7f)
-                ) {
-                    Image(
-                        painter = painterResource(drawables.logo),
-                        contentDescription = stringResource(strings.homeTitle),
-                        modifier = Modifier.size(140.dp, 68.dp),
-                    )
-                }
-
-                SearchBar {
-                    component.goToNewSearch()
-                }
+                    goToLogin = {
+                        component.goToLogin()
+                    },
+                    list = state.drawerList
+                )
             },
-            isLoading = isLoading.value,
-            onRefresh = { viewModel.updateModel() },
-            floatingActionButton = {
-                floatingCreateOfferButton {
-                    component.goToCreateOffer()
-                }
-            },
-            error = errorContent,
-            noFound = null,
-            toastItem = toastItem.value,
-            modifier = Modifier.fillMaxSize()
-        ) { contentPadding ->
-            LazyColumnWithScrollBars(
-                state = listingState.scrollState,
-                contentPadding = contentPadding,
-                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
-            )
-            {
-                item {
-                    LazyRowWithScrollBars(
-                        heightMod = Modifier.fillMaxWidth()
+            gesturesEnabled = true,
+        )
+        {
+            EdgeToEdgeScaffold(
+                topBar = {
+                    DrawerAppBar(
+                        data = state.appBarData,
+                        drawerState = drawerState,
+                        color = colors.white.copy(0.7f)
                     ) {
-                        items(state.categories) { category ->
-                            CategoryItem(category = category){
-                                viewModel.goToCategory(category)
+                        Image(
+                            painter = painterResource(drawables.logo),
+                            contentDescription = stringResource(strings.homeTitle),
+                            modifier = Modifier.size(140.dp, 68.dp),
+                        )
+                    }
+
+                    SearchBar {
+                        component.goToNewSearch()
+                    }
+                },
+                isLoading = isLoading.value,
+                onRefresh = { viewModel.updateModel() },
+                floatingActionButton = {
+                    floatingCreateOfferButton {
+                        component.goToCreateOffer()
+                    }
+                },
+                error = errorContent,
+                noFound = null,
+                toastItem = toastItem.value,
+                modifier = Modifier.fillMaxSize()
+            ) { contentPadding ->
+                LazyColumnWithScrollBars(
+                    state = listingState.scrollState,
+                    contentPadding = contentPadding,
+                    verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
+                )
+                {
+                    item {
+                        LazyRowWithScrollBars(
+                            heightMod = Modifier.fillMaxWidth()
+                        ) {
+                            items(state.categories) { category ->
+                                CategoryItem(category = category) {
+                                    viewModel.goToCategory(category)
+                                }
                             }
                         }
                     }
-                }
 
-                item {
-                    GridPromoOffers(
-                        state.promoOffers1,
-                        onOfferClick = {
-                            component.goToOffer(it)
-                        },
-                        onAllClickButton = {
-                            viewModel.goToAllPromo()
-                        }
-                    )
-                }
-                item {
-                    GridPopularCategory(listTopCategory) { topCategory ->
-                        viewModel.goToCategory(topCategory)
+                    item {
+                        GridPromoOffers(
+                            state.promoOffers1,
+                            onOfferClick = {
+                                component.goToOffer(it)
+                            },
+                            onAllClickButton = {
+                                viewModel.goToAllPromo()
+                            }
+                        )
                     }
-                }
-                item {
-                    GridPromoOffers(
-                        state.promoOffers2,
-                        onOfferClick = {
-                            component.goToOffer(it)
-                        },
-                        onAllClickButton = {
-                            viewModel.goToAllPromo()
+                    item {
+                        GridPopularCategory(listTopCategory) { topCategory ->
+                            viewModel.goToCategory(topCategory)
                         }
-                    )
-                }
-                item {
-                    FooterRow(state.listFooter)
+                    }
+                    item {
+                        GridPromoOffers(
+                            state.promoOffers2,
+                            onOfferClick = {
+                                component.goToOffer(it)
+                            },
+                            onAllClickButton = {
+                                viewModel.goToAllPromo()
+                            }
+                        )
+                    }
+                    item {
+                        FooterRow(state.listFooter)
+                    }
                 }
             }
         }

@@ -6,7 +6,6 @@ import market.engine.core.network.networkObjects.Conversations
 
 data class CabinetConversationsItemState(
     val conversation: Conversations,
-    val selectedItem : SelectedOfferItemState? = null,
     val defOptions : List<MenuItem> = emptyList(),
     val events: CabinetConversationsItemEvents
 )

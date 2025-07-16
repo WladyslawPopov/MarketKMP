@@ -1,15 +1,10 @@
 package market.engine.fragments.root.main.profile.myBids
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,15 +17,14 @@ import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
-import market.engine.fragments.root.main.profile.ProfileDrawer
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.filterContents.CustomModalDrawer
 import org.jetbrains.compose.resources.stringResource
 
 
@@ -46,14 +40,16 @@ fun ProfileMyBidsNavigation(
     modifier: Modifier,
     publicProfileNavigationItems: List<NavigationItem>
 ) {
-    val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)
+    CustomModalDrawer(
+        modifier = modifier,
+        title = stringResource(strings.myBidsTitle),
+        publicProfileNavigationItems = publicProfileNavigationItems,
+    ) { mod, drawerState ->
 
-    val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
-
-    val content : @Composable (Modifier) -> Unit = {
         val select = remember {
             mutableStateOf(LotsType.MY_BIDS_ACTIVE)
         }
+
         Column {
             DrawerAppBar(
                 drawerState = drawerState,
@@ -73,7 +69,7 @@ fun ProfileMyBidsNavigation(
                     )
                 ),
                 color = colors.transparent
-            ){
+            ) {
                 val active = stringResource(strings.activeTab)
                 val inactive = stringResource(strings.inactiveTab)
 
@@ -81,7 +77,7 @@ fun ProfileMyBidsNavigation(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
-                ){
+                ) {
                     item {
                         SimpleTextButton(
                             active,
@@ -107,7 +103,7 @@ fun ProfileMyBidsNavigation(
                 pages = component.myBidsPages,
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
-                    select.value = when(it){
+                    select.value = when (it) {
                         0 -> LotsType.MY_BIDS_ACTIVE
                         1 -> LotsType.MY_BIDS_INACTIVE
                         else -> {
@@ -122,39 +118,6 @@ fun ProfileMyBidsNavigation(
                     modifier = modifier
                 )
             }
-        }
-    }
-
-    ModalNavigationDrawer(
-        modifier = modifier,
-        drawerState = drawerState,
-        drawerContent = {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (isBigScreen.value) {
-                    AnimatedVisibility(hideDrawer.value) {
-                        ProfileDrawer(
-                            stringResource(strings.myBidsTitle),
-                            publicProfileNavigationItems
-                        )
-                    }
-                }else{
-                    ProfileDrawer(
-                        stringResource(strings.myBidsTitle),
-                        publicProfileNavigationItems
-                    )
-                }
-
-                if (isBigScreen.value) {
-                    content(Modifier.weight(1f))
-                }
-            }
-        },
-        gesturesEnabled = drawerState.isOpen && !isBigScreen.value,
-    ) {
-        if(!isBigScreen.value) {
-            content(Modifier.fillMaxWidth())
         }
     }
 }
