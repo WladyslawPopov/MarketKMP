@@ -48,9 +48,11 @@ import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
+import kotlin.collections.plus
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -65,7 +67,6 @@ data class CreateOfferContentState(
     val textState : String = "",
     val futureTime : Long = 1L,
     val selectedDate : Long? = null,
-    val showSuccessContent : Boolean = false,
 
     val firstDynamicContent : List<String> = listOf(
         "title",
@@ -90,6 +91,134 @@ data class CreateOfferContentState(
     )
 )
 
+class PhotoTempViewModel(val type: CreateOfferType) : CoreViewModel(){
+    private val _deleteImages = MutableStateFlow<List<JsonPrimitive>>(emptyList())
+    val deleteImages = _deleteImages.asStateFlow()
+
+    private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
+    val responseImages = _responseImages.asStateFlow()
+
+    @OptIn(ExperimentalUuidApi::class)
+    fun getImages(pickImagesRaw : PlatformFiles) {
+        viewModelScope.launch {
+            val photos = pickImagesRaw.map { file ->
+                PhotoTemp(
+                    file = file,
+                    id = Uuid.random().toString(),
+                    uri = file.path
+                )
+            }
+            _responseImages.value = buildList {
+                addAll(_responseImages.value)
+                photos.forEach {
+                    if (size < MAX_IMAGE_COUNT) {
+                        add(it)
+                    }
+                }
+            }
+        }
+    }
+
+    fun setImages(images: List<PhotoTemp>) {
+        _responseImages.value = images
+    }
+
+
+    fun setDeleteImages(item : PhotoTemp) {
+        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
+            if (item.url != null && item.id != null) {
+                _deleteImages.value += JsonPrimitive(item.id!!.last().toString())
+            }
+        }
+
+        _responseImages.update {
+            val newList = it.toMutableList()
+            newList.remove(item)
+            newList
+        }
+    }
+
+    fun rotatePhoto(item : PhotoTemp) {
+        _responseImages.update { list ->
+            list.map {
+                if (it.id == item.id) {
+                    item.copy()
+                } else {
+                    it.copy()
+                }
+            }
+        }
+    }
+
+    fun openPhoto(item : PhotoTemp) {
+        val i = item
+        printLogD("Open photo", i.toString())
+    }
+
+    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
+        viewModelScope.launch {
+            val res = uploadFile(item)
+
+            if (res.success != null) {
+                delay(1000)
+
+                if (res.success?.tempId?.isNotBlank() == true) {
+                    item.uri = res.success?.uri
+                    item.tempId = res.success?.tempId
+
+                    _responseImages.update { list ->
+                        list.map {
+                            if (it.id == item.id) {
+                                item.copy()
+                            } else {
+                                it.copy()
+                            }
+                        }
+                    }
+                }else{
+                    showToast(
+                        errorToastItem.copy(
+                            message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
+                        )
+                    )
+                    setDeleteImages(item)
+                }
+                withContext(Dispatchers.Main){
+                    onSuccess(item)
+                }
+            } else {
+                showToast(
+                    errorToastItem.copy(
+                        message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
+                    )
+                )
+            }
+        }
+    }
+
+    private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
+        try {
+            val res = withContext(Dispatchers.IO) {
+                getFileUpload(photoTemp)
+            }
+
+            return withContext(Dispatchers.Main) {
+                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
+                photoTemp.tempId = cleanedSuccess
+                ServerResponse(photoTemp)
+            }
+        } catch (e : ServerErrorException){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = e)
+            }
+        }catch (e : Exception){
+            return withContext(Dispatchers.Main) {
+                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
+            }
+        }
+    }
+}
+
 class CreateOfferViewModel(
     val catPath : List<Long>?,
     val offerId : Long?,
@@ -104,30 +233,29 @@ class CreateOfferViewModel(
 
     private val _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
-    val responseImages = _responseImages.asStateFlow()
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
 
     private val _isEditCat = MutableStateFlow(false)
 
     private val _choiceCodeSaleType = MutableStateFlow<Int?>(null)
     val choiceCodeSaleType = _choiceCodeSaleType.asStateFlow()
+
     private val _selectedDate = MutableStateFlow(_responseGetPage.value?.fields?.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
     val selectedDate = _selectedDate.asStateFlow()
+
     private val _newOfferId = MutableStateFlow<Long?>(null)
     val newOfferId = _newOfferId.asStateFlow()
-
-    private val deleteImages = MutableStateFlow<List<JsonPrimitive>>(emptyList())
     
     val searchData = categoryViewModel.searchData
 
+    val photoTempViewModel = PhotoTempViewModel(type)
+
     val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
-        _responsePostPage,
         _responseGetPage,
         _responseCatHistory,
         _isEditCat,
     )
-    { postPage, dynamicPayload, catHistory, openCategory ->
+    { dynamicPayload, catHistory, openCategory ->
         val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
 
         when (type) {
@@ -141,14 +269,13 @@ class CreateOfferViewModel(
                         tempPhotos.add(
                             PhotoTemp(
                                 id = field.key,
-                                url = field.links.mid?.jsonPrimitive?.content,
-                                tempId = ""
+                                url = field.links.mid?.jsonPrimitive?.content
                             )
                         )
                     }
                 }
 
-                setImages(tempPhotos.toList())
+                photoTempViewModel.setImages(tempPhotos.toList())
             }
 
             else -> {
@@ -160,7 +287,7 @@ class CreateOfferViewModel(
                             )
                         )
                     }
-                    setImages(tempPhotos.toList())
+                    photoTempViewModel.setImages(tempPhotos.toList())
                 }
             }
         }
@@ -213,7 +340,6 @@ class CreateOfferViewModel(
                 openCategory = openCategory,
                 categoryViewModel = categoryViewModel
             ),
-            showSuccessContent = postPage?.operationResult?.message == "operation_success",
             textState = dynamicPayload?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
         )
     }.stateIn(
@@ -281,31 +407,6 @@ class CreateOfferViewModel(
 
     fun setCatHistory() {
         getCategoriesHistory(catPath?.firstOrNull())
-    }
-
-    @OptIn(ExperimentalUuidApi::class)
-    fun getImages(pickImagesRaw : PlatformFiles) {
-        viewModelScope.launch {
-            val photos = pickImagesRaw.map { file ->
-                PhotoTemp(
-                    file = file,
-                    id = Uuid.random().toString(),
-                    uri = file.path
-                )
-            }
-            _responseImages.value = buildList {
-                addAll(_responseImages.value)
-                photos.forEach {
-                    if (size < MAX_IMAGE_COUNT) {
-                        add(it)
-                    }
-                }
-            }
-        }
-    }
-
-    fun setImages(images: List<PhotoTemp>) {
-        _responseImages.value = images
     }
 
     fun getPage(url: String) {
@@ -557,19 +658,6 @@ class CreateOfferViewModel(
         }
     }
 
-    fun setDeleteImages(item : PhotoTemp) {
-        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
-            if (item.url != null && item.id != null) {
-                deleteImages.value += JsonPrimitive(item.id!!.last().toString())
-            }
-        }
-
-        _responseImages.update {
-            val newList = it.toMutableList()
-            newList.remove(item)
-            newList
-        }
-    }
 
     fun setChoiceCodeSaleType(code: Int) {
         _choiceCodeSaleType.value = code
@@ -589,8 +677,8 @@ class CreateOfferViewModel(
         val fields = _responseGetPage.value?.fields?.filter { it.data != null }
         val categoryID = searchData.value.searchCategoryID
         val selectedDate = selectedDate.value
-        val deleteImages = deleteImages.value
-        val images = _responseImages.value
+        val deleteImages = photoTempViewModel.deleteImages.value
+        val images = photoTempViewModel.responseImages.value
 
         return buildJsonObject {
             fields?.forEach { field ->
@@ -653,7 +741,7 @@ class CreateOfferViewModel(
             val positionArray = buildJsonArray {
                 images.forEach { photo ->
                     val listIndex = images.indexOf(photo) + 1
-                    if (photo.url != null) {
+                    if (photo.url != null && photo.tempId?.isBlank() == true) {
                         add(buildJsonObject {
                             put("key", JsonPrimitive(photo.id))
                             put("position", JsonPrimitive(listIndex))
@@ -681,47 +769,6 @@ class CreateOfferViewModel(
 
             if (positionArray.isNotEmpty()) {
                 put("position_images", positionArray)
-            }
-        }
-    }
-
-    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
-        viewModelScope.launch {
-            val res = uploadFile(item)
-
-            if (res.success != null) {
-                delay(1000)
-                withContext(Dispatchers.Main){
-                    onSuccess(res.success!!)
-                }
-            } else {
-                showToast(
-                    errorToastItem.copy(
-                        message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
-                    )
-                )
-            }
-        }
-    }
-
-    private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
-        try {
-            val res = withContext(Dispatchers.IO) {
-                getFileUpload(photoTemp)
-            }
-
-            return withContext(Dispatchers.Main) {
-                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
-                photoTemp.tempId = cleanedSuccess
-                ServerResponse(photoTemp)
-            }
-        } catch (e : ServerErrorException){
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = e)
-            }
-        }catch (e : Exception){
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
             }
         }
     }

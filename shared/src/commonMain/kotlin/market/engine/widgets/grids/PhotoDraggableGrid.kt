@@ -17,18 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.PhotoTemp
-import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
+import market.engine.fragments.root.main.createOffer.PhotoTempViewModel
 import market.engine.widgets.items.PhotoCard
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
 
 @Composable
 fun PhotoDraggableGrid(
-    photoList: List<PhotoTemp>,
-    viewModel: CreateOfferViewModel,
-    deletePhoto: (PhotoTemp) -> Unit = {}
+    list: List<PhotoTemp>,
+    viewModel: PhotoTempViewModel,
 ) {
-    val listState = rememberUpdatedState(photoList)
+    val listState = rememberUpdatedState(list)
     val lazyStaggeredGridState = rememberLazyGridState()
     val reorderableState = rememberReorderableLazyGridState(lazyStaggeredGridState) { from, to ->
         val newList = listState.value.toMutableList()
@@ -38,13 +37,13 @@ fun PhotoDraggableGrid(
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 150.dp),
-        modifier = Modifier.fillMaxWidth().heightIn(max = (200 * photoList.size).dp),
+        modifier = Modifier.fillMaxWidth().heightIn(max = (200 * list.size).dp),
         state = lazyStaggeredGridState,
         contentPadding = PaddingValues(dimens.mediumPadding),
         horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
         verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)
     ) {
-        items(listState.value, key = { it.id ?: it.tempId ?: it.uri ?: it.url ?: "" }) { item ->
+        items(list, key = { it.id ?: it.tempId ?: it.uri ?: it.url ?: "" }) { item ->
             ReorderableItem(reorderableState, key = item.id ?: item.tempId ?: item.uri ?: item.url ?: "") {
                 val interactionSource = remember { MutableInteractionSource() }
                 PhotoCard(
@@ -66,7 +65,6 @@ fun PhotoDraggableGrid(
                         },
                         interactionSource = interactionSource,
                     ).sizeIn(maxWidth = 600.dp, maxHeight = 150.dp),
-                    deletePhoto = deletePhoto
                 )
             }
         }

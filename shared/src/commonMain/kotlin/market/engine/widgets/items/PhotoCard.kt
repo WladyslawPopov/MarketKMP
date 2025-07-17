@@ -17,53 +17,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.zIndex
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.PhotoTemp
-import market.engine.fragments.root.main.createOffer.CreateOfferViewModel
+import market.engine.fragments.root.main.createOffer.PhotoTempViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PhotoCard(
     item: PhotoTemp,
     interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
-    viewModel: CreateOfferViewModel,
-    deletePhoto: (PhotoTemp) -> Unit = {},
-    openPhoto: () -> Unit = {}
+    viewModel: PhotoTempViewModel,
 ) {
     val rotate = remember { mutableStateOf(item.rotate) }
 
     val isLoading = remember{ mutableStateOf(item.tempId == null) }
 
-    val errTost = stringResource(strings.operationFailed)
-
     LaunchedEffect(item.tempId){
         if (item.tempId == null){
             viewModel.uploadPhotoTemp(item){
-                if (it.tempId?.isNotBlank() == true) {
-                    item.uri = it.uri
-                    item.tempId = it.tempId
-                    isLoading.value = false
-                }else{
-                    viewModel.showToast(
-                        errorToastItem.copy(
-                            message = errTost
-                        )
-                    )
-                    deletePhoto(item)
-                }
+                isLoading.value = false
             }
         }
     }
 
     Card(
-        onClick = openPhoto,
+        onClick = { viewModel.openPhoto(item) },
         interactionSource = interactionSource,
         modifier = modifier
     ) {
@@ -85,6 +67,7 @@ fun PhotoCard(
                     item.rotate += 90
                     item.rotate %= 360
                     rotate.value = item.rotate
+                    viewModel.rotatePhoto(item)
                 }
             }
 
@@ -99,7 +82,7 @@ fun PhotoCard(
                     modifierIconSize = Modifier.size(dimens.smallIconSize),
                     modifier = Modifier.size(dimens.smallIconSize)
                 ) {
-                    deletePhoto(item)
+                    viewModel.setDeleteImages(item)
                 }
             }
 

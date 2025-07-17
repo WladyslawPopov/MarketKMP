@@ -116,7 +116,9 @@ fun CreateOfferContent(
     val third = uiState.value.thirdDynamicContent
     val end = uiState.value.endDynamicContent
 
-    val images = viewModel.responseImages.collectAsState()
+    val photoTempViewModel = viewModel.photoTempViewModel
+
+    val images = photoTempViewModel.responseImages.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
@@ -139,7 +141,7 @@ fun CreateOfferContent(
         ),
         initialDirectory = "market/temp/"
     ) { files ->
-        files?.let { viewModel.getImages(it) }
+        files?.let { photoTempViewModel.getImages(it) }
     }
 
     val error: (@Composable () -> Unit)? = remember(err.value) {
@@ -564,9 +566,7 @@ fun CreateOfferContent(
                                     enter = fadeIn(),
                                     exit = fadeOut()
                                 ) {
-                                    PhotoDraggableGrid(images.value, viewModel) {
-                                        viewModel.setDeleteImages(it)
-                                    }
+                                    PhotoDraggableGrid(images.value, photoTempViewModel)
                                 }
                             }
                         }

@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
@@ -143,9 +144,18 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
             if (res.success != null) {
                 withContext(Dispatchers.Main){
                     val result = res.success!!
-                    responseGetFields.value?.fields?.find { it.widgetType == "attachment" }?.data =
-                        JsonPrimitive(result.tempId)
 
+                    _responseGetFields.update { res ->
+                        res?.copy(
+                            fields = res.fields.map{
+                                if (it.key == "attachment") {
+                                    it.copy(data = JsonPrimitive(result.tempId))
+                                } else {
+                                    it.copy()
+                                }
+                            }
+                        )
+                    }
                     _dataImage.value = item.file?.name ?: ""
                 }
             } else {
@@ -160,7 +170,17 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
 
     fun clearDataImage(){
         _dataImage.value = ""
-        responseGetFields.value?.fields?.find { it.widgetType == "file" }?.data = null
+        _responseGetFields.update { res ->
+            res?.copy(
+                fields = res.fields.map{
+                    if (it.key == "attachment") {
+                        it.copy(data = null)
+                    } else {
+                        it.copy()
+                    }
+                }
+            )
+        }
     }
 
     private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
