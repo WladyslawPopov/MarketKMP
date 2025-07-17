@@ -34,6 +34,7 @@ import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.bars.HeaderOfferBar
+import market.engine.widgets.buttons.OfferActionsBtn
 import market.engine.widgets.dialogs.OfferOperationsDialogs
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.ilustrations.LoadImage
@@ -114,22 +115,11 @@ fun CabinetBidsItem(
                         }
 
                         Column {
-                            SimpleTextButton(
-                                text = stringResource(strings.actionsLabel),
-                                textStyle = MaterialTheme.typography.labelSmall,
-                                textColor = colors.actionTextColor,
-                                backgroundColor = colors.grayLayout,
-                                leadIcon = {
-                                    Icon(
-                                        painter = painterResource(drawables.shareMenuIcon),
-                                        contentDescription = "",
-                                        modifier = Modifier.size(dimens.extraSmallIconSize),
-                                        tint = colors.actionTextColor
-                                    )
-                                },
-                            ) {
-                                openMenu.value = true
-                            }
+                            OfferActionsBtn(
+                                onClick = {
+                                    openMenu.value = true
+                                }
+                            )
 
                             PopUpMenu(
                                 openPopup = openMenu.value,

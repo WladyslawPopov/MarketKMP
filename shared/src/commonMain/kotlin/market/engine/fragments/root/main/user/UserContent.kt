@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 import market.engine.common.Platform
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -231,7 +232,7 @@ fun UserContent(
                selectedTab = selectedTabIndex.value,
                containerColor = colors.primaryColor,
                modifier = Modifier
-                   .background(colors.primaryColor.copy(0.8f))
+                   .background(colors.primaryColor.copy(alphaBars))
                    .fillMaxWidth(),
            ) { index, tab ->
                PageTab(

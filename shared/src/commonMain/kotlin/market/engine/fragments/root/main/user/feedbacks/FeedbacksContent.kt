@@ -26,6 +26,7 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -112,7 +113,7 @@ fun FeedbacksContent(
                 )
                 {
                     Row(
-                        modifier = Modifier.background(colors.primaryColor.copy(0.8f))
+                        modifier = Modifier.background(colors.primaryColor.copy(alphaBars))
                             .fillMaxWidth()
                             .padding(dimens.smallPadding),
                         verticalAlignment = Alignment.CenterVertically,

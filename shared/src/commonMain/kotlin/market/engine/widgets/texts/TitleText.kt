@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import market.engine.core.data.globalData.ThemeResources.colors
 
@@ -12,11 +13,12 @@ import market.engine.core.data.globalData.ThemeResources.colors
 fun TitleText(
     text : String,
     color : Color = colors.black,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
     modifier: Modifier = Modifier
 ) {
     Text(
         text = text,
-        style = MaterialTheme.typography.bodyMedium,
+        style = style,
         fontWeight = FontWeight.Bold,
         color = color,
         modifier = modifier,

@@ -65,7 +65,7 @@ fun PagingCounterBar(
                         if (showDownButton) drawables.iconArrowDown else drawables.iconArrowUp,
                         color = colors.black,
                         modifier = Modifier
-                            .background(colors.white.copy(0.7f), CircleShape)
+                            .background(colors.white, CircleShape)
                             .size(dimens.smallIconSize),
                         modifierIconSize = Modifier.size(dimens.extraSmallIconSize)
                     ){

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.states.SimpleAppBarData
@@ -24,7 +25,7 @@ import market.engine.widgets.dropdown_menu.PopUpMenu
 fun SimpleAppBar(
     modifier: Modifier = Modifier,
     data: SimpleAppBarData,
-    color: Color = colors.white.copy(0.8f),
+    color: Color = colors.white.copy(alphaBars),
     content : @Composable () -> Unit = {}
 ) {
     val menuData = data.menuData

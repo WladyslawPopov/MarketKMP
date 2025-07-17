@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.NavigationItem
@@ -22,7 +23,7 @@ fun GetBottomNavBar(
 ){
     NavigationBar(
         modifier = Modifier.clip(MaterialTheme.shapes.small).fillMaxWidth(),
-        containerColor = colors.white.copy(0.85f),
+        containerColor = colors.white.copy(alphaBars),
         tonalElevation = dimens.smallElevation
     ) {
         Row(

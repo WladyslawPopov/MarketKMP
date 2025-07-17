@@ -4,7 +4,9 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.items.SelectedBasketItem
@@ -87,6 +89,13 @@ class DefaultOfferComponent(
                 shouldRefreshOnResume.value = false
             }
         }
+
+        lifecycle.doOnDestroy {
+            offerViewModel.viewModelScope.launch {
+                offerViewModel.addHistory(model.value.id)
+            }
+            offerViewModel.clearTimers()
+        }
     }
 
     override fun navigateToOffers(id: Long) {
@@ -94,9 +103,6 @@ class DefaultOfferComponent(
     }
 
     override fun onBackClick() {
-        offerViewModel.addHistory(model.value.id)
-        offerViewModel.clearTimers()
-
         navigationBack()
     }
 

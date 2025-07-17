@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
@@ -270,10 +269,8 @@ class OfferViewModel(
                 updateUserInfo()
 
                 withContext(Dispatchers.IO) {
-                    val response =
-                        if (isSnapshot) apiService.getOfferSnapshots(offerId) else apiService.getOffer(offerId)
-                    val serializer = ListSerializer(Offer.serializer())
-                    val data = deserializePayload(response.payload, serializer).firstOrNull()
+                    val res = offerOperations.getOffer(offerId, isSnapshot)
+                    val data = res.success
                     data?.let { offer ->
                         getCategoriesHistory(offer.catpath)
                         _offerRepository.value = OfferRepository(offer = offer.parseToOfferItem(), events = offerRepositoryEvents, this@OfferViewModel)
@@ -318,40 +315,43 @@ class OfferViewModel(
     private fun getHistory(currentId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _responseHistory.value = arrayListOf()
                 val queries = dataBase.offerVisitedHistoryQueries
+
                 val historyIds = queries.selectAll(UserData.login).executeAsList()
+                    .filter { it != currentId }
 
-                // Delete the oldest entry if the history size exceeds the limit.
-                if (historyIds.size >= 17) {
-                    queries.deleteById(historyIds.last(), UserData.login)
-                }
-                // Insert the current offer ID into the history.
-                queries.insertEntry(currentId, UserData.login)
-
-                // Fetch offer details for each history ID and update the response history.
-                _responseHistory.value = buildList {
-                    historyIds.forEach { id ->
-                        val response = apiService.getOffer(id)
-                        val serializer = ListSerializer(Offer.serializer())
-                        val offer = deserializePayload(response.payload, serializer).firstOrNull()
-                        offer?.let {
-                            // Update the response history only on the main thread.
-                            withContext(Dispatchers.Main) {
-                                add(it.parseToOfferItem())
-                            }
-                        }
+                val offerItems = historyIds.mapNotNull { id ->
+                    try {
+                        offerOperations.getOffer(id).success?.parseToOfferItem()
+                    } catch (_: Exception) {
+                        null
                     }
                 }
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "Error fetching history", ""))
-            }
+
+                _responseHistory.value = offerItems
+
+            } catch (_: Exception) { }
         }
     }
 
-    fun addHistory(id: Long) {
-        val sh = dataBase.offerVisitedHistoryQueries
-        sh.insertEntry(id, UserData.login)
+    suspend fun addHistory(offerId: Long) {
+        withContext(Dispatchers.IO) {
+            val queries = dataBase.offerVisitedHistoryQueries
+            queries.transaction {
+                queries.deleteById(offerId, UserData.login)
+
+                queries.insertEntry(offerId, UserData.login)
+
+                val currentHistoryIds = queries.selectAll(UserData.login).executeAsList()
+
+                if (currentHistoryIds.size > 17) {
+                    val idsToDelete = currentHistoryIds.subList(17, currentHistoryIds.size)
+                    idsToDelete.forEach { oldId ->
+                        queries.deleteById(oldId, UserData.login)
+                    }
+                }
+            }
+        }
     }
 
     private fun getOurChoice(id: Long) {

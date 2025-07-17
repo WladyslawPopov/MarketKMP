@@ -14,9 +14,9 @@ import market.engine.core.network.networkObjects.BodyPayload
 
 class OfferOperations(private val apiService: APIService) {
 
-    suspend fun getOffer(id: Long): ServerResponse<Offer> {
+    suspend fun getOffer(id: Long, isSnapshot: Boolean = false): ServerResponse<Offer> {
         return try {
-            val response = apiService.getOffer(id)
+            val response = if (!isSnapshot) apiService.getOffer(id) else apiService.getOfferSnapshots(id)
             try {
                 val serializer = ListSerializer(Offer.serializer())
                 val payload =

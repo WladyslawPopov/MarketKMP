@@ -8,3 +8,5 @@ const val maxShortcuts = 3
 const val minExpandedElement = 2
 
 const val DATABASE_NAME = "MarketDB.db"
+
+const val alphaBars = 0.95f

@@ -497,4 +497,6 @@ interface Strings {
     val promoOptionsLabel: StringResource
     val createOfferListTooltipTitle : StringResource
     val createOfferListTooltipDescription : StringResource
+    val showFullLabel : StringResource
+    val showLessLabel : StringResource
 }

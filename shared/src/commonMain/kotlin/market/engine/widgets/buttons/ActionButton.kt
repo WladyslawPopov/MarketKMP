@@ -1,6 +1,7 @@
 package market.engine.widgets.buttons
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +31,12 @@ fun ActionButton(
             },
             modifier = modifier,
             enabled = enabled,
-            colors = colors.actionButtonColors,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colors.transparentGrayColor,
+                contentColor = colors.actionTextColor,
+                disabledContainerColor = colors.grayLayout,
+                disabledContentColor = colors.steelBlue
+            ),
             shape = MaterialTheme.shapes.small
         ){
             Text(

@@ -25,19 +25,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -61,6 +62,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.types.BtnTypeSize
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
 import market.engine.core.data.types.CreateOfferType
@@ -85,9 +87,11 @@ import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.bars.appBars.SimpleAppBar
+import market.engine.widgets.buttons.OfferActionsBtn
 import market.engine.widgets.buttons.PromoBuyBtn
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dialogs.OfferOperationsDialogs
+import market.engine.widgets.dropdown_menu.ExpandableContainer
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.items.BidsListItem
@@ -234,11 +238,68 @@ fun OfferContent(
         )
     }
 
+    val state = rememberRichTextState()
+    val standardState = rememberRichTextState()
+    val sst = stringResource(strings.standardDescriptionParameterName)
+    val ast = stringResource(strings.additionalDescriptionsParameterName)
+
+    LaunchedEffect(offer.description, offer.standardDescriptions) {
+        state.setHtml(offer.description ?: "")
+
+        offer.standardDescriptions?.find { it.active == true && it.deleted == false }?.let {
+            standardState.setHtml(it.description ?: "")
+        }
+    }
+
+    val descriptionsDecodeHtmlString = remember(standardState.annotatedString) {
+        buildAnnotatedString {
+            offer.standardDescriptions?.forEach { standard ->
+                if (standard.description != null) {
+                    val formattedDate = standard.timestamp.toString().convertDateWithMinutes()
+                    append("\n")
+                    if (standard.deleted == false && standard.active == true) {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(sst) }
+                        append("\n")
+                        append(standardState.annotatedString)
+                        append("\n")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$sst $formattedDate") }
+                    } else {
+                        append("\n")
+                        append(standard.description)
+                    }
+                }
+            }
+
+            offer.addedDescriptions?.forEach { added ->
+                if (added.text != null) {
+                    val formattedDate = added.timestamp.toString().convertDateWithMinutes()
+                    append("\n")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$ast $formattedDate") }
+                    append("\n")
+                    append("${added.text}\n")
+                }
+            }
+        }
+    }
+
+    val collapsedMaxHeight = 200.dp
+    val density = LocalDensity.current
+
+    var isExpanded by remember { mutableStateOf(false) }
+
+    var fullContentHeight by remember(state.annotatedString, descriptionsDecodeHtmlString) {
+        mutableStateOf<Int?>(null)
+    }
+
+    val isOverflowing by remember(fullContentHeight) {
+        val maxHeightPx = with(density) { collapsedMaxHeight.toPx() }
+        mutableStateOf(fullContentHeight != null && fullContentHeight!! > maxHeightPx)
+    }
+
     EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
-                data = appbarData,
-                color = colors.white.copy(0.8f)
+                data = appbarData
             ) {
                 TextAppBar(
                     stringResource(
@@ -390,6 +451,7 @@ fun OfferContent(
                 item {
                     TitleText(
                         offer.title ?: "",
+                        style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
                     )
                 }
@@ -472,6 +534,38 @@ fun OfferContent(
                             }
 
                             item {
+                                // state params
+                                Column(
+                                    modifier = Modifier
+                                        .background(
+                                            colors.white,
+                                            MaterialTheme.shapes.small
+                                        )
+                                        .clip(MaterialTheme.shapes.small)
+                                        .padding(dimens.smallPadding),
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                )
+                                {
+                                    //bids winner or last bid
+                                    BidsWinnerOrLastBid(offer, offerState) {
+                                        viewModel.scrollToBids()
+                                    }
+
+                                    TimeOfferSession(
+                                        offer,
+                                        remainingTime.value,
+                                        offerState,
+                                    )
+
+                                    LocationOffer(offer) {
+                                        //go to Listing
+                                        component.goToRegion(offer.region)
+                                    }
+                                }
+                            }
+
+                            item {
                                 //action seller mode and active promo options
                                 if (offerState != OfferStates.SNAPSHOT && UserData.token != "") {
                                     Column(
@@ -493,22 +587,12 @@ fun OfferContent(
                                                 val isShowOptions =
                                                     remember { mutableStateOf(false) }
 
-                                                SimpleTextButton(
-                                                    text = stringResource(strings.actionsLabel),
-                                                    textStyle = MaterialTheme.typography.bodyMedium,
-                                                    textColor = colors.white,
-                                                    backgroundColor = colors.steelBlue,
-                                                    leadIcon = {
-                                                        Icon(
-                                                            painter = painterResource(drawables.shareMenuIcon),
-                                                            contentDescription = "",
-                                                            modifier = Modifier.size(dimens.smallIconSize),
-                                                            tint = colors.white
-                                                        )
-                                                    },
-                                                ) {
-                                                    isShowOptions.value = !isShowOptions.value
-                                                }
+                                                OfferActionsBtn(
+                                                    type = BtnTypeSize.MEDIUM,
+                                                    onClick = {
+                                                        isShowOptions.value = !isShowOptions.value
+                                                    }
+                                                )
 
                                                 PopUpMenu(
                                                     openPopup = isShowOptions.value,
@@ -544,37 +628,6 @@ fun OfferContent(
 
                                             }
                                         }
-                                    }
-                                }
-                            }
-
-                            item {
-                                // state params
-                                Column(
-                                    modifier = Modifier
-                                        .background(
-                                            colors.white,
-                                            MaterialTheme.shapes.small
-                                        )
-                                        .clip(MaterialTheme.shapes.small)
-                                        .padding(dimens.smallPadding),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                ) {
-                                    //bids winner or last bid
-                                    BidsWinnerOrLastBid(offer, offerState) {
-                                        viewModel.scrollToBids()
-                                    }
-
-                                    TimeOfferSession(
-                                        offer,
-                                        remainingTime.value,
-                                        offerState,
-                                    )
-
-                                    LocationOffer(offer) {
-                                        //go to Listing
-                                        component.goToRegion(offer.region)
                                     }
                                 }
                             }
@@ -616,6 +669,30 @@ fun OfferContent(
                                         },
                                         modifier = Modifier
                                     )
+                                }
+                            }
+
+                            item {
+                                //payment and delivery
+                                if (offerState != OfferStates.PROTOTYPE) {
+                                    PaymentAndDeliverySection(
+                                        uiState.value.dealTypeString,
+                                        uiState.value.paymentMethodString,
+                                        uiState.value.deliveryMethodString,
+                                        if (!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
+                                    )
+                                }
+                            }
+
+                            item {
+                                if (offerState != OfferStates.PROTOTYPE) {
+                                    //Parameters
+                                    offer.params?.let {
+                                        ParametersSection(
+                                            it,
+                                            if (!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
+                                        )
+                                    }
                                 }
                             }
 
@@ -670,7 +747,8 @@ fun OfferContent(
                                     verticalArrangement = Arrangement.spacedBy(
                                         dimens.smallPadding
                                     )
-                                ) {
+                                )
+                                {
                                     //mail to seller
                                     if (offer.sellerData != null && !isMyOffer && offerState == OfferStates.ACTIVE) {
                                         MessageToSeller(
@@ -757,36 +835,25 @@ fun OfferContent(
                                     }
                                 }
                             }
-
-                            item {
-                                //payment and delivery
-                                if (offerState != OfferStates.PROTOTYPE) {
-                                    PaymentAndDeliverySection(
-                                        uiState.value.dealTypeString,
-                                        uiState.value.paymentMethodString,
-                                        uiState.value.deliveryMethodString,
-                                        if (!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
-                                    )
-                                }
-                            }
-
-                            item {
-                                if (offerState != OfferStates.PROTOTYPE) {
-                                    //Parameters
-                                    offer.params?.let {
-                                        ParametersSection(
-                                            it,
-                                            if (!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
-                                        )
-                                    }
-                                }
-                            }
                         }
                     )
                 }
                 //descriptions offer
                 item {
-                    DescriptionHtmlOffer(offer)
+                    DescriptionHtmlOffer(
+                        descriptions = state.annotatedString,
+                        descriptionsDecodeHtmlString = descriptionsDecodeHtmlString,
+                        isExpanded = isExpanded,
+                        isOverflowing = isOverflowing,
+                        onContentSizeChanged = { measuredHeight ->
+                            if (fullContentHeight == null && measuredHeight > 0) {
+                                fullContentHeight = measuredHeight
+                            }
+                        },
+                        onToggle = {
+                            isExpanded = !isExpanded
+                        }
+                    )
                 }
                 //bids list
                 item {
@@ -876,63 +943,13 @@ fun OfferContent(
 
 @Composable
 fun DescriptionHtmlOffer(
-    offer: Offer
+    descriptions: AnnotatedString,
+    descriptionsDecodeHtmlString: AnnotatedString,
+    isExpanded: Boolean = false,
+    isOverflowing: Boolean = false,
+    onContentSizeChanged: (Int) -> Unit = {},
+    onToggle: () -> Unit = {}
 ){
-    val state = rememberRichTextState()
-    val standardState = rememberRichTextState()
-    val sst = stringResource(strings.standardDescriptionParameterName)
-    val ast = stringResource(strings.additionalDescriptionsParameterName)
-
-
-    val descriptionsDecodeHtmlString : MutableState<AnnotatedString> = remember {
-        mutableStateOf(
-            buildAnnotatedString {
-
-                offer.standardDescriptions?.forEach { standard ->
-                    if (standard.description != null) {
-                        val formattedDate =
-                            standard.timestamp.toString().convertDateWithMinutes()
-
-                        append("\n")
-                        if (standard.deleted == false && standard.active == true) {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(sst)
-                            }
-                            append("\n")
-                            append(standardState.setHtml(standard.description).annotatedString)
-                            append("\n")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("$sst $formattedDate")
-                            }
-                        } else {
-                            append("\n")
-                            append(standard.description)
-                        }
-                    }
-                }
-
-                offer.addedDescriptions?.forEach { added ->
-                    if (added.text != null) {
-                        val formattedDate =
-                            added.timestamp.toString().convertDateWithMinutes()
-
-                        append("\n")
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("$ast $formattedDate")
-                        }
-                        append("\n")
-                        append("${added.text}\n")
-
-                    }
-                }
-            }
-        )
-    }
-
-    LaunchedEffect(Unit){
-        state.setHtml(offer.description ?: "")
-    }
-
     SeparatorLabel(stringResource(strings.description))
 
     Box(
@@ -942,20 +959,27 @@ fun DescriptionHtmlOffer(
             .fillMaxWidth()
             .padding(dimens.smallPadding)
     ) {
-        Column {
-            Text(
-                text = state.annotatedString,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                color = colors.darkBodyTextColor,
-                modifier = Modifier.padding(dimens.smallPadding)
-            )
+        ExpandableContainer(
+            isExpanded = isExpanded,
+            onToggle = onToggle,
+            isOverflowing = isOverflowing,
+            onContentSizeChanged = onContentSizeChanged,
+        ) {
+            Column {
+                Text(
+                    text = descriptions,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                    color = colors.darkBodyTextColor,
+                    modifier = Modifier.padding(dimens.smallPadding)
+                )
 
-            Text(
-                text = descriptionsDecodeHtmlString.value,
-                color = colors.darkBodyTextColor,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                modifier = Modifier.padding(dimens.smallPadding)
-            )
+                Text(
+                    text = descriptionsDecodeHtmlString,
+                    color = colors.darkBodyTextColor,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                    modifier = Modifier.padding(dimens.smallPadding)
+                )
+            }
         }
     }
 }
@@ -1360,54 +1384,56 @@ fun TimeOfferSession(
         val endTime = offer.session?.end?.toLongOrNull()
 
         // AnnotatedString to track the styled remaining time
-        val remainingTime = remember(state) { when (state) {
-            OfferStates.ACTIVE -> {
-                if (endTime != null) {
-                    buildAnnotatedString {
-                        append(
-                            formatRemainingTimeAnnotated(
-                                updatedTime,
-                                beforeGraduationLabel,
-                                daysLabel,
-                                hoursLabel,
-                                minutesLabel,
-                                secondsLabel
+        val remainingTime = remember(updatedTime) {
+            when (state) {
+                OfferStates.ACTIVE -> {
+                    if (endTime != null) {
+                        buildAnnotatedString {
+                            append(
+                                formatRemainingTimeAnnotated(
+                                    updatedTime,
+                                    beforeGraduationLabel,
+                                    daysLabel,
+                                    hoursLabel,
+                                    minutesLabel,
+                                    secondsLabel
+                                )
                             )
-                        )
+                        }
+                    } else {
+                        buildAnnotatedString {
+                            append(completedLabel)
+                        }
                     }
-                } else {
+                }
+
+                OfferStates.INACTIVE -> {
                     buildAnnotatedString {
-                        append(completedLabel)
+                        withStyle(style = SpanStyle(color = Color.Gray)) {
+                            append(inactiveLabel)
+                        }
                     }
                 }
-            }
 
-            OfferStates.INACTIVE -> {
-                buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                        append(inactiveLabel)
+                OfferStates.COMPLETED -> {
+                    buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = Color.Gray)) {
+                            append(completedLabel)
+                        }
                     }
                 }
-            }
 
-            OfferStates.COMPLETED -> {
-                buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
-                        append(completedLabel)
+                OfferStates.FUTURE -> {
+                    buildAnnotatedString {
+                        append(futureLabel)
                     }
                 }
-            }
 
-            OfferStates.FUTURE -> {
-                buildAnnotatedString {
-                    append(futureLabel)
+                else -> {
+                    AnnotatedString("")
                 }
             }
-
-            else -> {
-                AnnotatedString("")
-            }
-        } }
+        }
 
         Row(
             modifier = Modifier

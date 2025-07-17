@@ -18,6 +18,7 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
@@ -160,7 +161,7 @@ fun ListingContent(
                     SimpleAppBar(
                         data = uiState.value.appBarData,
                         color = if (!listingState.areBarsVisible.value)
-                            colors.primaryColor.copy(0.8f)
+                            colors.primaryColor.copy(alphaBars)
                         else
                             colors.primaryColor
                     )

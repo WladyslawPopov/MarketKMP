@@ -19,6 +19,7 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.Platform
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -135,7 +136,7 @@ fun ConversationsContent(
                         )
                     ),
                     color = if (!listingState.areBarsVisible.value)
-                        colors.primaryColor.copy(0.8f)
+                        colors.primaryColor.copy(alphaBars)
                     else colors.primaryColor
                 ) {
                     TextAppBar(

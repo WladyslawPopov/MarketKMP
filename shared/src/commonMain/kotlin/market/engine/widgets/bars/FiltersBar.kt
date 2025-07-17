@@ -35,10 +35,6 @@ fun FiltersBar(
     val swipeTabsBarState = uiFilterBarUiState.swipeTabsBarState
     val listNavigation = uiFilterBarUiState.listNavigation
 
-    val color = if (!isVisible)
-        colors.primaryColor.copy(0.8f)
-    else
-        colors.primaryColor
 
     AnimatedVisibility(
         visible = isVisible,
@@ -47,7 +43,7 @@ fun FiltersBar(
     )
     {
         Column(
-            modifier = Modifier.background(color),
+            modifier = Modifier.background(colors.primaryColor),
         ) {
             if (swipeTabsBarState != null) {
                 LazyRow(

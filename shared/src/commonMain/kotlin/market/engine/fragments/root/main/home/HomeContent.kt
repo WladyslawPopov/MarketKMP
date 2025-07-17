@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -89,7 +90,7 @@ fun HomeContent(
                     DrawerAppBar(
                         data = state.appBarData,
                         drawerState = drawerState,
-                        color = colors.white.copy(0.7f)
+                        color = colors.white.copy(alphaBars)
                     ) {
                         Image(
                             painter = painterResource(drawables.logo),
