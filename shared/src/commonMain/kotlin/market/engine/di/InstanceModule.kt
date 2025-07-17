@@ -15,7 +15,7 @@ import market.engine.common.getKtorClient
 import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
-import market.engine.shared.MarketDB
+import market.engine.shared.marketDb
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -37,7 +37,7 @@ val databaseModule = module {
     singleOf(::createSqlDriver)
     single {
         val driver = get<SqlDriver>()
-        MarketDB(driver)
+        marketDb(driver)
     }
     singleOf(::createSettings)
 }

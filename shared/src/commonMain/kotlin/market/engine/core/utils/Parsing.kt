@@ -21,7 +21,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.Value
-import market.engine.shared.MarketDB
+import market.engine.shared.marketDb
 import market.engine.shared.NotificationsHistory
 import org.jetbrains.compose.resources.DrawableResource
 import org.koin.mp.KoinPlatform.getKoin
@@ -173,7 +173,7 @@ fun NotificationItem.getIconByType() : DrawableResource {
 
 fun NotificationItem.getDeepLinkByType() : DeepLink? {
     try {
-        val db: MarketDB = getKoin().get()
+        val db: marketDb = getKoin().get()
 
         val json = Json {
             ignoreUnknownKeys = true
@@ -236,7 +236,7 @@ fun NotificationItem.getDeepLinkByType() : DeepLink? {
 
 fun deleteReadNotifications() {
     try {
-        val db : MarketDB = getKoin().get()
+        val db : marketDb = getKoin().get()
         db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().
         filter { it.isRead == 1L }.fastForEach {
             when(it.type){

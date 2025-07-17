@@ -38,14 +38,14 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
-import market.engine.shared.MarketDB
+import market.engine.shared.marketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
 
 open class CoreViewModel : ViewModel() {
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-    val db : MarketDB by lazy { getKoin().get() }
+    val db : marketDb by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
     val apiService by lazy {  getKoin().get<APIService>() }
 

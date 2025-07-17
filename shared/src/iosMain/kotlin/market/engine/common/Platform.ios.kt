@@ -1,5 +1,7 @@
 package market.engine.common
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import market.engine.core.data.types.PlatformWindowType
 import platform.UIKit.UIDevice
 import platform.UIKit.UIUserInterfaceIdiomPhone
@@ -12,6 +14,7 @@ import platform.UIKit.UIInterfaceOrientationLandscapeRight
 
 actual class Platform {
     actual fun getPlatform(): PlatformWindowType {
+
         // Determine device type
         val idiom = UIDevice.currentDevice.userInterfaceIdiom
         val deviceType = when (idiom) {

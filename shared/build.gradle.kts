@@ -12,11 +12,10 @@ plugins {
 
 sqldelight {
     databases {
-        create("MarketDB") {
+        create("marketDb") {
             packageName.set("market.engine.shared")
             schemaOutputDirectory.set(file("src/main/sqldelight"))
             migrationOutputDirectory.set(file("src/main/sqldelight/migrations"))
-            version = 13
             verifyMigrations.set(true)
         }
     }

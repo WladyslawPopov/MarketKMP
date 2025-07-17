@@ -39,7 +39,7 @@ import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
-import market.engine.shared.MarketDB
+import market.engine.shared.marketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.toString
@@ -61,7 +61,7 @@ data class OfferViewState(
 )
 
 class OfferViewModel(
-    private val dataBase: MarketDB,
+    private val dataBase: marketDb,
     private val component: OfferComponent,
     val offerId : Long = 1,
     val isSnapshot : Boolean = false

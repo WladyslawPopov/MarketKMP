@@ -7,6 +7,6 @@ const val countProposalMax = 3
 const val maxShortcuts = 3
 const val minExpandedElement = 2
 
-const val DATABASE_NAME = "MarketDB.db"
+const val DATABASE_NAME = "marketDb.db"
 
 const val alphaBars = 0.95f

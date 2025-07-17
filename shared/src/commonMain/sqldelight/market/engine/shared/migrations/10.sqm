@@ -1,9 +1,0 @@
-DROP TABLE IF EXISTS notificationsHistory;
-DROP TABLE IF EXISTS NotificationsHistory;
-DROP TABLE IF EXISTS searchHistory;
-DROP TABLE IF EXISTS SearchHistory;
-DROP TABLE IF EXISTS favoritesTabListItem;
-DROP TABLE IF EXISTS FavoritesTabListItem;
-DROP TABLE IF EXISTS offerVisitedHistory;
-DROP TABLE IF EXISTS OfferVisitedHistory;
-
