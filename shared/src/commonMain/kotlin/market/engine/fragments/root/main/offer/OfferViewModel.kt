@@ -646,8 +646,15 @@ class OfferViewModel(
     }
 
     fun scrollToBids(){
-        _scrollPosition.value = goToBids
+        if(offerViewState.value.offer.bids?.isNotEmpty() == true) {
+            _scrollPosition.value = goToBids
+        }
     }
+
+    fun clearScrollPosition(){
+        _scrollPosition.value = 0
+    }
+
 
     fun clearTimers() {
         timerJob?.cancel()

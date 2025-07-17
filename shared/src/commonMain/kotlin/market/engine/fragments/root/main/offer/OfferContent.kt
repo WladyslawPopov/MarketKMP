@@ -171,11 +171,9 @@ fun OfferContent(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(scrollPos.value) {
-        snapshotFlow {
-            scrollPos.value
-        }.collect {
-            if (it > 1)
-                scrollState.scrollState.animateScrollToItem(it)
+        if (scrollPos.value > 1) {
+            scrollState.scrollState.animateScrollToItem(scrollPos.value)
+            viewModel.clearScrollPosition()
         }
     }
 
