@@ -59,7 +59,6 @@ data class CreateOfferContentState(
     val dynamicPayloadState: DynamicPayload<OperationResult>? = null,
     val categoryState: CategoryState = CategoryState(),
 
-    val images : List<PhotoTemp> = emptyList(),
     val catHistory : List<Category> = emptyList(),
     val deleteImages : List<JsonPrimitive> = emptyList(),
 
@@ -106,6 +105,7 @@ class CreateOfferViewModel(
     private val _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
+    val responseImages = _responseImages.asStateFlow()
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
 
     private val _isEditCat = MutableStateFlow(false)
@@ -124,46 +124,43 @@ class CreateOfferViewModel(
     val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
         _responsePostPage,
         _responseGetPage,
-        _responseImages,
         _responseCatHistory,
         _isEditCat,
     )
-    { postPage, dynamicPayload, images, catHistory, openCategory ->
+    { postPage, dynamicPayload, catHistory, openCategory ->
         val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
 
-        if (images.isEmpty()) {
-            when (type) {
-                CreateOfferType.EDIT, CreateOfferType.COPY -> {
-                    val photos =
-                        dynamicPayload?.fields?.filter { it.key?.contains("photo_") == true }
-                            ?: emptyList()
+        when (type) {
+            CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                val photos =
+                    dynamicPayload?.fields?.filter { it.key?.contains("photo_") == true }
+                        ?: emptyList()
 
-                    photos.forEach { field ->
-                        if (field.links != null) {
-                            tempPhotos.add(
-                                PhotoTemp(
-                                    id = field.key,
-                                    url = field.links.mid?.jsonPrimitive?.content,
-                                    tempId = ""
-                                )
+                photos.forEach { field ->
+                    if (field.links != null) {
+                        tempPhotos.add(
+                            PhotoTemp(
+                                id = field.key,
+                                url = field.links.mid?.jsonPrimitive?.content,
+                                tempId = ""
                             )
-                        }
+                        )
                     }
-
-                    setImages(tempPhotos.toList())
                 }
 
-                else -> {
-                    if (externalImages != null) {
-                        externalImages.forEach {
-                            tempPhotos.add(
-                                PhotoTemp(
-                                    url = it
-                                )
+                setImages(tempPhotos.toList())
+            }
+
+            else -> {
+                if (externalImages != null) {
+                    externalImages.forEach {
+                        tempPhotos.add(
+                            PhotoTemp(
+                                url = it
                             )
-                        }
-                        setImages(tempPhotos.toList())
+                        )
                     }
+                    setImages(tempPhotos.toList())
                 }
             }
         }
@@ -211,7 +208,6 @@ class CreateOfferViewModel(
                 )
             ),
             dynamicPayloadState = dynamicPayload,
-            images = images,
             catHistory = catHistory,
             categoryState = CategoryState(
                 openCategory = openCategory,
@@ -410,88 +406,85 @@ class CreateOfferViewModel(
             }
         }
         setLoading(true)
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                val response = withContext(Dispatchers.IO) {
-                    apiService.postCreateOfferPage(url, body)
-                }
-                withContext(Dispatchers.Main) {
-                    try {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload: DynamicPayload<OperationResult> =
-                            deserializePayload(response.payload, serializer)
-                        if (payload.status == "operation_success") {
-                            showToast(
-                                ToastItem(
-                                    isVisible = true,
-                                    message = payload.operationResult?.message ?: getString(
-                                        strings.operationSuccess
-                                    ),
-                                    type = ToastType.SUCCESS
-                                )
+                val response = apiService.postCreateOfferPage(url, body)
+
+                try {
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(response.payload, serializer)
+                    if (payload.status == "operation_success") {
+                        showToast(
+                            ToastItem(
+                                isVisible = true,
+                                message = payload.operationResult?.message ?: getString(
+                                    strings.operationSuccess
+                                ),
+                                type = ToastType.SUCCESS
                             )
-
-                            val title =
-                                _responseGetPage.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
-                                    ?: ""
-                            val loc =
-                                _responseGetPage.value?.fields?.find { it.key == "location" }?.data?.jsonPrimitive?.content
-                                    ?: ""
-
-                            val eventParams = mapOf(
-                                "lot_id" to offerId,
-                                "lot_name" to title,
-                                "lot_city" to loc,
-                                "lot_category" to "${searchData.value.searchCategoryID}",
-                                "seller_id" to UserData.userInfo?.id
-                            )
-
-                            if (type != CreateOfferType.EDIT) {
-                                _newOfferId.value = payload.body?.jsonPrimitive?.longOrNull
-                                analyticsHelper.reportEvent("added_offer_success", eventParams)
-                            } else {
-                                analyticsHelper.reportEvent("edit_offer_success", eventParams)
-                            }
-
-                            if (type == CreateOfferType.EDIT) {
-                                delay(2000L)
-                                withContext(Dispatchers.Main) {
-                                    component.onBackClicked()
-                                }
-                            }
-
-                            _responsePostPage.value = payload
-                        } else {
-                            val eventParams = mapOf(
-                                "error_type" to payload.globalErrorMessage,
-                                "seller_id" to UserData.userInfo?.id,
-                                "body" to body.toString()
-                            )
-                            analyticsHelper.reportEvent("added_offer_fail", eventParams)
-                            showToast(
-                                ToastItem(
-                                    isVisible = true,
-                                    message = payload.operationResult?.message ?: getString(
-                                        strings.operationFailed
-                                    ),
-                                    type = ToastType.ERROR
-                                )
-                            )
-                            _responseGetPage.value =
-                                _responseGetPage.value?.let { currentPayload ->
-                                    val updatedFields = arrayListOf<Fields>()
-                                    updatedFields.addAll(
-                                        payload.recipe?.fields ?: currentPayload.fields
-                                    )
-                                    currentPayload.copy(fields = updatedFields)
-                                }
-                        }
-                    } catch (_: Exception) {
-                        throw ServerErrorException(
-                            errorCode = response.errorCode.toString(),
-                            humanMessage = response.humanMessage.toString()
                         )
+
+                        val title =
+                            _responseGetPage.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
+                                ?: ""
+                        val loc =
+                            _responseGetPage.value?.fields?.find { it.key == "location" }?.data?.jsonPrimitive?.content
+                                ?: ""
+
+                        val eventParams = mapOf(
+                            "lot_id" to offerId,
+                            "lot_name" to title,
+                            "lot_city" to loc,
+                            "lot_category" to "${searchData.value.searchCategoryID}",
+                            "seller_id" to UserData.userInfo?.id
+                        )
+
+                        if (type != CreateOfferType.EDIT) {
+                            _newOfferId.value = payload.body?.jsonPrimitive?.longOrNull
+                            analyticsHelper.reportEvent("added_offer_success", eventParams)
+                        } else {
+                            analyticsHelper.reportEvent("edit_offer_success", eventParams)
+                        }
+
+                        _responsePostPage.value = payload
+
+                        if (type == CreateOfferType.EDIT) {
+                            delay(1000L)
+                            withContext(Dispatchers.Main) {
+                                component.onBackClicked()
+                            }
+                        }
+                    } else {
+                        val eventParams = mapOf(
+                            "error_type" to payload.globalErrorMessage,
+                            "seller_id" to UserData.userInfo?.id,
+                            "body" to body.toString()
+                        )
+                        analyticsHelper.reportEvent("added_offer_fail", eventParams)
+                        showToast(
+                            ToastItem(
+                                isVisible = true,
+                                message = payload.operationResult?.message ?: getString(
+                                    strings.operationFailed
+                                ),
+                                type = ToastType.ERROR
+                            )
+                        )
+                        _responseGetPage.value =
+                            _responseGetPage.value?.let { currentPayload ->
+                                val updatedFields = arrayListOf<Fields>()
+                                updatedFields.addAll(
+                                    payload.recipe?.fields ?: currentPayload.fields
+                                )
+                                currentPayload.copy(fields = updatedFields)
+                            }
                     }
+                } catch (_: Exception) {
+                    throw ServerErrorException(
+                        errorCode = response.errorCode.toString(),
+                        humanMessage = response.humanMessage.toString()
+                    )
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -565,8 +558,16 @@ class CreateOfferViewModel(
     }
 
     fun setDeleteImages(item : PhotoTemp) {
-        if (item.url != null && item.id != null) {
-            deleteImages.value += JsonPrimitive(item.id!!.last().toString())
+        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
+            if (item.url != null && item.id != null) {
+                deleteImages.value += JsonPrimitive(item.id!!.last().toString())
+            }
+        }
+
+        _responseImages.update {
+            val newList = it.toMutableList()
+            newList.remove(item)
+            newList
         }
     }
 

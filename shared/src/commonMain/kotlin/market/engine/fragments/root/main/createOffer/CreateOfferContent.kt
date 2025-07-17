@@ -116,7 +116,7 @@ fun CreateOfferContent(
     val third = uiState.value.thirdDynamicContent
     val end = uiState.value.endDynamicContent
 
-    val images = uiState.value.images
+    val images = viewModel.responseImages.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
@@ -545,7 +545,7 @@ fun CreateOfferContent(
                                         stringResource(strings.chooseAction),
                                         fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                         alignment = Alignment.TopEnd,
-                                        enabled = images.size < MAX_IMAGE_COUNT
+                                        enabled = images.value.size < MAX_IMAGE_COUNT
                                     ) {
                                         if (!getPermissionHandler().checkImagePermissions()) {
                                             getPermissionHandler().requestImagePermissions {
@@ -560,17 +560,12 @@ fun CreateOfferContent(
                                 }
 
                                 AnimatedVisibility(
-                                    images.isNotEmpty(),
+                                    images.value.isNotEmpty(),
                                     enter = fadeIn(),
                                     exit = fadeOut()
                                 ) {
-                                    PhotoDraggableGrid(images, viewModel) {
-                                        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
-                                            viewModel.setDeleteImages(it)
-                                        }
-                                        val newList = images.toMutableList()
-                                        newList.remove(it)
-                                        viewModel.setImages(newList)
+                                    PhotoDraggableGrid(images.value, viewModel) {
+                                        viewModel.setDeleteImages(it)
                                     }
                                 }
                             }
@@ -630,7 +625,7 @@ fun CreateOfferContent(
                 }
                 //success offer
                 SuccessContent(
-                    images,
+                    images.value,
                     title,
                     payloadState?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                     modifier = Modifier.padding(contentPadding)
