@@ -182,10 +182,13 @@ class CreateOfferViewModel(
                 }
             }
 
-        dynamicPayload?.fields?.find { it.key == "session_start" }?.data = if (selectedDate.value != null){
-            JsonPrimitive(2)
-        }else{
-            JsonPrimitive(0)
+        if(type == CreateOfferType.CREATE) {
+            dynamicPayload?.fields?.find { it.key == "session_start" }?.data =
+                if (selectedDate.value != null) {
+                    JsonPrimitive(2)
+                } else {
+                    JsonPrimitive(0)
+                }
         }
 
         CreateOfferContentState(
@@ -625,7 +628,6 @@ class CreateOfferViewModel(
                         if (selectedDate == null) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
-
                     }
                     "future_time" ->{
                         if (selectedDate != null) {

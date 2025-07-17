@@ -386,11 +386,20 @@ fun OfferContent(
 
                 if (offer.hasTempImages) {
                     item {
-                        Text(
-                            stringResource(strings.tempPhotoLabel),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.grayText
-                        )
+                        Row(
+                            modifier = Modifier.background(
+                                    colors.white,
+                                    MaterialTheme.shapes.small
+                                )
+                                .padding(dimens.smallPadding)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                stringResource(strings.tempPhotoLabel),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.grayText
+                            )
+                        }
                     }
                 }
                 //category stack
@@ -604,7 +613,9 @@ fun OfferContent(
                                                     remember { mutableStateOf(false) }
 
                                                 if (isMyOffer && offerState == OfferStates.ACTIVE) {
-                                                    PromoBuyBtn {
+                                                    PromoBuyBtn(
+                                                        type = BtnTypeSize.MEDIUM
+                                                    ) {
                                                         isOpenPopup.value = true
                                                     }
                                                 }
