@@ -210,6 +210,7 @@ class OfferViewModel(
 
     fun refreshPage() {
         getOffer(offerId, isSnapshot)
+        updateBidsInfo(_responseOffer.value)
         refresh()
     }
 

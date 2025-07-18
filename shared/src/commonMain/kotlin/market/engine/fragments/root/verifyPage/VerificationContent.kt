@@ -1,5 +1,6 @@
 package market.engine.fragments.root.verifyPage
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -72,7 +73,7 @@ fun VerificationContent(
                 }
             )
         },
-        modifier = Modifier.pointerInput(Unit){
+        modifier = Modifier.background(colors.primaryColor).pointerInput(Unit){
             detectTapGestures {
                 focusManager.clearFocus()
             }
@@ -85,6 +86,7 @@ fun VerificationContent(
         error = error
     ) { contentPadding ->
         LazyColumnWithScrollBars(
+
             contentPadding = contentPadding,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)

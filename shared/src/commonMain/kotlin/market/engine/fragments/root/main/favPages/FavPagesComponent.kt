@@ -168,10 +168,10 @@ class DefaultFavPagesComponent(
         val index = componentsPages.value.selectedIndex
         when(val item = componentsPages.value.items[index].instance){
             is FavPagesComponents.FavoritesChild -> {
-                viewModel.refresh()
+                item.component.model.value.favViewModel.refresh()
             }
             is FavPagesComponents.SubscribedChild -> {
-                item.component.onRefresh()
+                item.component.model.value.subViewModel.refresh()
             }
             null -> {}
         }
