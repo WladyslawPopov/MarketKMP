@@ -28,7 +28,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
@@ -55,7 +54,7 @@ fun VerificationContent(
 
     val error: (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage.isNotBlank()) {
-            { OnError(err.value) { viewModel.onError(ServerErrorException()) } }
+            { OnError(err.value) { viewModel.refresh() } }
         } else {
             null
         }

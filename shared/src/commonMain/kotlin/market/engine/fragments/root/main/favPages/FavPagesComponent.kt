@@ -12,7 +12,6 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.data.types.FavScreenType
-import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
@@ -165,11 +164,11 @@ class DefaultFavPagesComponent(
     }
 
     override fun onRefresh() {
-        viewModel.onError(ServerErrorException())
+        viewModel.refresh()
         val index = componentsPages.value.selectedIndex
         when(val item = componentsPages.value.items[index].instance){
             is FavPagesComponents.FavoritesChild -> {
-                item.component.onRefresh()
+                viewModel.refresh()
             }
             is FavPagesComponents.SubscribedChild -> {
                 item.component.onRefresh()

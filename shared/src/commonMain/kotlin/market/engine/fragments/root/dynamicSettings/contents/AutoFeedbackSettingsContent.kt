@@ -30,110 +30,118 @@ fun AutoFeedbackSettingsContent(
     fields: List<Fields>,
     onConfirm: () -> Unit
 ) {
-    fields.forEach { field ->
-        when (field.key) {
-            "auto_feedback_enabled" -> {
-                val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull == true) }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+    ) {
+        fields.forEach { field ->
+            when (field.key) {
+                "auto_feedback_enabled" -> {
+                    val isEnabled =
+                        remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull == true) }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ) {
-                        Text(
-                            stringResource(strings.autoFeedbackTitle),
-                            color = colors.black,
-                            style = MaterialTheme.typography.titleSmall
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    )
+                    {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            Text(
+                                stringResource(strings.autoFeedbackTitle),
+                                color = colors.black,
+                                style = MaterialTheme.typography.titleSmall
+                            )
 
-                        Text(
-                            stringResource(strings.autoFeedbackSubtitle),
-                            color = colors.grayText,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                            Text(
+                                stringResource(strings.autoFeedbackSubtitle),
+                                color = colors.grayText,
+                                style = MaterialTheme.typography.bodySmall
+                            )
 
-                        AnimatedVisibility(
-                            visible = isEnabled.value
-                        ){
-                            fields.find { it.key == "comment" }?.let {
-                                DynamicInputField(it, singleLine = false)
+                            AnimatedVisibility(
+                                visible = isEnabled.value
+                            ) {
+                                fields.find { it.key == "comment" }?.let {
+                                    DynamicInputField(it, singleLine = false)
+                                }
                             }
                         }
+
+
+                        Switch(
+                            checked = isEnabled.value,
+                            onCheckedChange = {
+                                isEnabled.value = !isEnabled.value
+                                field.data = JsonPrimitive(isEnabled.value)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedBorderColor = colors.transparent,
+                                checkedThumbColor = colors.positiveGreen,
+                                checkedTrackColor = colors.transparentGrayColor,
+                                uncheckedBorderColor = colors.transparent,
+                                uncheckedThumbColor = colors.negativeRed,
+                                uncheckedTrackColor = colors.transparentGrayColor,
+                            ),
+                        )
                     }
-
-
-                    Switch(
-                        checked = isEnabled.value,
-                        onCheckedChange = {
-                            isEnabled.value = !isEnabled.value
-                            field.data = JsonPrimitive(isEnabled.value)
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedBorderColor = colors.transparent,
-                            checkedThumbColor = colors.positiveGreen,
-                            checkedTrackColor = colors.transparentGrayColor,
-                            uncheckedBorderColor = colors.transparent,
-                            uncheckedThumbColor = colors.negativeRed,
-                            uncheckedTrackColor = colors.transparentGrayColor,
-                        ),
-                    )
                 }
-            }
 
-            "auto_feedback_after_exceeded_days_limit_enabled" -> {
-                val isEnabled = remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull == true) }
+                "auto_feedback_after_exceeded_days_limit_enabled" -> {
+                    val isEnabled =
+                        remember { mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull == true) }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        Text(
-                            stringResource(strings.autoFeedbackAfterExceededTimeTitle),
-                            color = colors.black,
-                            style = MaterialTheme.typography.titleSmall
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            Text(
+                                stringResource(strings.autoFeedbackAfterExceededTimeTitle),
+                                color = colors.black,
+                                style = MaterialTheme.typography.titleSmall
+                            )
 
-                        Text(
-                            stringResource(strings.autoFeedbackAfterExceededTimeSubtitle),
-                            color = colors.grayText,
-                            style = MaterialTheme.typography.bodySmall
+                            Text(
+                                stringResource(strings.autoFeedbackAfterExceededTimeSubtitle),
+                                color = colors.grayText,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        Switch(
+                            checked = isEnabled.value,
+                            onCheckedChange = {
+                                isEnabled.value = !isEnabled.value
+                                field.data = JsonPrimitive(isEnabled.value)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedBorderColor = colors.transparent,
+                                checkedThumbColor = colors.positiveGreen,
+                                checkedTrackColor = colors.transparentGrayColor,
+                                uncheckedBorderColor = colors.transparent,
+                                uncheckedThumbColor = colors.negativeRed,
+                                uncheckedTrackColor = colors.transparentGrayColor,
+                            ),
                         )
                     }
-
-                    Switch(
-                        checked = isEnabled.value,
-                        onCheckedChange = {
-                            isEnabled.value = !isEnabled.value
-                            field.data = JsonPrimitive(isEnabled.value)
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedBorderColor = colors.transparent,
-                            checkedThumbColor = colors.positiveGreen,
-                            checkedTrackColor = colors.transparentGrayColor,
-                            uncheckedBorderColor = colors.transparent,
-                            uncheckedThumbColor = colors.negativeRed,
-                            uncheckedTrackColor = colors.transparentGrayColor,
-                        ),
-                    )
                 }
             }
         }
-    }
 
-    AcceptedPageButton(
-        stringResource(strings.actionConfirm)
-    ){
-        onConfirm()
+        AcceptedPageButton(
+            stringResource(strings.actionConfirm)
+        ) {
+            onConfirm()
+        }
     }
 }

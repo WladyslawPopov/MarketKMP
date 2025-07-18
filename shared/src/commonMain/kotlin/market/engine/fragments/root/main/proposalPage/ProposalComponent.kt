@@ -62,7 +62,7 @@ class DefaultProposalComponent(
     }
 
     override fun update() {
-        proposalViewModel.onError(ServerErrorException())
+        proposalViewModel.refresh()
         proposalViewModel.getProposal(
             offerId,
             onSuccess = { body ->

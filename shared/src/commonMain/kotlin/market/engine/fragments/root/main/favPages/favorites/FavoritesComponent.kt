@@ -24,7 +24,6 @@ interface FavoritesComponent {
     fun refreshTabs()
     fun goToProposal(type: ProposalType, offerId : Long)
     fun goToCreateOffer(createOfferType : CreateOfferType, id : Long)
-    fun onRefresh()
 }
 
 class DefaultFavoritesComponent(
@@ -86,7 +85,4 @@ class DefaultFavoritesComponent(
         updateBackHandlerItem.value = id
     }
 
-    override fun onRefresh() {
-        favViewModel.updatePage()
-    }
 }

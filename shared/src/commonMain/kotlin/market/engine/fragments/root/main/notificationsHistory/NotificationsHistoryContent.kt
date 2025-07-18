@@ -6,7 +6,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
@@ -32,7 +31,7 @@ fun NotificationsHistoryContent(
             {
                 OnError(err.value)
                 {
-                    viewModel.onError(ServerErrorException())
+                    viewModel.refresh()
                 }
             }
         } else {

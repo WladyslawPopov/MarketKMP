@@ -4,10 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,11 +12,9 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.states.DeliveryCardsState
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryAddress
@@ -30,33 +25,21 @@ import org.koin.mp.KoinPlatform
 
 class DeliveryCardsViewModel: CoreViewModel() {
     private val _deliveryCards = MutableStateFlow<List<DeliveryAddress>>(emptyList())
+    val deliveryCardsState = _deliveryCards.asStateFlow()
+
     private val _deliveryFields = MutableStateFlow<List<Fields>>(emptyList())
+    val deliveryFieldsState = _deliveryFields.asStateFlow()
 
     private val _showFields = MutableStateFlow(false)
+    val showFieldsState = _showFields.asStateFlow()
+
     private val _selectedCard = MutableStateFlow<Long?>(null)
+    val selectedCardState = _selectedCard.asStateFlow()
+
     private val _selectedCountry = MutableStateFlow(0)
+    val selectedCountryState = _selectedCountry.asStateFlow()
 
     private val userOperations by lazy { KoinPlatform.getKoin().get<UserOperations>() }
-
-    val deliveryCardsState : StateFlow<DeliveryCardsState> = combine(
-        _deliveryCards,
-        _deliveryFields,
-        _showFields,
-        _selectedCard,
-        _selectedCountry
-    ) { cards, fields, showFields, selectedCard, selectedCountry ->
-        DeliveryCardsState(
-            deliveryCards = cards,
-            deliveryFields = fields,
-            showFields = showFields,
-            selectedCard = selectedCard,
-            selectedCountry = selectedCountry
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Companion.Lazily,
-        initialValue = DeliveryCardsState()
-    )
 
     init {
         getDeliveryCards()
@@ -211,18 +194,10 @@ class DeliveryCardsViewModel: CoreViewModel() {
                             eventParameters
                         )
 
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(ThemeResources.strings.operationSuccess)
-                            )
-                        )
-
-                        delay(2000)
-
                         _showFields.value = false
                         _selectedCard.value = cards.find { it.isDefault }?.id
 
-                        refresh()
+                        refreshCards()
                     } else {
                         val eventParameters = mapOf(
                             "user_id" to UserData.login,
@@ -234,12 +209,6 @@ class DeliveryCardsViewModel: CoreViewModel() {
                             eventParameters
                         )
                         payload.recipe?.fields?.let { _deliveryFields.value = it }
-
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(ThemeResources.strings.operationFailed)
-                            )
-                        )
                     }
                 } else {
                     err?.let { onError(it) }

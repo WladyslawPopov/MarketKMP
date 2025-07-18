@@ -77,14 +77,14 @@ fun MyOrdersContent(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         listingBaseViewModel.clearAllFilters()
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 } else {
                     NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = if (typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon
                     ) {
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -98,7 +98,7 @@ fun MyOrdersContent(
         if (err.value.humanMessage != "") {
             {
                 OnError(err.value) {
-                    viewModel.updatePage()
+                    viewModel.refresh()
                 }
             }
         } else {
@@ -135,7 +135,7 @@ fun MyOrdersContent(
                     )
                 },
                 onRefresh = {
-                    viewModel.updatePage()
+                    viewModel.refresh()
                 },
                 error = error,
                 noFound = noFound,

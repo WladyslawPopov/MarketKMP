@@ -76,6 +76,7 @@ fun UserContent(
         if (isError.value.humanMessage != "") {
             {
                 OnError(isError.value) {
+                    viewModel.refresh()
                    viewModel.getUserInfo()
                 }
             }
@@ -251,6 +252,7 @@ fun UserContent(
        error = error,
        toastItem = toastItem.value,
        onRefresh = {
+           viewModel.refresh()
            viewModel.getUserInfo()
        }
     ) { contentPadding ->

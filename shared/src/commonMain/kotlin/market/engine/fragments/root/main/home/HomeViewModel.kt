@@ -211,7 +211,7 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
     )
 
     fun updateModel() {
-        onError(ServerErrorException())
+        refresh()
 
         updateUserInfo()
         getCategories(listingData = LD(), searchData = SD(), withoutCounter = true) {

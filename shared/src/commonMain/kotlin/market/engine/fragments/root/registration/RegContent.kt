@@ -20,7 +20,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.fragments.base.BackHandler
@@ -53,7 +52,7 @@ fun RegistrationContent(
     val error: (@Composable () -> Unit)? = if (err.value.humanMessage != "") {
         { OnError(err.value) {
             model.getRegFields()
-            model.onError(ServerErrorException())
+            model.refresh()
         } }
     } else {
         null

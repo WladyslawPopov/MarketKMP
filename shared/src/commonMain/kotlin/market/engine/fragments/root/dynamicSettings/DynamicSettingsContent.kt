@@ -5,8 +5,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,15 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.isBigScreen
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.fragments.base.BackHandler
@@ -87,8 +82,7 @@ fun DynamicSettingsContent(
         snapshotFlow{
             richTextState.annotatedString
         }.collectLatest { _ ->
-            val text = KsoupEntities.decodeHtml(richTextState.toHtml())
-            pageState.value.fields.find { it.key == "description" }?.data = JsonPrimitive(text)
+            viewModel.setDescription(richTextState.toHtml())
         }
     }
 
@@ -128,23 +122,21 @@ fun DynamicSettingsContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f)
-                        .padding(dimens.mediumPadding),
-                    verticalArrangement = Arrangement.spacedBy(dimens.largePadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                )
-                {
-                    when (settingsType) {
-                        "app_settings" -> {
-                            AppSettingsContent {
-                                viewModel.changeTheme(it)
-                            }
+            when (settingsType) {
+                "app_settings" -> {
+                    item {
+                        AppSettingsContent {
+                            viewModel.changeTheme(it)
                         }
+                    }
+                }
 
-                        "set_about_me" -> {
+                "set_about_me" -> {
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
                             pageState.value.fields.find { it.widgetType == "text_area" }?.let {
                                 DescriptionTextField(it, richTextState)
                             }
@@ -156,52 +148,68 @@ fun DynamicSettingsContent(
                                 viewModel.postSubmit()
                             }
                         }
+                    }
+                }
 
-                        "set_vacation" -> {
-                            VacationSettingsContent(pageState.value.fields) {
-                                viewModel.postSubmit()
+                "set_vacation" -> {
+                    item {
+                        VacationSettingsContent(pageState.value.fields) {
+                            viewModel.postSubmit()
+                        }
+                    }
+                }
+
+                "set_bidding_step" -> {
+                    item {
+                        BiddingStepSettingsContent(pageState.value.fields) {
+                            viewModel.postSubmit()
+                        }
+                    }
+                }
+
+                "set_auto_feedback" -> {
+                    item {
+                        AutoFeedbackSettingsContent(pageState.value.fields) {
+                            viewModel.postSubmit()
+                        }
+                    }
+                }
+
+                "set_watermark" -> {
+                    item {
+                        WatermarkAndBlockRatingContent(true) { isEnabled ->
+                            if (!isEnabled) {
+                                viewModel.disabledWatermark()
+                            } else {
+                                viewModel.enabledWatermark()
                             }
                         }
+                    }
+                }
 
-                        "set_bidding_step" -> {
-                            BiddingStepSettingsContent(pageState.value.fields){
-                                viewModel.postSubmit()
+                "set_address_cards" -> {
+                    item {
+                        HeaderAlertText(
+                            rememberRichTextState().setHtml(
+                                stringResource(strings.headerDeliveryCardLabel)
+                            ).annotatedString
+                        )
+
+                        DeliveryCardsContent(
+                            viewModel.deliveryCardsViewModel,
+                            refresh = {
+                                viewModel.deliveryCardsViewModel.refreshCards()
                             }
-                        }
+                        )
+                    }
+                }
 
-                        "set_auto_feedback" -> {
-                            AutoFeedbackSettingsContent(pageState.value.fields){
-                                viewModel.postSubmit()
-                            }
-                        }
-
-                        "set_watermark" -> {
-                            WatermarkAndBlockRatingContent(true){ isEnabled ->
-                                if (!isEnabled) {
-                                    viewModel.disabledWatermark()
-                                } else {
-                                    viewModel.enabledWatermark()
-                                }
-                            }
-                        }
-
-                        "set_address_cards" -> {
-                            HeaderAlertText(
-                                rememberRichTextState().
-                                setHtml(
-                                    stringResource(strings.headerDeliveryCardLabel)
-                                ).annotatedString
-                            )
-
-                            DeliveryCardsContent(
-                                viewModel.deliveryCardsViewModel,
-                                refresh = {
-                                    viewModel.deliveryCardsViewModel.refreshCards()
-                                }
-                            )
-                        }
-
-                        "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
+                "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
                             HeaderAlertText(
                                 rememberRichTextState().setHtml(
                                     pageState.value.titleText
@@ -219,28 +227,39 @@ fun DynamicSettingsContent(
 
                             BlocListContent(
                                 blocList = blocList.value
-                            ){ id ->
+                            ) { id ->
                                 viewModel.deleteFromBlocList(id)
                             }
                         }
+                    }
+                }
 
-                        "set_block_rating" ->{
-                            WatermarkAndBlockRatingContent(false){ isEnabled ->
-                                if (isEnabled) {
-                                    viewModel.disabledBlockRating()
-                                } else {
-                                    viewModel.enabledBlockRating()
-                                }
+                "set_block_rating" ->{
+                    item {
+                        WatermarkAndBlockRatingContent(false) { isEnabled ->
+                            if (isEnabled) {
+                                viewModel.disabledBlockRating()
+                            } else {
+                                viewModel.enabledBlockRating()
                             }
                         }
+                    }
+                }
 
-                        "cancel_all_bids" ->{
-                            CancelAllBidsContent{ field ->
-                                viewModel.cancelAllBids(field)
-                            }
+                "cancel_all_bids" ->{
+                    item {
+                        CancelAllBidsContent { field ->
+                            viewModel.cancelAllBids(field)
                         }
+                    }
+                }
 
-                        "remove_bids_of_users" -> {
+                "remove_bids_of_users" -> {
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
                             val field = pageState.value.fields.find { it.key == "bidders" }
 
                             if (field != null) {
@@ -257,10 +276,17 @@ fun DynamicSettingsContent(
                                 }
                             }
                         }
+                    }
+                }
 
-                        // set_login, set_email, set/reset_password, set_phone,
-                        // set_message_to_buyer, set_outgoing_address
-                        else -> {
+                // set_login, set_email, set/reset_password, set_phone,
+                // set_message_to_buyer, set_outgoing_address
+                else -> {
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
                             if (pageState.value.errorMessage != null) {
                                 if (settingsType == "set_login") {
                                     Text(

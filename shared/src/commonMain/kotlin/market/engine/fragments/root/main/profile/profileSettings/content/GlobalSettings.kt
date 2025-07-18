@@ -89,7 +89,7 @@ fun GlobalSettings(
     val showDialog = remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(dimens.smallPadding),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
@@ -97,7 +97,8 @@ fun GlobalSettings(
             modifier = Modifier.fillMaxWidth().padding(dimens.mediumPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-        ) {
+        )
+        {
             Card(
                 modifier = Modifier.wrapContentSize(),
                 shape = CircleShape

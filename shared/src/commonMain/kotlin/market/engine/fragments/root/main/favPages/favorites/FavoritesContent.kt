@@ -73,7 +73,7 @@ fun FavoritesContent(
                         title = stringResource(strings.emptyFavoritesLabel),
                         image = drawables.emptyFavoritesImage
                     ) {
-                        component.onRefresh()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -84,7 +84,7 @@ fun FavoritesContent(
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { OnError(err.value) { component.onRefresh() } }
+            { OnError(err.value) { viewModel.refresh() } }
         } else {
             null
         }
@@ -132,7 +132,7 @@ fun FavoritesContent(
                     )
                 },
                 onRefresh = {
-                    component.onRefresh()
+                    viewModel.refresh()
                 },
                 error = error,
                 noFound = noFound,

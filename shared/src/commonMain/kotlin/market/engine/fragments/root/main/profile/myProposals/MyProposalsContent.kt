@@ -65,14 +65,14 @@ fun MyProposalsContent(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         listingBaseViewModel.clearAllFilters()
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 } else {
                     NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = drawables.proposalIcon
                     ) {
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -85,7 +85,7 @@ fun MyProposalsContent(
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { OnError(err.value) { viewModel.updatePage() } }
+            { OnError(err.value) { viewModel.refresh() } }
         } else {
             null
         }
@@ -120,7 +120,7 @@ fun MyProposalsContent(
                     )
                 },
                 onRefresh = {
-                    viewModel.updatePage()
+                    viewModel.refresh()
                 },
                 error = error,
                 noFound = noFound,

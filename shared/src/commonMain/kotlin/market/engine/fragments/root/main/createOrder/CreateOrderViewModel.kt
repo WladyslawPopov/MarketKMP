@@ -328,11 +328,12 @@ class CreateOrderViewModel(
     }
 
     fun acceptButton(basketItem: Pair<Long, List<SelectedBasketItem>>){
-        val fields = deliveryCardsViewModel.deliveryCardsState.value.deliveryFields
+        val fields = deliveryCardsViewModel.deliveryFieldsState.value
+        val deliveryCards = deliveryCardsViewModel.deliveryCardsState.value
 
         if(fields.isEmpty()){
             deliveryCardsViewModel.saveDeliveryCard(
-                deliveryCardsViewModel.deliveryCardsState.value.deliveryCards.firstOrNull()?.id ?: 1L
+                deliveryCards.firstOrNull()?.id ?: 1L
             )
         }else{
             postPage(fields, basketItem)

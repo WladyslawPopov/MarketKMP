@@ -69,14 +69,14 @@ fun MyBidsContent(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         listingBaseViewModel.clearAllFilters()
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 } else {
                     NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = drawables.bidsIcon
                     ) {
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -87,7 +87,7 @@ fun MyBidsContent(
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { OnError(err.value) { viewModel.updatePage() } }
+            { OnError(err.value) { viewModel.refresh() } }
         } else {
             null
         }
@@ -126,7 +126,7 @@ fun MyBidsContent(
                     )
                 },
                 onRefresh = {
-                    viewModel.updatePage()
+                    viewModel.refresh()
                 },
                 error = error,
                 noFound = noFound,

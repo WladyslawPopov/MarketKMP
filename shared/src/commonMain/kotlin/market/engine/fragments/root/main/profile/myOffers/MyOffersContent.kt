@@ -66,14 +66,14 @@ fun MyOffersContent(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         listingBaseViewModel.clearAllFilters()
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 } else {
                     NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = drawables.emptyOffersIcon
                     ) {
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -84,7 +84,7 @@ fun MyOffersContent(
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { OnError(err.value) { viewModel.updatePage() } }
+            { OnError(err.value) { viewModel.refresh() } }
         } else {
             null
         }
@@ -123,7 +123,7 @@ fun MyOffersContent(
                     )
                 },
                 onRefresh = {
-                    viewModel.updatePage()
+                    viewModel.refresh()
                 },
                 error = error,
                 noFound = noFound,

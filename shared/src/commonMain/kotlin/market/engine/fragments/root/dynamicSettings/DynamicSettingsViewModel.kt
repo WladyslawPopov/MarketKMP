@@ -5,6 +5,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -73,7 +74,7 @@ class DynamicSettingsViewModel(
     }
 
     fun setUpPage(){
-        onError(ServerErrorException())
+        refresh()
         viewModelScope.launch {
             try {
                 setLoading(true)
@@ -376,6 +377,8 @@ class DynamicSettingsViewModel(
                             )
                         )
 
+                        delay(1500)
+
                         when (settingsType) {
                             "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
                                 setUpPage()
@@ -412,9 +415,7 @@ class DynamicSettingsViewModel(
 
                         showToast(
                             errorToastItem.copy(
-                                message = getString(
-                                    strings.operationFailed
-                                )
+                                message = payload.recipe?.globalErrorMessage ?: getString(strings.operationFailed)
                             )
                         )
                     }
@@ -718,6 +719,21 @@ class DynamicSettingsViewModel(
                     }
                 }
             }
+        }
+    }
+
+    fun setDescription(description: String) {
+        val text = KsoupEntities.decodeHtml(description)
+        _dynamicSettingsState.update { page ->
+            val date = page.fields.map {
+                if(it.widgetType == "text_area"){
+                    it.copy(data = JsonPrimitive(text) )
+                } else it.copy()
+            }
+
+            page.copy(
+                fields = date
+            )
         }
     }
 

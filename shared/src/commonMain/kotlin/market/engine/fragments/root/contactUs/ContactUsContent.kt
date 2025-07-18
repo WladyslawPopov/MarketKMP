@@ -34,7 +34,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.states.SimpleAppBarData
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
@@ -75,7 +74,7 @@ fun ContactUsContent(
         if (err.value.humanMessage != "") {
             {
                 OnError(err.value) {
-                    model.onError(ServerErrorException())
+                    model.refresh()
                     model.getFields()
                 }
             }

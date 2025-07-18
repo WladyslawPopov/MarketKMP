@@ -36,7 +36,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
@@ -83,7 +82,7 @@ fun LoginContent(
         if (err.value.humanMessage != "") {
             {
                 OnError(err.value) {
-                    viewModel.onError(ServerErrorException())
+                    viewModel.refresh()
                 }
             }
         } else {

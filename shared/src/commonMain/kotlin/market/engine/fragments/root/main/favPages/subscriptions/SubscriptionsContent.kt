@@ -130,7 +130,7 @@ fun SubscriptionsContent(
                     }
                 },
                 onRefresh = {
-                    component.onRefresh()
+                    viewModel.refresh()
                 },
                 error = error,
                 noFound = noFound,

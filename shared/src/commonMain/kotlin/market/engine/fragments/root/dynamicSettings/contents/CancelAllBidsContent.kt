@@ -1,8 +1,12 @@
 package market.engine.fragments.root.dynamicSettings.contents
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Parameters
@@ -31,18 +35,23 @@ fun CancelAllBidsContent(
         )
     }
 
-    HeaderAlertText(
-        rememberRichTextState().setHtml(stringResource(strings.cancelAllBidsHeader)).annotatedString
-    )
-
-    DynamicInputField(
-        field = field,
-        singleLine = false
-    )
-
-    AcceptedPageButton(
-        stringResource(strings.actionConfirm),
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
     ) {
-        success(field)
+        HeaderAlertText(
+            rememberRichTextState().setHtml(stringResource(strings.cancelAllBidsHeader)).annotatedString
+        )
+
+        DynamicInputField(
+            field = field,
+            singleLine = false
+        )
+
+        AcceptedPageButton(
+            stringResource(strings.actionConfirm),
+        ) {
+            success(field)
+        }
     }
 }

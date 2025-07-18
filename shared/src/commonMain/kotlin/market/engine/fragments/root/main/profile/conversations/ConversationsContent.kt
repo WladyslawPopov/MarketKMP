@@ -77,7 +77,10 @@ fun ConversationsContent(
 
     val error : (@Composable () -> Unit)? = remember(err.value) {
         if (err.value.humanMessage != "") {
-            { OnError(err.value) {  } }
+            { OnError(err.value) {
+                listingBaseViewModel.clearAllFilters()
+                viewModel.refresh()
+            } }
         }else{
             null
         }
@@ -91,14 +94,14 @@ fun ConversationsContent(
                         textButton = stringResource(strings.resetLabel)
                     ) {
                         listingBaseViewModel.clearAllFilters()
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 } else {
                     NoItemsFoundLayout(
                         title = stringResource(strings.simpleNotFoundLabel),
                         icon = drawables.dialogIcon
                     ) {
-                        viewModel.updatePage()
+                        viewModel.refresh()
                     }
                 }
             }
@@ -174,7 +177,7 @@ fun ConversationsContent(
                 )
             },
             onRefresh = {
-                viewModel.updatePage()
+                viewModel.refresh()
             },
             error = error,
             noFound = noFound,
