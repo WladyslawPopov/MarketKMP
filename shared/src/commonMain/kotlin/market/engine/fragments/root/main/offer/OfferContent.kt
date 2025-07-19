@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -119,7 +120,7 @@ fun OfferContent(
     val isError = viewModel.errorMessage.collectAsState()
     val isLoading = viewModel.isShowProgress.collectAsState()
 
-    val uiState = viewModel.offerViewState.collectAsState()
+    val uiState = viewModel.responseOfferView.collectAsState()
 
     val scrollPos = viewModel.scrollPosition.collectAsState()
 
@@ -172,6 +173,7 @@ fun OfferContent(
 
     LaunchedEffect(scrollPos.value) {
         if (scrollPos.value > 1) {
+            delay(500)
             scrollState.scrollState.animateScrollToItem(scrollPos.value)
             viewModel.clearScrollPosition()
         }
@@ -999,7 +1001,7 @@ fun AuctionPriceLayout(
     onAddBidClick: (String) -> Unit,
     modifier: Modifier
 ) {
-    val myMaximalBid = remember {
+    val myMaximalBid = remember(offer) {
         mutableStateOf(
             TextFieldValue(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "")
         )
@@ -1589,7 +1591,8 @@ fun AuctionBidsSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 Text(
                     text = stringResource(strings.bidsUserLabel),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),

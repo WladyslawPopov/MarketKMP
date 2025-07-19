@@ -237,7 +237,7 @@ fun DynamicSettingsContent(
                 "set_block_rating" ->{
                     item {
                         WatermarkAndBlockRatingContent(false) { isEnabled ->
-                            if (isEnabled) {
+                            if (!isEnabled) {
                                 viewModel.disabledBlockRating()
                             } else {
                                 viewModel.enabledBlockRating()

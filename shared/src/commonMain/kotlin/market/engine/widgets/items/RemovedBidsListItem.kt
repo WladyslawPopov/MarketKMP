@@ -22,7 +22,7 @@ fun RemovedBidsListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = dimens.smallPadding),
+            .padding(dimens.smallPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

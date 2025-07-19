@@ -3,12 +3,8 @@ package market.engine.fragments.root.main.offer
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -67,7 +63,8 @@ class OfferViewModel(
     val isSnapshot : Boolean = false
 ) : CoreViewModel()
 {
-    private val _responseOffer: MutableStateFlow<Offer> = MutableStateFlow(Offer())
+    private val _responseOfferView: MutableStateFlow<OfferViewState> = MutableStateFlow(OfferViewState())
+    val responseOfferView: StateFlow<OfferViewState> = _responseOfferView.asStateFlow()
 
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
     val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
@@ -100,117 +97,12 @@ class OfferViewModel(
     val offerRepository: StateFlow<OfferRepository> = _offerRepository.asStateFlow()
 
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val offerViewState : StateFlow<OfferViewState> = _responseOffer.flatMapConcat { offer ->
-        //init timers
-        val initTimer =
-            ((offer.session?.end?.toLongOrNull()
-                ?: 1L) - (getCurrentDate().toLongOrNull()
-                ?: 1L)) * 1000
-
-        val images = when {
-            offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
-                ?: emptyList()
-
-            offer.externalImages?.isNotEmpty() == true -> offer.externalImages
-            else -> listOf("empty")
-        }
-        eventParameters = mapOf(
-            "lot_id" to offer.id,
-            "lot_name" to offer.title,
-            "lot_city" to offer.freeLocation,
-            "auc_delivery" to offer.safeDeal,
-            "lot_category_id" to offer.catpath.lastOrNull(),
-            "seller_id" to offer.sellerData?.id,
-            "lot_price_start" to offer.currentPricePerItem,
-            "visitor_id" to UserData.userInfo?.id
-        )
-
-        val offerState = when {
-            isSnapshot -> {
-                analyticsHelper.reportEvent("view_item_snapshot", eventParameters)
-                OfferStates.SNAPSHOT
-            }
-
-            offer.isPrototype -> {
-                analyticsHelper.reportEvent("view_item_prototype", eventParameters)
-                OfferStates.PROTOTYPE
-            }
-
-            offer.state == "active" -> {
-                analyticsHelper.reportEvent("view_item", eventParameters)
-                when {
-                    (offer.session?.start?.toLongOrNull()
-                        ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
-
-                    (offer.session?.end?.toLongOrNull()
-                        ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
-
-                    else -> OfferStates.COMPLETED
-                }
-            }
-
-            offer.state == "sleeping" -> {
-                analyticsHelper.reportEvent("view_item", eventParameters)
-                if (offer.session == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
-            }
-
-            else -> {
-                analyticsHelper.reportEvent("view_item", eventParameters)
-                OfferStates.ACTIVE
-            }
-        }
-
-        if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
-            startTimerUpdateBids(offer)
-        }
-
-        if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
-            startTimer(initTimer) {
-                getOffer(offer.id)
-            }
-        } else {
-            _remainingTime.value = initTimer
-        }
-
-        offer.sellerData = getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
-
-        val columns =
-            if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
-
-        val counts = (1..offer.currentQuantity).map { it.toString() }
-        setLoading(false)
-        flowOf(
-            OfferViewState(
-                offer = offer,
-                statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
-                columns = columns,
-                images = images,
-                countString = getCountString(offerState, offer),
-                buyNowCounts = counts,
-                isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
-                offerState = offerState,
-                dealTypeString = offer.dealTypes?.joinToString(separator = ". ") { it.name ?: "" }
-                    ?: "",
-                deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
-                paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") {
-                    it.name ?: ""
-                } ?: "",
-            )
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        OfferViewState()
-    )
-
     init {
         refreshPage()
     }
 
     fun refreshPage() {
         getOffer(offerId, isSnapshot)
-        updateBidsInfo(_responseOffer.value)
         refresh()
     }
 
@@ -268,6 +160,7 @@ class OfferViewModel(
                 getHistory(offerId)
                 getOurChoice(offerId)
                 updateUserInfo()
+                clearTimers()
 
                 withContext(Dispatchers.IO) {
                     val res = offerOperations.getOffer(offerId, isSnapshot)
@@ -275,11 +168,105 @@ class OfferViewModel(
                     data?.let { offer ->
                         getCategoriesHistory(offer.catpath)
                         _offerRepository.value = OfferRepository(offer = offer.parseToOfferItem(), events = offerRepositoryEvents, this@OfferViewModel)
-                        _responseOffer.value = offer
+                        val initTimer =
+                            ((offer.session?.end?.toLongOrNull()
+                                ?: 1L) - (getCurrentDate().toLongOrNull()
+                                ?: 1L)) * 1000
+
+                        val images = when {
+                            offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
+                                ?: emptyList()
+
+                            offer.externalImages?.isNotEmpty() == true -> offer.externalImages
+                            else -> listOf("empty")
+                        }
+                        eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.freeLocation,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category_id" to offer.catpath.lastOrNull(),
+                            "seller_id" to offer.sellerData?.id,
+                            "lot_price_start" to offer.currentPricePerItem,
+                            "visitor_id" to UserData.userInfo?.id
+                        )
+
+                        val offerState = when {
+                            isSnapshot -> {
+                                analyticsHelper.reportEvent("view_item_snapshot", eventParameters)
+                                OfferStates.SNAPSHOT
+                            }
+
+                            offer.isPrototype -> {
+                                analyticsHelper.reportEvent("view_item_prototype", eventParameters)
+                                OfferStates.PROTOTYPE
+                            }
+
+                            offer.state == "active" -> {
+                                analyticsHelper.reportEvent("view_item", eventParameters)
+                                when {
+                                    (offer.session?.start?.toLongOrNull()
+                                        ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
+
+                                    (offer.session?.end?.toLongOrNull()
+                                        ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
+
+                                    else -> OfferStates.COMPLETED
+                                }
+                            }
+
+                            offer.state == "sleeping" -> {
+                                analyticsHelper.reportEvent("view_item", eventParameters)
+                                if (offer.session == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                            }
+
+                            else -> {
+                                analyticsHelper.reportEvent("view_item", eventParameters)
+                                OfferStates.ACTIVE
+                            }
+                        }
+
+                        if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
+                            startTimerUpdateBids(offer)
+                        }
+
+                        if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
+                            startTimer(initTimer) {
+                                getOffer(offer.id, isSnapshot)
+                            }
+                        } else {
+                            _remainingTime.value = initTimer
+                        }
+
+                        offer.sellerData = getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
+
+                        val columns =
+                            if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
+
+                        val counts = (1..offer.currentQuantity).map { it.toString() }
+
+                        _responseOfferView.value = OfferViewState(
+                            offer = offer,
+                            statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
+                            columns = columns,
+                            images = images,
+                            countString = getCountString(offerState, offer),
+                            buyNowCounts = counts,
+                            isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
+                            offerState = offerState,
+                            dealTypeString = offer.dealTypes?.joinToString(separator = ". ") { it.name ?: "" }
+                                ?: "",
+                            deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
+                            paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") {
+                                it.name ?: ""
+                            } ?: "",
+                        )
                     }
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -426,9 +413,11 @@ class OfferViewModel(
             }
             withContext(Dispatchers.Main) {
                 if (user != null) {
-                    _responseOffer.update {
+                    _responseOfferView.update {
                         it.copy(
-                            sellerData = user
+                            offer = it.offer.copy(
+                                sellerData = user
+                            )
                         )
                     }
                 }
@@ -454,12 +443,14 @@ class OfferViewModel(
                 withContext(Dispatchers.Main) {
                     response.success?.body?.let { body ->
                         if (body.isChanged) {
-                            _responseOffer.update {
+                            _responseOfferView.update {
                                 it.copy(
-                                    bids = body.bids,
-                                    version = JsonPrimitive(body.currentVersion),
-                                    currentPricePerItem = body.currentPrice,
-                                    minimalAcceptablePrice = body.minimalAcceptablePrice,
+                                    offer = it.offer.copy(
+                                        bids = body.bids,
+                                        version = JsonPrimitive(body.currentVersion),
+                                        currentPricePerItem = body.currentPrice,
+                                        minimalAcceptablePrice = body.minimalAcceptablePrice,
+                                    )
                                 )
                             }
                         }
@@ -647,7 +638,7 @@ class OfferViewModel(
     }
 
     fun scrollToBids(){
-        if(offerViewState.value.offer.bids?.isNotEmpty() == true) {
+        if(responseOfferView.value.offer.bids?.isNotEmpty() == true) {
             _scrollPosition.value = goToBids
         }
     }
@@ -793,5 +784,7 @@ data class OfferRepositoryEventsImpl(
         viewModel.refreshPage()
     }
 
-    override fun updateItem(item: OfferItem) {}
+    override fun updateItem(item: OfferItem) {
+        viewModel.updateBidsInfo(viewModel.responseOfferView.value.offer)
+    }
 }

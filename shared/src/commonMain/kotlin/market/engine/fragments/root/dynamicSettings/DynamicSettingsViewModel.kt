@@ -480,9 +480,7 @@ class DynamicSettingsViewModel(
                 val resErr = res.error
 
                 if (buffer != null) {
-                    if(!buffer.body?.data.isNullOrEmpty()) {
-                        _blocList.value = buffer.body.data
-                    }
+                    _blocList.value = buffer.body?.data ?: emptyList()
                 }else{
                     if (resErr != null) {
                         onError(resErr)
@@ -527,7 +525,7 @@ class DynamicSettingsViewModel(
                             message = getString(strings.operationSuccess)
                         )
                     )
-
+                    getBlocList()
                 }else{
                     if (res.error != null) {
                         onError(res.error!!)

@@ -42,7 +42,7 @@ fun BidsListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = dimens.smallPadding),
+            .padding(dimens.smallPadding),
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {

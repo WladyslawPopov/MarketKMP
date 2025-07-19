@@ -21,6 +21,8 @@ fun WatermarkAndBlockRatingContent(
     isWatermark : Boolean,
     onCheckedChange : (Boolean) -> Unit,
 ) {
+    val userData = UserData.userInfo
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -37,8 +39,8 @@ fun WatermarkAndBlockRatingContent(
         )
 
         Switch(
-            checked = if(isWatermark) UserData.userInfo?.waterMarkEnabled ?: false
-            else UserData.userInfo?.blockRatingEnabled ?: false,
+            checked = if(isWatermark) userData?.waterMarkEnabled ?: false
+            else userData?.blockRatingEnabled ?: false,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedBorderColor = colors.transparent,

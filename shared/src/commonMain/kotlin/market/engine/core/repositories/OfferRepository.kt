@@ -94,7 +94,6 @@ class OfferRepository(
 
     fun refreshOffer(){
         update()
-        updateOperations()
         events.refreshPage()
     }
 
@@ -727,9 +726,9 @@ class OfferRepository(
                             myMaximalBid.value,
                             offer,
                             onSuccess = {
-                                refreshOffer()
-                                clearDialogFields()
+                                update()
                                 events.scrollToBids()
+                                clearDialogFields()
                             },
                             onDismiss = {
                                 clearDialogFields()
