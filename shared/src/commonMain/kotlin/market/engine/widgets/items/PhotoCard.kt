@@ -52,22 +52,24 @@ fun PhotoCard(
         Box(
             modifier = Modifier.fillMaxSize()
         ){
-            Row(
-                modifier = Modifier.padding(dimens.smallPadding)
-                    .align(Alignment.TopStart)
-                    .zIndex(5f)
-            ) {
-                SmallIconButton(
-                    drawables.recycleIcon,
-                    color = colors.negativeRed,
-                    modifierIconSize = Modifier.size(dimens.smallIconSize),
-                    modifier = Modifier
-                        .size(dimens.smallIconSize)
+            if(item.tempId?.isNotBlank() == true) {
+                Row(
+                    modifier = Modifier.padding(dimens.smallPadding)
+                        .align(Alignment.TopStart)
+                        .zIndex(5f)
                 ) {
-                    item.rotate += 90
-                    item.rotate %= 360
-                    rotate.value = item.rotate
-                    viewModel.rotatePhoto(item)
+                    SmallIconButton(
+                        drawables.recycleIcon,
+                        color = colors.negativeRed,
+                        modifierIconSize = Modifier.size(dimens.smallIconSize),
+                        modifier = Modifier
+                            .size(dimens.smallIconSize)
+                    ) {
+                        item.rotate += 90
+                        item.rotate %= 360
+                        rotate.value = item.rotate
+                        viewModel.rotatePhoto(item)
+                    }
                 }
             }
 

@@ -95,7 +95,7 @@ fun HomeContent(
                         Image(
                             painter = painterResource(drawables.logo),
                             contentDescription = stringResource(strings.homeTitle),
-                            modifier = Modifier.size(140.dp, 68.dp),
+                            modifier = Modifier.size(180.dp, 90.dp),
                         )
                     }
 

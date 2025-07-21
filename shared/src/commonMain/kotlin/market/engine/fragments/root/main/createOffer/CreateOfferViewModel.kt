@@ -269,7 +269,8 @@ class CreateOfferViewModel(
                         tempPhotos.add(
                             PhotoTemp(
                                 id = field.key,
-                                url = field.links.mid?.jsonPrimitive?.content
+                                url = field.links.mid?.jsonPrimitive?.content,
+                                tempId = ""
                             )
                         )
                     }

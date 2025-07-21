@@ -45,7 +45,7 @@ class FileUpload {
                         val serializer = ListSerializer(String.serializer())
                         val payload = deserializePayload(response.payload, serializer)
                         return@async ServerResponse(success = payload[0])
-                    }catch (e : Exception){
+                    }catch (_ : Exception){
                         throw  ServerErrorException(response.errorCode.toString(),response.humanMessage.toString())
                     }
                 } catch (e: ServerErrorException) {

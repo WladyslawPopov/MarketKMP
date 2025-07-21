@@ -10,6 +10,7 @@ import io.ktor.utils.io.writePacket
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.refTo
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -23,11 +24,17 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
 import market.engine.core.utils.getCurrentDate
 import org.koin.mp.KoinPlatform.getKoin
+import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSData
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.dataWithContentsOfURL
 import platform.Foundation.getBytes
+import platform.UIKit.UIGraphicsBeginImageContextWithOptions
+import platform.UIKit.UIGraphicsEndImageContext
+import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
+import platform.UIKit.UIImage
+import platform.UIKit.UIImageJPEGRepresentation
 import kotlin.coroutines.CoroutineContext
 
 class FileUpload {
@@ -59,11 +66,11 @@ class FileUpload {
         }
     }
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
     private suspend fun createMultipartBodyPart(photoTemp: PhotoTemp): List<PartData>? {
         return withContext(Dispatchers.IO) {
             try {
-                val (nsData, fileName) = if (photoTemp.file?.nsUrl != null) {
+                val (rawData, fileName) = if (photoTemp.file?.nsUrl != null) {
                     val uri = photoTemp.file?.nsUrl!!
                     photoTemp.uri = uri.path
                     println("Creating multipart part from local/cloud URI: $uri")
@@ -101,6 +108,11 @@ class FileUpload {
                 } else {
                     throw IllegalArgumentException("No valid URI or URL specified in PhotoTemp")
                 }
+
+                val originalImage = UIImage(data = rawData)
+                val fixedImage = fixImageOrientation(originalImage)
+                val nsData = UIImageJPEGRepresentation(fixedImage, 1.0)
+                    ?: throw Exception("Failed to get JPEG representation")
 
                 // Convert NSData to (Flow<ByteArray>)
                 val byteArrayFlow: Flow<ByteArray> = flow {
@@ -142,6 +154,27 @@ class FileUpload {
                 null
             }
         }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun fixImageOrientation(image: UIImage): UIImage {
+        if (image.imageOrientation == platform.UIKit.UIImageOrientation.UIImageOrientationUp) {
+            return image
+        }
+
+        val rect = image.size.useContents {
+            CGRectMake(x = 0.0, y = 0.0, width = this.width, height = this.height)
+        }
+
+        UIGraphicsBeginImageContextWithOptions(size = image.size, opaque = false, scale = image.scale)
+
+        image.drawInRect(rect)
+
+        val normalizedImage = UIGraphicsGetImageFromCurrentImageContext()
+
+        UIGraphicsEndImageContext()
+
+        return normalizedImage ?: image
     }
 
     private fun Flow<ByteArray>.toByteReadChannel(coroutineContext: CoroutineContext): ByteReadChannel {
