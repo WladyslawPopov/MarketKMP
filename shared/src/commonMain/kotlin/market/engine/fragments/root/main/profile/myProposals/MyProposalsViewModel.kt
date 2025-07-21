@@ -65,6 +65,7 @@ class MyProposalsViewModel(
         ld,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

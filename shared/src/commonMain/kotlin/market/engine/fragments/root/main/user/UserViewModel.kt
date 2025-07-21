@@ -23,10 +23,8 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
-import market.engine.core.data.filtersObjects.ReportFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.types.ReportPageType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Reports
@@ -50,8 +48,6 @@ class UserViewModel(val userId: Long, val component: UserComponent) : CoreViewMo
 
     private val pagingRepository: PagingRepository<Reports> = PagingRepository()
 
-    val currentFilter = mutableStateOf("")
-
     val userOperations : UserOperations by lazy { getKoin().get() }
 
     val listingBaseViewModel = ListingBaseViewModel()
@@ -64,26 +60,12 @@ class UserViewModel(val userId: Long, val component: UserComponent) : CoreViewMo
         analyticsHelper.reportEvent("open_user_profile", hashMapOf("user_id" to userId.toString()))
     }
 
-    fun refreshListing(type : ReportPageType, userId : Long){
-        refresh()
-        ReportFilters.clearTypeFilter(type)
-        val newFilters = ReportFilters.getByTypeFilter(type)
-        newFilters.find { it.key == "user_id" }?.value = userId.toString()
-        listingBaseViewModel.setListingData(
-            ListingData(
-                data = LD(
-                    filters = newFilters,
-                    methodServer = "get_public_listing",
-                    objServer = "feedbacks"
-                )
-            )
-        )
-    }
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         listingData,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

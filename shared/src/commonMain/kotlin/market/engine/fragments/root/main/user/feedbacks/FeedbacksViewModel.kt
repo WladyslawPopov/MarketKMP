@@ -57,6 +57,8 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long) : CoreVie
         listingData,
         updatePage
     ) { listingData, _ ->
+
+        resetScroll()
         currentFilter.value = if(
             listingData.data.filters.find {
                 it.key == "evaluation" }?.value == "" ||

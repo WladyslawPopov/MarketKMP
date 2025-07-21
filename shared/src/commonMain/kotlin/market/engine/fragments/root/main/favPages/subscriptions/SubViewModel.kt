@@ -62,6 +62,7 @@ class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
         listingData,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

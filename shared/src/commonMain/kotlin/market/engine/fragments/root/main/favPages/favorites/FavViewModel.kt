@@ -87,6 +87,7 @@ class FavViewModel(
         listingData,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

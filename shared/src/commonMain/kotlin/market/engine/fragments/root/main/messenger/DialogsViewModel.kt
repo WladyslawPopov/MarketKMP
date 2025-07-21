@@ -340,6 +340,7 @@ class DialogsViewModel(
         listingData,
         updatePage
     ) { conversations, listingData, _ ->
+        resetScroll()
         Pair(conversations, listingData)
     }
 

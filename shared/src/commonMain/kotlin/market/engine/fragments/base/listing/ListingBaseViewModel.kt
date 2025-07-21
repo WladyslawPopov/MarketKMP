@@ -133,13 +133,19 @@ class ListingBaseViewModel(
             else -> allString
         }
 
-        listItemsNavigation.find {
-            it.title == getString(strings.filter)
-        }?.badgeCount = if(filters.isNotEmpty()) filters.size else null
-
-        listItemsNavigation.find {
-            it.title == getString(strings.sort)
-        }?.hasNews = ld.sort != null
+        val updatedListNavigation = listItemsNavigation.map { item ->
+            when (item.title) {
+                getString(strings.filter) -> {
+                    item.copy(badgeCount = if (filters.isNotEmpty()) filters.size else null)
+                }
+                getString(strings.sort) -> {
+                    item.copy(hasNews = ld.sort != null)
+                }
+                else -> {
+                    item
+                }
+            }
+        }
 
         val tabs = listOf(
             Tab(
@@ -232,7 +238,7 @@ class ListingBaseViewModel(
                     )
                 }
             },
-            listNavigation = listItemsNavigation,
+            listNavigation = updatedListNavigation,
             swipeTabsBarState = if (showSwipeTabs) {
                 SwipeTabsBarState(
                     tabs = tabs,
@@ -245,7 +251,7 @@ class ListingBaseViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Lazily,
+        started = SharingStarted.Eagerly,
         initialValue = FilterBarUiState()
     )
 
@@ -321,7 +327,6 @@ class ListingBaseViewModel(
         _listingData.update {
             it.copy(searchData = it.searchData.copy(searchString = ""))
         }
-        refresh()
     }
 
     fun setListItemsFilterBar(list : List<NavigationItem>){
@@ -361,7 +366,6 @@ class ListingBaseViewModel(
             )
         }
         setActiveWindowType(ActiveWindowListingType.LISTING)
-        refresh()
     }
 
     fun changeOpenSearch(value : Boolean) {
@@ -612,7 +616,6 @@ class ListingBaseViewModel(
                 )
             )
         }
-        refresh()
     }
 
     fun applyFilters(newFilters: List<Filter>) {
@@ -624,7 +627,6 @@ class ListingBaseViewModel(
             )
         }
         setActiveWindowType(ActiveWindowListingType.LISTING)
-        refresh()
     }
 
     fun applySorting(newSort: Sort?) {
@@ -636,7 +638,6 @@ class ListingBaseViewModel(
             )
         }
         setActiveWindowType(ActiveWindowListingType.LISTING)
-        refresh()
     }
 
     fun removeFilter(filter: Filter){
@@ -656,16 +657,12 @@ class ListingBaseViewModel(
                 )
             )
         }
-
-        refresh()
     }
 
     fun removeSort(){
         _listingData.update {
             it.copy(data = it.data.copy(sort = null))
         }
-
-        refresh()
     }
 
     fun clearListingData() {
@@ -681,8 +678,6 @@ class ListingBaseViewModel(
                     )
                 )
             }
-
-            refresh()
         }
     }
 

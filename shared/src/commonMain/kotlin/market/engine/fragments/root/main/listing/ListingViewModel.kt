@@ -80,6 +80,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
         ld,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

@@ -54,6 +54,7 @@ class ConversationsViewModel(val component: ConversationsComponent): CoreViewMod
         ld,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

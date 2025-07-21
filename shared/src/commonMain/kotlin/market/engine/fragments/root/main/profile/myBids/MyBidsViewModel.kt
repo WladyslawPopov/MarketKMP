@@ -64,6 +64,7 @@ class MyBidsViewModel(
         ld,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

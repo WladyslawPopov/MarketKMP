@@ -62,6 +62,7 @@ class MyOrdersViewModel(
         ld,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 

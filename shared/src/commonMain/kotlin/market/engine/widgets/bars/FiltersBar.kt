@@ -35,7 +35,6 @@ fun FiltersBar(
     val swipeTabsBarState = uiFilterBarUiState.swipeTabsBarState
     val listNavigation = uiFilterBarUiState.listNavigation
 
-
     AnimatedVisibility(
         visible = isVisible,
         enter = expandVertically(),

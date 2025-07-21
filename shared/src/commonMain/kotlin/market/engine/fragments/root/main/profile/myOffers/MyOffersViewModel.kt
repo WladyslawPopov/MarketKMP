@@ -61,6 +61,7 @@ class MyOffersViewModel(
         ld,
         updatePage
     ) { listingData, _ ->
+        resetScroll()
         listingData
     }
 
