@@ -208,10 +208,12 @@ class PhotoTempViewModel(val type: CreateOfferType) : CoreViewModel(){
                 ServerResponse(photoTemp)
             }
         } catch (e : ServerErrorException){
+            onError(e)
             return withContext(Dispatchers.Main) {
                 ServerResponse(error = e)
             }
         }catch (e : Exception){
+            onError(ServerErrorException(e.message ?: "", ""))
             return withContext(Dispatchers.Main) {
                 ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
             }

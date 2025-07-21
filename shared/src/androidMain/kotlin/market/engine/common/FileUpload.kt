@@ -59,31 +59,14 @@ class FileUpload {
         }
     }
 
-    private suspend fun createMultipartBodyPart(
-        photoTemp: PhotoTemp
-    ): List<PartData> {
-        val file: File = if (photoTemp.file?.uri != null) {
-            photoTemp.uri = photoTemp.file?.uri.toString()
-            val contentResolver = context.contentResolver
-            val tempFile = File(context.cacheDir, photoTemp.file?.name ?: "")
-            contentResolver.openInputStream(photoTemp.file?.uri!!)?.use { inputStream ->
-                tempFile.outputStream().use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            }
-            tempFile
-        } else {
-            downloadImageAndSaveAsFile(photoTemp.url ?: "")
-        }
+    private suspend fun createMultipartBodyPart(photoTemp: PhotoTemp): List<PartData> {
+        val file = getSanitizedImageFile(photoTemp)
 
         val filePart = PartData.FileItem(
             { file.inputStream().toByteReadChannel() },
-            {},
+            { file.delete() },
             Headers.build {
-                append(
-                    HttpHeaders.ContentDisposition,
-                    "form-data; name=\"file\"; filename=\"${file.name}\""
-                )
+                append(HttpHeaders.ContentDisposition, "form-data; name=\"file\"; filename=\"${file.name}\"")
                 append(HttpHeaders.ContentType, "image/jpeg")
             }
         )
@@ -92,35 +75,39 @@ class FileUpload {
 
         return listOf(filePart, typePart)
     }
-    private suspend fun downloadImageAndSaveAsFile(imageUrl: String): File {
-        try {
-
-            val request = ImageRequest.Builder(context)
-                .data(imageUrl)
-                .allowHardware(false)
-                .build()
 
 
-            val result = context.imageLoader.execute(request)
-            if (result !is SuccessResult) {
-                throw IOException("Error load URL: $imageUrl")
-            }
-
-            val bitmap = result.image.toBitmap()
-
-            val file = createImageFile(appContext!!)
-
-            withContext(Dispatchers.IO) {
-                FileOutputStream(file).use { outputStream ->
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                    outputStream.flush()
-                }
-            }
-
-            return file
-        } catch (e: IOException) {
-            throw e
+    private suspend fun getSanitizedImageFile(photoTemp: PhotoTemp): File {
+        val dataSource: Any = if (photoTemp.file?.uri != null) {
+            photoTemp.uri = photoTemp.file?.uri.toString()
+            photoTemp.file!!.uri
+        } else if (!photoTemp.url.isNullOrBlank()) {
+            photoTemp.url!!
+        } else {
+            throw IOException("No valid image source (URI or URL) provided.")
         }
+
+        val request = ImageRequest.Builder(context)
+            .data(dataSource)
+            .allowHardware(false)
+            .build()
+
+        val result = context.imageLoader.execute(request)
+        if (result !is SuccessResult) {
+            throw IOException("Failed to load image from: $dataSource")
+        }
+
+        val bitmap = result.image.toBitmap()
+        val file = createImageFile(context)
+
+        withContext(Dispatchers.IO) {
+            FileOutputStream(file).use { outputStream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                outputStream.flush()
+            }
+        }
+
+        return file
     }
 
     private fun createImageFile(context: Context): File {
