@@ -160,7 +160,7 @@ class MyBidsViewModel(
                 }
             }
             else -> {
-                _activeWindowType.value = ActiveWindowListingType.LISTING
+                component.goToBack()
             }
         }
     }

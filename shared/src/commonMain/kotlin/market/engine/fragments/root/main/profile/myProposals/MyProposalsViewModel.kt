@@ -161,7 +161,7 @@ class MyProposalsViewModel(
                 }
             }
             else -> {
-                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
+                component.goToBack()
             }
         }
     }

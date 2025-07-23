@@ -50,10 +50,10 @@ class ProposalViewModel(
     private val _body = MutableStateFlow<BodyListPayload<Proposals>?>(null)
     val body = _body.asStateFlow()
 
-    private val _responseFields = MutableStateFlow<List<Fields>>(emptyList())
+    private val _responseFields = MutableStateFlow(emptyList<Pair<Long, List<Fields>>>())
     val responseFields = _responseFields.asStateFlow()
 
-    private val _selectedChoice = MutableStateFlow(1)
+    private val _selectedChoice = MutableStateFlow(emptyList<Pair<Long, Int>>())
     val selectedChoice = _selectedChoice.asStateFlow()
 
     private val _subtitle  = MutableStateFlow(AnnotatedString(""))
@@ -75,6 +75,8 @@ class ProposalViewModel(
 
     fun update(){
         viewModelScope.launch {
+            _selectedChoice.value = emptyList()
+            _responseFields.value = emptyList()
             _responseGetOffer.value = getOfferById(offerId) ?: Offer()
             refresh()
             getProposal()
@@ -174,7 +176,9 @@ class ProposalViewModel(
 
                 _body.value = payload
 
-                getFieldsProposal(payload.bodyList.firstOrNull()?.buyerInfo?.id ?: 1L)
+                payload.bodyList.forEach {
+                    getFieldsProposal(it.buyerInfo?.id, it.proposals?.size ?: 0)
+                }
 
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -186,7 +190,7 @@ class ProposalViewModel(
         }
     }
 
-    fun getFieldsProposal(buyerId : Long) {
+    fun getFieldsProposal(buyerId : Long?, count : Int) {
         viewModelScope.launch {
             val buffer = withContext(Dispatchers.IO) {
                 operationsMethods.getOperationFields(
@@ -200,8 +204,8 @@ class ProposalViewModel(
             val error = buffer.error
             withContext(Dispatchers.Main) {
                 if (payload != null) {
-                    _selectedChoice.value = if (buyerId == 1L) 2 else 0
-                    _responseFields.value = payload.fields
+                    _selectedChoice.value += (buyerId ?: 0L) to if(count > 0) 0 else 2
+                    _responseFields.value += (buyerId ?: 0L) to payload.fields
                 } else {
                     if (error != null) {
                         onError(error)
@@ -211,7 +215,7 @@ class ProposalViewModel(
         }
     }
 
-    fun confirmProposal(fields: List<Fields>) {
+    fun confirmProposal(fields: List<Fields>, buyerId: Long) {
         setLoading(true)
         viewModelScope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
@@ -260,7 +264,7 @@ class ProposalViewModel(
                                 )
                             )
 
-                            refresh()
+                            update()
                         } else {
                             val eventParams = mapOf(
                                 "lot_id" to offerId,
@@ -286,7 +290,15 @@ class ProposalViewModel(
                                 )
                             )
 
-                            _responseFields.value = payload.recipe?.fields ?: payload.fields
+                            _responseFields.update { field ->
+                                field.map {
+                                    if (it.first == buyerId) {
+                                        it.copy(second = payload.recipe?.fields ?: payload.fields)
+                                    } else {
+                                        it.copy()
+                                    }
+                                }
+                            }
                         }
                     }else{
                         throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
@@ -302,21 +314,43 @@ class ProposalViewModel(
         }
     }
 
-    fun changeChoice(isChoice: Boolean, choice: Int) {
+    fun changeChoice(isChoice: Boolean, choice: Int, id: Long) {
         if (isChoice) {
-            _selectedChoice.value = choice
+            _selectedChoice.update { fields ->
+                fields.map {
+                    if (it.first == id) {
+                        it.copy(second = choice)
+                    } else {
+                        it.copy()
+                    }
+                }
+            }
         } else {
-            _selectedChoice.value = 0
+            _selectedChoice.update { fields ->
+                fields.map {
+                    if (it.first == id) {
+                        it.copy(second = 0)
+                    } else {
+                        it.copy()
+                    }
+                }
+            }
         }
 
         if (choice != 2) {
-            _responseFields.update {
-                it.map {  field ->
-                    when(field.key){
-                        "comment" -> field.copy(data = null)
-                        "price" -> field.copy(data = null)
-                        "quantity" -> field.copy(data = null)
-                        else -> field.copy()
+            _responseFields.update { field ->
+                field.map {
+                    if (it.first == id) {
+                        it.copy(second = it.second.map { field ->
+                            when(field.key){
+                                "comment" -> field.copy(data = null)
+                                "price" -> field.copy(data = null)
+                                "quantity" -> field.copy(data = null)
+                                else -> field.copy()
+                            }
+                        })
+                    } else {
+                        it.copy()
                     }
                 }
             }

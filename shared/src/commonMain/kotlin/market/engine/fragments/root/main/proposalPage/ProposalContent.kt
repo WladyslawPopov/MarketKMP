@@ -47,7 +47,7 @@ fun ProposalContent(
     val offer by viewModel.responseGetOffer.collectAsState()
     val type = viewModel.type
 
-    val proposalState by viewModel.body.collectAsState()
+    val proposalState = viewModel.body.collectAsState()
     val isLoading by viewModel.isShowProgress.collectAsState()
     val isError by viewModel.errorMessage.collectAsState()
 
@@ -64,7 +64,7 @@ fun ProposalContent(
     val selectedChoice = viewModel.selectedChoice.collectAsState()
 
     val noFound : (@Composable () -> Unit)? = remember(proposalState) {
-        if (proposalState?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
+        if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
             {
                 NoItemsFoundLayout(
                     icon = drawables.proposalIcon,
@@ -161,19 +161,19 @@ fun ProposalContent(
                 }
             }
 
-            items(proposalState?.bodyList ?: emptyList()){ body ->
+            items(proposalState.value?.bodyList ?: emptyList()){ body ->
                 ProposalsItemContent(
                     offer,
                     body,
                     type,
-                    initFields.value,
-                    selectedChoice.value,
+                    initFields.value.find { it.first == (body.buyerInfo?.id ?: 0L) }?.second ?: emptyList(),
+                    selectedChoice.value.find { it.first == (body.buyerInfo?.id ?: 0L) }?.second ?: 2,
                     isLoading,
                     changeChoice = { b, i ->
-                        viewModel.changeChoice(b, i)
+                        viewModel.changeChoice(b, i, body.buyerInfo?.id ?: 0L)
                     },
                     confirmProposal = {
-                        viewModel.confirmProposal(it)
+                        viewModel.confirmProposal(it, body.buyerInfo?.id ?: 0L)
                     },
                     goToUser = {
                         component.goToUser(it)

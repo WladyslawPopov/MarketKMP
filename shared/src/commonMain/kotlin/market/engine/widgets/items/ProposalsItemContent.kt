@@ -68,8 +68,14 @@ fun ProposalsItemContent(
     confirmProposal: (List<Fields>) -> Unit,
     goToUser: (Long) -> Unit,
 ) {
-    val user = proposals.buyerInfo ?: offer.sellerData
-    val countLeft = offer.currentQuantity
+    val user = remember(proposals) {  proposals.buyerInfo ?: offer.sellerData }
+    val countLeft = remember(proposals) {
+        if(type == ProposalType.MAKE_PROPOSAL) {
+            countProposalMax - (proposals.proposals?.filter { !it.isResponserProposal }?.size ?: 0)
+        }else{
+            offer.currentQuantity
+        }
+    }
 
     val hourLabel = stringResource(strings.hourLabel)
     val minutesLabel = stringResource(strings.minutesLabel)
@@ -83,10 +89,12 @@ fun ProposalsItemContent(
 
             val showHistory = remember { mutableStateOf(false) }
 
-            val proposalsToDisplay = if (proposals.proposals.size > 1 && !showHistory.value) {
-                proposals.proposals.reversed().take(1)
-            } else {
-                proposals.proposals
+            val proposalsToDisplay = remember(proposals) {
+                if (proposals.proposals.size > 1 && !showHistory.value) {
+                    proposals.proposals.reversed().take(1)
+                } else {
+                    proposals.proposals
+                }
             }
 
             proposalsToDisplay.forEachIndexed { index, proposal ->
@@ -107,6 +115,7 @@ fun ProposalsItemContent(
                     }
                 }
                 val statusColor = remember { mutableStateOf(colors.notifyTextColor) }
+                val titleColor = remember { mutableStateOf(colors.notifyTextColor) }
                 val statusIcon = remember { mutableStateOf(drawables.iconClock) }
                 val iconColor = remember { mutableStateOf(colors.notifyTextColor) }
 
@@ -121,6 +130,7 @@ fun ProposalsItemContent(
                                 showEnd.value = false
                                 showBody.value = false
                                 statusColor.value = colors.positiveGreen
+                                titleColor.value = colors.positiveGreen
                                 statusIcon.value = drawables.likeIcon
                                 iconColor.value = colors.positiveGreen
 
@@ -151,6 +161,7 @@ fun ProposalsItemContent(
                                 if (!proposal.isResponserProposal) {
                                     showBody.value = false
                                     statusColor.value = colors.yellowSun
+                                    titleColor.value = colors.black
                                     statusIcon.value = drawables.iconClock
                                     iconColor.value = colors.yellowSun
                                     typeLabel.value = stringResource(strings.yourProposeWaitAnswer)
@@ -166,8 +177,9 @@ fun ProposalsItemContent(
                                 } else {
                                     showBody.value = true
                                     statusColor.value = colors.brightPurple
+                                    titleColor.value = colors.black
                                     statusIcon.value = drawables.iconClock
-                                    iconColor.value = colors.notifyTextColor
+                                    iconColor.value = colors.yellowSun
                                     typeLabel.value = stringResource(strings.sellerWaitYourAnswer)
                                     proposalLabel.value = formatProposalLabel(
                                         prefixRes = strings.sellerProposeLabel,
@@ -181,10 +193,10 @@ fun ProposalsItemContent(
                             }
                             "proposal_reject" -> {
                                 showEnd.value = false
-                                showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
-                                        proposalsToDisplay.size < countProposalMax)
+                                showBody.value = countLeft > 0
                                 statusIcon.value = drawables.dislikeIcon
                                 statusColor.value = colors.negativeRed
+                                titleColor.value = colors.black
                                 iconColor.value = colors.negativeRed
 
                                 if (!proposal.isResponserProposal) {
@@ -223,9 +235,9 @@ fun ProposalsItemContent(
                             }
                             "proposal_left_unanswered" -> {
                                 showEnd.value = false
-                                showBody.value = (proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs &&
-                                        countLeft < countProposalMax)
+                                showBody.value = countLeft > 0
                                 statusColor.value = colors.negativeRed
+                                titleColor.value = colors.black
                                 statusIcon.value = drawables.dislikeIcon
                                 iconColor.value = colors.negativeRed
                                 if (proposal.isResponserProposal) {
@@ -258,6 +270,7 @@ fun ProposalsItemContent(
                                 showEnd.value = false
                                 showBody.value = false
                                 statusColor.value = colors.positiveGreen
+                                titleColor.value = colors.positiveGreen
                                 statusIcon.value = drawables.likeIcon
                                 iconColor.value = colors.positiveGreen
                                 if (!proposal.isResponserProposal) {
@@ -287,8 +300,9 @@ fun ProposalsItemContent(
                                 if (!proposal.isResponserProposal) {
                                     showBody.value = true
                                     statusColor.value = colors.brightPurple
+                                    titleColor.value = colors.black
                                     statusIcon.value = drawables.iconClock
-                                    iconColor.value = colors.notifyTextColor
+                                    iconColor.value = colors.yellowSun
                                     typeLabel.value = stringResource(strings.buyerWaitYourAnswer)
                                     proposalLabel.value = formatProposalLabel(
                                         prefixRes = strings.buyerProposeLabel,
@@ -301,6 +315,7 @@ fun ProposalsItemContent(
                                 } else {
                                     showBody.value = false
                                     statusColor.value = colors.yellowSun
+                                    titleColor.value = colors.black
                                     statusIcon.value = drawables.iconClock
                                     iconColor.value = colors.yellowSun
                                     typeLabel.value = stringResource(strings.waitAnswerBuyer)
@@ -318,6 +333,7 @@ fun ProposalsItemContent(
                                 showEnd.value = false
                                 showBody.value = false
                                 statusColor.value = colors.negativeRed
+                                titleColor.value = colors.black
                                 statusIcon.value = drawables.dislikeIcon
                                 iconColor.value = colors.negativeRed
                                 if (!proposal.isResponserProposal) {
@@ -358,6 +374,7 @@ fun ProposalsItemContent(
                                 showEnd.value = false
                                 showBody.value = false
                                 statusColor.value = colors.negativeRed
+                                titleColor.value = colors.black
                                 statusIcon.value = drawables.dislikeIcon
                                 iconColor.value = colors.negativeRed
                                 if (proposal.isResponserProposal) {
@@ -434,7 +451,7 @@ fun ProposalsItemContent(
 
                         Text(
                             text = typeLabel.value,
-                            color = statusColor.value,
+                            color = titleColor.value,
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.fillMaxWidth(0.7f)
                         )
@@ -576,7 +593,7 @@ fun ProposalsItemContent(
                         .fillMaxWidth(),
                 ) {
                     GetBody(
-                        proposals.buyerInfo?.id ?: 1L,
+                        proposals.buyerInfo?.id ?: 0L,
                         initFields,
                         selectedChoice,
                         isLoading,
@@ -601,7 +618,7 @@ fun GetBody(
     val fields by remember(initialFields) { mutableStateOf(initialFields) }
 
     if(fields.isNotEmpty()) {
-        val quantityTextState = remember {
+        val quantityTextState = remember(initialFields) {
             mutableStateOf(
                 TextFieldValue(
                     text = (fields.find { it.key == "quantity" }?.data?.jsonPrimitive?.intOrNull
@@ -609,14 +626,14 @@ fun GetBody(
                 )
             )
         }
-        val priceTextState = remember {
+        val priceTextState = remember(initialFields) {
             mutableStateOf(
                 TextFieldValue(
                     text = fields.find { it.key == "price" }?.data?.jsonPrimitive?.content ?: ""
                 )
             )
         }
-        val commentTextState = remember {
+        val commentTextState = remember(initialFields) {
             mutableStateOf(
                 TextFieldValue(
                     text = fields.find { it.key == "comment" }?.data?.jsonPrimitive?.content ?: ""
@@ -646,7 +663,7 @@ fun GetBody(
             fields.forEach { field ->
                 when (field.key) {
                     "type" -> {
-                        if (buyerId != 1L) {
+                        if (buyerId != 0L) {
                             DynamicRadioButtons(field) { isChecked, choice ->
                                 changeChoice(isChecked, choice)
                             }
