@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -12,22 +13,17 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
-import market.engine.core.data.types.DealType
-import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.MyOrderItem
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MyOrdersContent(
@@ -38,28 +34,17 @@ fun MyOrdersContent(
     val viewModel = model.viewModel
 
     val listingBaseViewModel = viewModel.listingBaseViewModel
-    val listingDataState = listingBaseViewModel.listingData.collectAsState()
+    val listingDataState by listingBaseViewModel.listingData.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val updateItem = viewModel.updateItem.collectAsState()
+    val updateItem by viewModel.updateItem.collectAsState()
 
-    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
+    val activeType by listingBaseViewModel.activeWindowType.collectAsState()
 
-    val listingData = listingDataState.value.data
+    val listingData = listingDataState.data
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    val dealType = model.type
-
-    val typeGroup = remember {
-        if (
-            dealType in arrayOf(
-                DealType.BUY_ARCHIVE,
-                DealType.BUY_IN_WORK
-            )
-        ) DealTypeGroup.SELL else DealTypeGroup.BUY
-    }
 
     BackHandler(model.backHandler){
         viewModel.onBack()
@@ -67,31 +52,20 @@ fun MyOrdersContent(
 
     val listingState = rememberLazyScrollState(viewModel)
 
-    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
-
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
-                    ) {
-                        listingBaseViewModel.clearAllFilters()
-                        viewModel.refresh()
-                    }
-                } else {
-                    NoItemsFoundLayout(
-                        title = stringResource(strings.simpleNotFoundLabel),
-                        icon = if (typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon
-                    ) {
-                        viewModel.refresh()
-                    }
-                }
-            }
-        } else {
-            null
-        }
+    val hasActiveFilters by remember(listingDataState) {
+        mutableStateOf(
+            listingData.filters.any { it.interpretation?.isNotBlank() == true }
+        )
     }
+
+    val noFound = listingNotFoundView(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount,
+        activeType = activeType,
+        hasActiveFilters = hasActiveFilters,
+        onClearFilters = listingBaseViewModel::clearListingData,
+        onRefresh = listingBaseViewModel::refresh
+    )
 
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = remember(err.value) {
@@ -106,7 +80,7 @@ fun MyOrdersContent(
         }
     }
 
-    when(activeType.value){
+    when(activeType){
         ActiveWindowListingType.FILTERS -> {
             OrderFilterContent(
                 initialFilters = listingData.filters,
@@ -129,8 +103,9 @@ fun MyOrdersContent(
         else -> {
             EdgeToEdgeScaffold(
                 topBar = {
+                    val filterBarUiState by listingBaseViewModel.filterBarUiState.collectAsState()
                     FiltersBar(
-                        filterBarUiState.value,
+                        filterBarUiState,
                         isVisible = listingState.areBarsVisible.value,
                     )
                 },
@@ -140,7 +115,7 @@ fun MyOrdersContent(
                 error = error,
                 noFound = noFound,
                 isLoading = isLoading.value,
-                toastItem = toastItem.value,
+                toastItem = toastItem,
                 modifier = modifier.fillMaxSize()
             ) { contentPadding ->
                 PagingLayout(
@@ -151,7 +126,7 @@ fun MyOrdersContent(
                     content = { order ->
                         MyOrderItem(
                             order,
-                            updateItem.value
+                            updateItem
                         )
                     }
                 )

@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.profile.profileSettings.content
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,10 +35,10 @@ import market.engine.core.data.globalData.UserData
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToContactUs
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsComponent
 import market.engine.fragments.root.main.profile.profileSettings.ProfileSettingsViewModel
-import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.buttons.SimpleTextButton
+import market.engine.widgets.rows.SettingRow
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -262,47 +261,5 @@ fun GlobalSettings(
         ){
             goToContactUs("delete_account")
         }
-    }
-}
-
-@Composable
-fun SettingRow(
-    label: String,
-    body: @Composable () -> Unit,
-    action: @Composable ((() -> Unit)?) -> Unit = { click->
-        if (click != null) {
-            ActionButton(
-                stringResource(strings.actionChangeLabel),
-                fontSize = MaterialTheme.typography.bodySmall.fontSize,
-            ) {
-                click()
-            }
-        }
-    },
-    onClick: (() -> Unit)? = null
-){
-    Row(
-        modifier = Modifier
-            .background(colors.white, MaterialTheme.shapes.small)
-            .fillMaxWidth()
-            .padding(dimens.smallPadding),
-        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.grayText
-            )
-
-            body()
-        }
-
-        action(onClick)
     }
 }

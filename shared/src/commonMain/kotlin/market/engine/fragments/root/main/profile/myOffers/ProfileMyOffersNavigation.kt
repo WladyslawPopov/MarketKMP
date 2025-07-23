@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -71,41 +72,26 @@ fun ProfileMyOffersNavigation(
                 ),
                 color = colors.transparent
             ){
-                val active = stringResource(strings.activeTab)
-                val inactive = stringResource(strings.inactiveTab)
-                val future = stringResource(strings.futureTab)
+                val tabs = remember {
+                    listOf(
+                        LotsType.MY_LOT_ACTIVE to strings.activeTab,
+                        LotsType.MY_LOT_INACTIVE to strings.inactiveTab,
+                        LotsType.MY_LOT_IN_FUTURE to strings.futureTab
+                    )
+                }
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
-                )
-                {
-                    item {
+                ){
+                    items(tabs){ tab ->
                         SimpleTextButton(
-                            active,
-                            backgroundColor = if (select.value == LotsType.MY_LOT_ACTIVE) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
+                            stringResource(tab.second),
+                            backgroundColor = if (select.value == tab.first) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodyMedium,
                         ) {
-                            component.selectOfferPage(LotsType.MY_LOT_ACTIVE)
-                        }
-                    }
-                    item {
-                        SimpleTextButton(
-                            inactive,
-                            if (select.value == LotsType.MY_LOT_INACTIVE) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
-                        ) {
-                            component.selectOfferPage(LotsType.MY_LOT_INACTIVE)
-                        }
-                    }
-                    item {
-                        SimpleTextButton(
-                            future,
-                            if (select.value == LotsType.MY_LOT_IN_FUTURE) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
-                        ) {
-                            component.selectOfferPage(LotsType.MY_LOT_IN_FUTURE)
+                            component.selectOfferPage(tab.first)
                         }
                     }
                 }

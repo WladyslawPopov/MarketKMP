@@ -196,6 +196,8 @@ class FavViewModel(
                     )
                 }
             )
+
+            analyticsHelper.reportEvent("open_favorites", mapOf("type" to favType.name))
         }
     }
 

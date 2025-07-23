@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,26 +42,26 @@ fun CategoryContent(
     onCompleted: () -> Unit,
     onClose: () -> Unit,
 ) {
-    val searchData = viewModel.searchData.collectAsState()
-    val isLoading = viewModel.isLoading.collectAsState()
-    val categories = viewModel.categories.collectAsState()
-    val selectedId = viewModel.selectedId.collectAsState()
+    val searchData by viewModel.searchData.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+    val selectedId by viewModel.selectedId.collectAsState()
 
-    val pageState = viewModel.pageState.collectAsState()
+    val pageState by viewModel.pageState.collectAsState()
 
     val onBack = remember {{
-        if (searchData.value.searchCategoryID != 1L) {
+        if (searchData.searchCategoryID != 1L) {
             viewModel.navigateBack()
         }else{
             onClose()
         }
     }}
 
-    val noFound : (@Composable () -> Unit)? = remember(categories.value){
-        if (categories.value.isEmpty()) {
+    val noFound : (@Composable () -> Unit)? = remember(categories){
+        if (categories.isEmpty()) {
             {
                 NoItemsFoundLayout(
-                    textButton = if (searchData.value.searchCategoryID != 1L) stringResource(strings.resetLabel)
+                    textButton = if (searchData.searchCategoryID != 1L) stringResource(strings.resetLabel)
                     else stringResource(strings.refreshButton),
                 ) {
                     viewModel.resetToRoot()
@@ -82,12 +83,12 @@ fun CategoryContent(
             )
             {
                 AnimatedVisibility(
-                    visible = searchData.value.searchCategoryID != 1L,
+                    visible = searchData.searchCategoryID != 1L,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
                     NavigationArrowButton {
-                        if (!isLoading.value) {
+                        if (!isLoading) {
                             onBack()
                         }
                     }
@@ -95,16 +96,16 @@ fun CategoryContent(
 
                 TextAppBar(
                     buildString {
-                        if (searchData.value.searchCategoryID == 1L) {
-                            append(pageState.value.catDef)
+                        if (searchData.searchCategoryID == 1L) {
+                            append(pageState.catDef)
                         } else {
-                            append(searchData.value.searchCategoryName)
+                            append(searchData.searchCategoryName)
                         }
                     },
                     modifier = Modifier.weight(1f),
                 )
 
-                if (searchData.value.searchCategoryID != 1L) {
+                if (searchData.searchCategoryID != 1L) {
                     ActionButton(
                         stringResource(strings.clear),
                         fontSize = dimens.mediumText,
@@ -119,7 +120,7 @@ fun CategoryContent(
         },
         error = null,
         noFound = noFound,
-        isLoading = isLoading.value,
+        isLoading = isLoading,
         modifier = modifier,
     ) { contentPadding ->
         Box(
@@ -135,23 +136,23 @@ fun CategoryContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 contentPadding = PaddingValues(bottom = contentPadding.calculateBottomPadding())
             ) {
-                items(categories.value) { category ->
+                items(categories) { category ->
                     val icon = getCategoryIcon(category.name)
 
-                    val isSelected = remember(selectedId.value) {
-                        if (pageState.value.categoryWithoutCounter)
-                            selectedId.value == category.id else category.isLeaf
+                    val isSelected = remember(selectedId) {
+                        if (pageState.categoryWithoutCounter)
+                            selectedId == category.id else category.isLeaf
                     }
 
                     val item = remember(category) {
                         NavigationItem(
-                            title = category.name ?: pageState.value.catDef,
+                            title = category.name ?: pageState.catDef,
                             image = icon,
-                            badgeCount = if (!pageState.value.categoryWithoutCounter)
+                            badgeCount = if (!pageState.categoryWithoutCounter)
                                 category.estimatedActiveOffersCount else null,
                             onClick = {
                                 viewModel.selectCategory(category)
-                                if (category.isLeaf && !pageState.value.categoryWithoutCounter) {
+                                if (category.isLeaf && !pageState.categoryWithoutCounter) {
                                     onCompleted()
                                 }
                             }
@@ -177,10 +178,10 @@ fun CategoryContent(
             }
 
             AcceptedPageButton(
-                pageState.value.catBtn,
+                pageState.catBtn,
                 Modifier.fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
                     .padding(dimens.smallPadding).align(Alignment.BottomCenter),
-                enabled = pageState.value.enabledBtn || searchData.value.searchIsLeaf
+                enabled = pageState.enabledBtn || searchData.searchIsLeaf
             ) {
                 onCompleted()
             }

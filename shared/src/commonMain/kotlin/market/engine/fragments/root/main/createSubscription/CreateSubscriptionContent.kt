@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,22 +47,22 @@ fun CreateSubscriptionContent(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.createSubscriptionViewModel
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val err = viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
 
-    val uiState = viewModel.createSubContentState.collectAsState()
+    val uiState by viewModel.createSubContentState.collectAsState()
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val appBar = uiState.value.appBar
-    val page = uiState.value.page
-    val categoryState = uiState.value.categoryState
-    val title = uiState.value.title
+    val appBar = uiState.appBar
+    val page = uiState.page
+    val categoryState = uiState.categoryState
+    val title = uiState.title
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage.isNotBlank()) {
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage.isNotBlank()) {
             {
-                OnError(err.value)
+                OnError(err)
                 {
                     viewModel.refreshPage()
                 }
@@ -98,8 +99,8 @@ fun CreateSubscriptionContent(
         },
         error = error,
         noFound = null,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
+        isLoading = isLoading,
+        toastItem = toastItem,
         modifier = Modifier.pointerInput(Unit){
             detectTapGestures {
                 focusManager.clearFocus()
@@ -205,7 +206,7 @@ fun CreateSubscriptionContent(
                             Modifier.align(Alignment.BottomCenter)
                                 .wrapContentWidth()
                                 .padding(dimens.mediumPadding),
-                            enabled = !isLoading.value
+                            enabled = !isLoading
                         ) {
                             viewModel.postPage(model.value.editId) {
                                 component.onBackClicked()

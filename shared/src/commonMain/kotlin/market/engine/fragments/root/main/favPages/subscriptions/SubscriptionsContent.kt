@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -21,20 +22,18 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.SubscriptionItem
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SubscriptionsContent(
@@ -44,35 +43,29 @@ fun SubscriptionsContent(
     val modelState = component.model.subscribeAsState()
     val viewModel = modelState.value.subViewModel
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val updateItem = viewModel.updateItem.collectAsState()
-    val titleDialog = viewModel.titleDialog.collectAsState()
-    val deleteId = viewModel.deleteId.collectAsState()
+
     val listingBaseViewModel = viewModel.listingBaseViewModel
-    val listingDataState = listingBaseViewModel.listingData.collectAsState()
 
-    val createSubBtn = viewModel.filterListingBtnItem.collectAsState()
-    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
+    val listingDataState by listingBaseViewModel.listingData.collectAsState()
 
-    val listingData = listingDataState.value.data
+    val activeType by listingBaseViewModel.activeWindowType.collectAsState()
+
+    val updateItem by viewModel.updateItem.collectAsState()
+
+    val listingData = listingDataState.data
 
     val listingScroll = rememberLazyScrollState(viewModel)
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                NoItemsFoundLayout(
-                    title = stringResource(strings.emptySubscriptionsLabel),
-                    image = drawables.emptyFavoritesImage
-                ) {
-                    viewModel.refresh()
-                }
-            }
-        } else {
-            null
-        }
-    }
+    val noFound = listingNotFoundView(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount,
+        activeType = activeType,
+        hasActiveFilters = false,
+        onClearFilters = listingBaseViewModel::clearListingData,
+        onRefresh = listingBaseViewModel::refresh
+    )
 
     val err = viewModel.errorMessage.collectAsState()
 
@@ -88,7 +81,7 @@ fun SubscriptionsContent(
         viewModel.backClick()
     }
 
-    when (activeType.value) {
+    when (activeType) {
         ActiveWindowListingType.SORTING -> {
             SortingOrdersContent(
                 listingData.sort,
@@ -116,9 +109,9 @@ fun SubscriptionsContent(
                         ) {
                             component.goToCreateNewSubscription()
                         }
-
+                        val createSubBtn by viewModel.filterListingBtnItem.collectAsState()
                         if (listingData.sort != null) {
-                            ActiveFilterListingItem(createSubBtn.value.first())
+                            ActiveFilterListingItem(createSubBtn.first())
                         }
 
                         SmallIconButton(
@@ -146,19 +139,21 @@ fun SubscriptionsContent(
                     content = { subscription ->
                         SubscriptionItem(
                             subscription,
-                            updateItem.value
+                            updateItem
                         )
                     }
                 )
+                val titleDialog by viewModel.titleDialog.collectAsState()
+                val deleteId by viewModel.deleteId.collectAsState()
 
                 AccessDialog(
-                    showDialog = deleteId.value != 1L,
-                    title = titleDialog.value,
+                    showDialog = deleteId != 1L,
+                    title = titleDialog,
                     onDismiss = {
                         viewModel.closeDialog()
                     },
                     onSuccess = {
-                        viewModel.deleteSubscription(deleteId.value)
+                        viewModel.deleteSubscription(deleteId)
                     }
                 )
             }

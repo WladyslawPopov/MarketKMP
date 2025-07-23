@@ -4,18 +4,13 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.ServerErrorException
-
 
 interface ProposalComponent {
     val model : Value<Model>
 
     data class Model(
-        val offerId: Long,
-        val proposalType: ProposalType,
         val proposalViewModel: ProposalViewModel
     )
 
@@ -24,12 +19,10 @@ interface ProposalComponent {
     fun goToUser(userId: Long)
 
     fun goBack()
-
-    fun update()
 }
 
 class DefaultProposalComponent(
-    val offerId: Long,
+    offerId: Long,
     proposalType: ProposalType,
     componentContext: ComponentContext,
     val navigateToOffer: (Long) -> Unit,
@@ -37,12 +30,10 @@ class DefaultProposalComponent(
     val navigateBack: () -> Unit
 ) : ProposalComponent, ComponentContext by componentContext {
 
-    private val proposalViewModel : ProposalViewModel = ProposalViewModel()
+    private val proposalViewModel = ProposalViewModel(proposalType, offerId, this)
 
     private val _model = MutableValue(
         ProposalComponent.Model(
-            offerId = offerId,
-            proposalType = proposalType,
             proposalViewModel = proposalViewModel
         )
     )
@@ -61,34 +52,12 @@ class DefaultProposalComponent(
         navigateBack()
     }
 
-    override fun update() {
-        proposalViewModel.refresh()
-        proposalViewModel.getProposal(
-            offerId,
-            onSuccess = { body ->
-                proposalViewModel.body.value = body
-            },
-            error = {
-
-            }
-        )
-    }
-
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
     init {
-        when(proposalType){
-            ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent("view_act_on_proposal_page", mapOf())
-            ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent("view_make_proposal_page", mapOf())
-        }
-
         lifecycle.doOnResume {
             proposalViewModel.updateUserInfo()
             if (UserData.token == ""){
                 goBack()
             }
         }
-        update()
-
     }
 }

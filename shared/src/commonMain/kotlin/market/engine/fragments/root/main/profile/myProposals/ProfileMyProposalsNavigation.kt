@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -67,30 +68,25 @@ fun ProfileMyProposalsNavigation(
                 ),
                 color = colors.transparent
             ){
-                val allP = stringResource(strings.allProposalLabel)
-                val needP = stringResource(strings.needResponseProposalLabel)
+                val tabs = remember {
+                    listOf(
+                        LotsType.ALL_PROPOSAL to strings.allProposalLabel,
+                        LotsType.NEED_RESPONSE to strings.needResponseProposalLabel,
+                    )
+                }
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ){
-                    item {
+                    items(tabs){ tab ->
                         SimpleTextButton(
-                            allP,
-                            backgroundColor = if (select.value == LotsType.ALL_PROPOSAL) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
+                            stringResource(tab.second),
+                            backgroundColor = if (select.value == tab.first) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodyMedium,
                         ) {
-                            component.selectOfferPage(LotsType.ALL_PROPOSAL)
-                        }
-                    }
-                    item {
-                        SimpleTextButton(
-                            needP,
-                            if (select.value == LotsType.NEED_RESPONSE) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
-                        ) {
-                            component.selectOfferPage(LotsType.NEED_RESPONSE)
+                            component.selectOfferPage(tab.first)
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.notificationsHistory
+package market.engine.widgets.items
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

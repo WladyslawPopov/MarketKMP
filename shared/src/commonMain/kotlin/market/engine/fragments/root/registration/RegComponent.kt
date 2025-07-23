@@ -22,9 +22,7 @@ class DefaultRegistrationComponent(
     componentContext: ComponentContext
 ) : RegistrationComponent, ComponentContext by componentContext {
 
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
-    private val regViewModel = RegViewModel()
+    private val regViewModel = RegViewModel(this)
 
     private val _model = MutableValue(
         RegistrationComponent.Model(
@@ -34,11 +32,6 @@ class DefaultRegistrationComponent(
     )
 
     override val model = _model
-
-    init {
-        regViewModel.getRegFields()
-        analyticsHelper.reportEvent("view_register_account", mapOf())
-    }
 
     override fun onBack() {
         goBack()

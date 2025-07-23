@@ -62,20 +62,20 @@ fun UserContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val viewModel = modelState.value.userViewModel
-    val user = viewModel.userInfo.collectAsState()
-    val blackList = viewModel.statusList.collectAsState()
+    val user by viewModel.userInfo.collectAsState()
+    val blackList by viewModel.statusList.collectAsState()
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val isError = viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val isError by viewModel.errorMessage.collectAsState()
 
     val feedbacksPages by component.feedbacksPages.subscribeAsState()
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val error : (@Composable () -> Unit)? = remember(isError.value) {
-        if (isError.value.humanMessage != "") {
+    val error : (@Composable () -> Unit)? = remember(isError) {
+        if (isError.humanMessage != "") {
             {
-                OnError(isError.value) {
+                OnError(isError) {
                     viewModel.refresh()
                    viewModel.getUserInfo()
                 }
@@ -139,14 +139,12 @@ fun UserContent(
                    }
 
                    UserPanel(
-                       user = user.value,
+                       user = user,
                        goToUser = {
                            isVisibleUserPanel.value = !isVisibleUserPanel.value
                        },
                        goToAllLots = {
-                           if (user.value != null) {
-                               component.selectAllOffers(user.value!!)
-                           }
+                           component.selectAllOffers(user)
                        },
                        goToAboutMe = {
                            component.onTabSelect(4)
@@ -156,8 +154,8 @@ fun UserContent(
                                viewModel.addNewSubscribe(
                                    LD(),
                                    SD().copy(
-                                       userLogin = user.value?.login,
-                                       userID = user.value?.id ?: 1L,
+                                       userLogin = user.login,
+                                       userID = user.id,
                                        userSearch = true
                                    ),
                                    onSuccess = {
@@ -177,7 +175,7 @@ fun UserContent(
                        goToSettings = {
                            component.goToSettings(it)
                        },
-                       isBlackList = blackList.value
+                       isBlackList = blackList
                    )
                }
            }
@@ -223,7 +221,7 @@ fun UserContent(
                    color = colors.primaryColor
                ) {
                    if (!isVisibleUserPanel.value) {
-                       user.value?.let { UserRow(it) }
+                       UserRow(user)
                    }
                }
            }
@@ -248,15 +246,15 @@ fun UserContent(
            }
        },
        modifier = modifier.fillMaxSize(),
-       isLoading = isLoading.value,
+       isLoading = isLoading,
        error = error,
-       toastItem = toastItem.value,
+       toastItem = toastItem,
        onRefresh = {
            viewModel.refresh()
            viewModel.getUserInfo()
        }
     ) { contentPadding ->
-        if (user.value?.markedAsDeleted != true) {
+        if (!user.markedAsDeleted) {
             ChildPages(
                 modifier = Modifier
                     .padding(top = contentPadding.calculateTopPadding())
@@ -280,7 +278,7 @@ fun UserContent(
             ) { _, page ->
                 FeedbacksContent(
                     component = page,
-                    aboutMe = user.value?.aboutMe,
+                    aboutMe = user.aboutMe,
                     onScrollDirectionChange = { isAtTop ->
                         isVisibleUserPanel.value = isAtTop
                     }

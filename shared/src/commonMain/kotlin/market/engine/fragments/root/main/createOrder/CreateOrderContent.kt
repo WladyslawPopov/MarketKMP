@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,21 +51,21 @@ fun CreateOrderContent(
     val model = component.model.subscribeAsState()
     val viewModel = model.value.createOrderViewModel
 
-    val uiState = viewModel.createOrderState.collectAsState()
+    val uiState by viewModel.createOrderState.collectAsState()
 
-    val selectDeliveryMethod = uiState.value.selectDeliveryMethod
-    val selectDealType = uiState.value.selectDealType
-    val selectPaymentType = uiState.value.selectPaymentType
+    val selectDeliveryMethod = uiState.selectDeliveryMethod
+    val selectDealType = uiState.selectDealType
+    val selectPaymentType = uiState.selectPaymentType
 
-    val offers = uiState.value.responseGetOffers
-    val additionalFields = uiState.value.responseGetAdditionalData
+    val offers = uiState.responseGetOffers
+    val additionalFields = uiState.responseGetAdditionalData
     val basketItem = model.value.basketItem
 
-    val appBarData = uiState.value.appBarData
+    val appBarData = uiState.appBarData
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val err = viewModel.errorMessage.collectAsState()
-    val toastItem = viewModel.toastItem.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
@@ -72,10 +73,10 @@ fun CreateOrderContent(
         component.onBackClicked()
     }
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage.isNotBlank()) {
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage.isNotBlank()) {
             {
-                OnError(err.value) {
+                OnError(err) {
                     viewModel.refreshPage()
                 }
             }
@@ -104,19 +105,17 @@ fun CreateOrderContent(
         },
         error = error,
         noFound = null,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
-        modifier = Modifier.fillMaxSize()
+        isLoading = isLoading,
+        toastItem = toastItem,
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        }.fillMaxSize()
 
     ) { contentPadding ->
         LazyColumnWithScrollBars(
             state = state.scrollState,
-            modifierList = Modifier.fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                },
             contentPadding = contentPadding
         ) {
             // header
@@ -318,7 +317,7 @@ fun CreateOrderContent(
                         stringResource(strings.actionComplete),
                         modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.4f else 1f)
                             .padding(dimens.mediumPadding),
-                        enabled = !isLoading.value
+                        enabled = !isLoading
                     ) {
                        viewModel.acceptButton(basketItem)
                     }

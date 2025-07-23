@@ -117,49 +117,41 @@ fun OfferContent(
     val model by component.model.subscribeAsState()
     val viewModel = model.offerViewModel
 
-    val isError = viewModel.errorMessage.collectAsState()
-    val isLoading = viewModel.isShowProgress.collectAsState()
+    val isError by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
 
-    val uiState = viewModel.responseOfferView.collectAsState()
+    val uiState by viewModel.responseOfferView.collectAsState()
 
-    val scrollPos = viewModel.scrollPosition.collectAsState()
+    val scrollPos by viewModel.scrollPosition.collectAsState()
 
-    val offerRepository = viewModel.offerRepository.collectAsState()
-
-    val catHistory = viewModel.responseCatHistory.collectAsState()
-    val offerVisitedHistory = viewModel.responseHistory.collectAsState()
-    val ourChoiceList = viewModel.responseOurChoice.collectAsState()
+    val offerRepository by viewModel.offerRepository.collectAsState()
 
     val remainingTime = viewModel.remainingTime.collectAsState()
 
-    val promoList = offerRepository.value.promoList.collectAsState()
-    val operationsList = offerRepository.value.operationsList.collectAsState()
+    val isMenuVisible by offerRepository.isMenuVisible.collectAsState()
 
-    val listItems = offerRepository.value.getAppBarOfferList()
-
-    val isMenuVisible = offerRepository.value.isMenuVisible.collectAsState()
-
-    val isProposalEnabled = offerRepository.value.isProposalEnabled.collectAsState()
-
-    val menuItems by produceState(initialValue = emptyList(), isMenuVisible.value) {
-        if (isMenuVisible.value) {
-            value = offerRepository.value.getDefOperations()
+    val menuItems by produceState(initialValue = emptyList(), isMenuVisible) {
+        if (isMenuVisible) {
+            value = offerRepository.getDefOperations()
         }
     }
 
-    val offer = uiState.value.offer
-    val offerState = uiState.value.offerState
-    val isMyOffer = uiState.value.isMyOffer
+    val listItems by produceState(initialValue = emptyList(), offerRepository) {
+        value = offerRepository.getAppBarOfferList()
+    }
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val images = uiState.value.images
-    val statusList = uiState.value.statusList
-    val columns = uiState.value.columns
+    val offer = uiState.offer
+    val offerState = uiState.offerState
+    val isMyOffer = uiState.isMyOffer
+
+    val images = uiState.images
+    val statusList = uiState.statusList
+    val columns = uiState.columns
 
     val isImageViewerVisible = remember { mutableStateOf(false) }
 
     val valuesPickerState = rememberPickerState()
-
-    val toastItem = viewModel.toastItem.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
@@ -171,10 +163,10 @@ fun OfferContent(
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(scrollPos.value) {
-        if (scrollPos.value > 1) {
+    LaunchedEffect(scrollPos) {
+        if (scrollPos > 1) {
             delay(500)
-            scrollState.scrollState.animateScrollToItem(scrollPos.value)
+            scrollState.scrollState.animateScrollToItem(scrollPos)
             viewModel.clearScrollPosition()
         }
     }
@@ -201,15 +193,15 @@ fun OfferContent(
         snapshotFlow {
             valuesPickerState.selectedItem
         }.collect {
-            offerRepository.value.setValuesPickerState(it)
+            offerRepository.setValuesPickerState(it)
         }
     }
 
-    val error: (@Composable () -> Unit)? = remember(isError.value) {
-        if (isError.value.humanMessage != "") {
+    val error: (@Composable () -> Unit)? = remember(isError) {
+        if (isError.humanMessage != "") {
             {
-                OnError(isError.value) {
-                    offerRepository.value.clearDialogFields()
+                OnError(isError) {
+                    offerRepository.clearDialogFields()
                     viewModel.refreshPage()
                 }
             }
@@ -218,13 +210,13 @@ fun OfferContent(
         }
     }
 
-    val appbarData = remember(isMenuVisible.value, menuItems, listItems) {
+    val appbarData = remember(isMenuVisible, menuItems, listItems) {
         SimpleAppBarData(
             menuData = MenuData(
-                isMenuVisible = isMenuVisible.value,
+                isMenuVisible = isMenuVisible,
                 menuItems = menuItems,
                 closeMenu = {
-                    offerRepository.value.closeMenu()
+                    offerRepository.closeMenu()
                 }
             ),
             onBackClick = {
@@ -309,10 +301,10 @@ fun OfferContent(
                 )
             }
         },
-        isLoading = isLoading.value || offer.id == 1L,
+        isLoading = isLoading || offer.id == 1L,
         error = error,
         noFound = null,
-        toastItem = toastItem.value,
+        toastItem = toastItem,
         onRefresh = {
             viewModel.refreshPage()
         },
@@ -406,20 +398,22 @@ fun OfferContent(
                 }
                 //category stack
                 item {
+                    val catHistory by viewModel.responseCatHistory.collectAsState()
+
                     FlowRow(
                         horizontalArrangement = Arrangement.Start,
                         verticalArrangement = Arrangement.SpaceAround,
                     ) {
-                        if (catHistory.value.isNotEmpty()) {
-                            catHistory.value.forEachIndexed { index, cat ->
+                        if (catHistory.isNotEmpty()) {
+                            catHistory.forEachIndexed { index, cat ->
                                 Text(
-                                    text = if (catHistory.value.size - 1 == index)
+                                    text = if (catHistory.size - 1 == index)
                                         cat.name ?: ""
                                     else (cat.name ?: "") + "->",
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         fontWeight = FontWeight.Bold
                                     ),
-                                    color = if (catHistory.value.size - 1 == index) colors.black else colors.grayText,
+                                    color = if (catHistory.size - 1 == index) colors.black else colors.grayText,
                                     modifier = Modifier.padding(dimens.smallPadding)
                                         .clickable {
                                             //go to Listing
@@ -438,9 +432,9 @@ fun OfferContent(
                             verticalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            if (uiState.value.countString.isNotEmpty()) {
+                            if (uiState.countString.isNotEmpty()) {
                                 Text(
-                                    text = uiState.value.countString,
+                                    text = uiState.countString,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = colors.grayText,
                                     modifier = Modifier.padding(dimens.smallPadding)
@@ -575,6 +569,9 @@ fun OfferContent(
                             }
 
                             item {
+                                val promoList by offerRepository.promoList.collectAsState()
+                                val operationsList by offerRepository.operationsList.collectAsState()
+
                                 //action seller mode and active promo options
                                 if (offerState != OfferStates.SNAPSHOT && UserData.token != "") {
                                     Column(
@@ -606,7 +603,7 @@ fun OfferContent(
                                                 PopUpMenu(
                                                     openPopup = isShowOptions.value,
                                                     onClosed = { isShowOptions.value = false },
-                                                    menuList = operationsList.value
+                                                    menuList = operationsList
                                                 )
                                             }
 
@@ -624,7 +621,7 @@ fun OfferContent(
 
                                                 PopUpMenu(
                                                     openPopup = isOpenPopup.value,
-                                                    menuList = promoList.value,
+                                                    menuList = promoList,
                                                     onClosed = { isOpenPopup.value = false }
                                                 )
                                             }
@@ -649,7 +646,7 @@ fun OfferContent(
                                     AuctionPriceLayout(
                                         offer = offer,
                                         onAddBidClick = { bid ->
-                                            offerRepository.value.onAddBidClick(
+                                            offerRepository.onAddBidClick(
                                                 bid
                                             )
                                         },
@@ -665,7 +662,7 @@ fun OfferContent(
                                         offer = offer,
                                         offerState,
                                         onBuyNowClick = {
-                                            offerRepository.value.buyNowClick()
+                                            offerRepository.buyNowClick()
                                         },
                                         onAddToCartClick = {
                                             viewModel.onAddToCartClick(offer)
@@ -687,9 +684,9 @@ fun OfferContent(
                                 //payment and delivery
                                 if (offerState != OfferStates.PROTOTYPE) {
                                     PaymentAndDeliverySection(
-                                        uiState.value.dealTypeString,
-                                        uiState.value.paymentMethodString,
-                                        uiState.value.deliveryMethodString,
+                                        uiState.dealTypeString,
+                                        uiState.paymentMethodString,
+                                        uiState.deliveryMethodString,
                                         if (!isBigScreen.value) Modifier.fillMaxWidth() else Modifier
                                     )
                                 }
@@ -745,6 +742,7 @@ fun OfferContent(
                             }
 
                             item {
+                                val isProposalEnabled by offerRepository.isProposalEnabled.collectAsState()
                                 // actions and other status
                                 Column(
                                     modifier = Modifier
@@ -765,13 +763,13 @@ fun OfferContent(
                                         MessageToSeller(
                                             offer,
                                             onClick = {
-                                                offerRepository.value.openMesDialog()
+                                                offerRepository.openMesDialog()
                                             }
                                         )
                                     }
 
                                     //make proposal to seller
-                                    if (isProposalEnabled.value) {
+                                    if (isProposalEnabled) {
                                         ProposalToSeller(
                                             isMyOffer,
                                         ) {
@@ -874,7 +872,7 @@ fun OfferContent(
                             isDeletesBids = false,
                             onRebidClick = { bid ->
                                 if (UserData.token != "") {
-                                    offerRepository.value.onAddBidClick(bid)
+                                    offerRepository.onAddBidClick(bid)
                                 } else {
                                     component.goToLogin()
                                 }
@@ -893,7 +891,7 @@ fun OfferContent(
                             isDeletesBids = true,
                             onRebidClick = { bid ->
                                 if (UserData.token != "") {
-                                    offerRepository.value.onAddBidClick(bid)
+                                    offerRepository.onAddBidClick(bid)
                                 } else {
                                     component.goToLogin()
                                 }
@@ -903,7 +901,9 @@ fun OfferContent(
                 }
                 //recommended list offers
                 item {
-                    if (ourChoiceList.value.isNotEmpty()) {
+                    val ourChoiceList by viewModel.responseOurChoice.collectAsState()
+
+                    if (ourChoiceList.isNotEmpty()) {
                         SeparatorLabel(stringResource(strings.ourChoice))
                         LazyRowWithScrollBars(
                             heightMod = Modifier.fillMaxSize().heightIn(max = 300.dp).padding(
@@ -911,7 +911,7 @@ fun OfferContent(
                                 top = dimens.mediumPadding
                             ),
                         ) {
-                            items(ourChoiceList.value) { offer ->
+                            items(ourChoiceList) { offer ->
                                 PromoOfferRowItem(
                                     offer
                                 ) {
@@ -923,7 +923,9 @@ fun OfferContent(
                 }
                 // visited list offers
                 item {
-                    if (offerVisitedHistory.value.isNotEmpty()) {
+                    val offerVisitedHistory by viewModel.responseHistory.collectAsState()
+
+                    if (offerVisitedHistory.isNotEmpty()) {
                         SeparatorLabel(stringResource(strings.lastViewedOffers))
                     }
                     LazyRowWithScrollBars(
@@ -932,7 +934,7 @@ fun OfferContent(
                             top = dimens.mediumPadding
                         ),
                     ) {
-                        items(offerVisitedHistory.value) { offer ->
+                        items(offerVisitedHistory) { offer ->
                             PromoOfferRowItem(
                                 offer
                             ) {
@@ -944,9 +946,9 @@ fun OfferContent(
             }
 
             OfferOperationsDialogs(
-                offerRepository.value,
+                offerRepository,
                 valuesPickerState,
-                uiState.value.buyNowCounts
+                uiState.buyNowCounts
             )
         }
     }

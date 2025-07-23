@@ -38,8 +38,8 @@ import kotlin.getValue
 
 class UserViewModel(val userId: Long, val component: UserComponent) : CoreViewModel() {
 
-    private val _userInfo = MutableStateFlow<User?>(null)
-    val userInfo : StateFlow<User?> = _userInfo.asStateFlow()
+    private val _userInfo = MutableStateFlow(User())
+    val userInfo : StateFlow<User> = _userInfo.asStateFlow()
 
     private val _statusList = MutableStateFlow<ArrayList<String>>(arrayListOf())
     val statusList: StateFlow<ArrayList<String>> = _statusList.asStateFlow()

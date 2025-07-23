@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -30,10 +31,10 @@ import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.appBars.DrawerAppBar
@@ -60,24 +61,23 @@ fun ConversationsContent(
     val listingData = listingDataState.value.data
 
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val updateItem = viewModel.updateItem.collectAsState()
+    val updateItem by viewModel.updateItem.collectAsState()
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
+    val activeType by listingBaseViewModel.activeWindowType.collectAsState()
 
-    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
-    val selectedItems = listingBaseViewModel.selectItems.collectAsState()
+    val selectedItems by listingBaseViewModel.selectItems.collectAsState()
 
     val listingState = rememberLazyScrollState(viewModel)
 
-    val err = viewModel.errorMessage.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
 
-    val error : (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage != "") {
-            { OnError(err.value) {
+    val error : (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage != "") {
+            { OnError(err) {
                 listingBaseViewModel.clearAllFilters()
                 viewModel.refresh()
             } }
@@ -86,29 +86,21 @@ fun ConversationsContent(
         }
     }
 
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
-                    ) {
-                        listingBaseViewModel.clearAllFilters()
-                        viewModel.refresh()
-                    }
-                } else {
-                    NoItemsFoundLayout(
-                        title = stringResource(strings.simpleNotFoundLabel),
-                        icon = drawables.dialogIcon
-                    ) {
-                        viewModel.refresh()
-                    }
-                }
-            }
-        } else {
-            null
-        }
+
+    val hasActiveFilters by remember(listingDataState) {
+        mutableStateOf(
+            listingData.filters.any { it.interpretation?.isNotBlank() == true }
+        )
     }
+
+    val noFound = listingNotFoundView(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount,
+        activeType = activeType,
+        hasActiveFilters = hasActiveFilters,
+        onClearFilters = listingBaseViewModel::clearListingData,
+        onRefresh = listingBaseViewModel::refresh
+    )
 
     BackHandler(model.backHandler){
         component.onBack()
@@ -160,8 +152,10 @@ fun ConversationsContent(
                     }
                 }
 
+                val filterBarUiState by listingBaseViewModel.filterBarUiState.collectAsState()
+
                 DeletePanel(
-                    selectedItems.value.size,
+                    selectedItems.size,
                     onCancel = {
                         listingBaseViewModel.clearSelectedItems()
                     },
@@ -171,9 +165,9 @@ fun ConversationsContent(
                 )
 
                 FiltersBar(
-                    filterBarUiState.value,
+                    filterBarUiState,
                     isVisible = listingState.areBarsVisible.value &&
-                            activeType.value == ActiveWindowListingType.LISTING,
+                            activeType == ActiveWindowListingType.LISTING,
                 )
             },
             onRefresh = {
@@ -182,10 +176,10 @@ fun ConversationsContent(
             error = error,
             noFound = noFound,
             isLoading = isLoading.value,
-            toastItem = toastItem.value,
+            toastItem = toastItem,
             modifier = modifier.fillMaxSize()
         ) { contentPadding ->
-            when (activeType.value) {
+            when (activeType) {
                 ActiveWindowListingType.FILTERS -> {
                     DialogsFilterContent(
                         listingData.filters,
@@ -213,10 +207,10 @@ fun ConversationsContent(
                         content = { conversation ->
                             ConversationItem(
                                 conversation,
-                                updateItem.value,
-                                selectedItems.value.contains(conversation.conversation.id),
+                                updateItem,
+                                selectedItems.contains(conversation.conversation.id),
                                 onSelected = {
-                                    if (selectedItems.value.contains(it)) {
+                                    if (selectedItems.contains(it)) {
                                         listingBaseViewModel.removeSelectItem(it)
                                     } else {
                                         listingBaseViewModel.addSelectItem(it)

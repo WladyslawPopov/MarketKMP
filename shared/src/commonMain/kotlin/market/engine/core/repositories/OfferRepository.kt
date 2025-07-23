@@ -1,6 +1,5 @@
 package market.engine.core.repositories
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,7 +45,6 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
 
@@ -754,6 +752,7 @@ class OfferRepository(
         events.goToCreateOrder(item)
         clearDialogFields()
     }
+
     fun buyNowClick(){
         if (UserData.token != "") {
             if (offer.quantity > 1) {
@@ -893,8 +892,8 @@ class OfferRepository(
         }
     }
 
-    @Composable
-    fun getAppBarOfferList(): List<NavigationItem> {
+
+    suspend fun getAppBarOfferList(): List<NavigationItem> {
         val operations = operationsList.value
         return listOf(
             NavigationItem(
@@ -909,7 +908,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = stringResource(strings.editLabel),
+                title = getString(strings.editLabel),
                 icon = drawables.editIcon,
                 tint = colors.black,
                 hasNews = false,
@@ -920,7 +919,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = stringResource(strings.myNotesTitle),
+                title = getString(strings.myNotesTitle),
                 icon = drawables.editNoteIcon,
                 tint = colors.black,
                 hasNews = false,
@@ -931,7 +930,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = stringResource(strings.favoritesTitle),
+                title = getString(strings.favoritesTitle),
                 icon = if (operations.find { it.id == "watch" } == null) drawables.favoritesIconSelected else drawables.favoritesIcon,
                 tint = colors.inactiveBottomNavIconColor,
                 hasNews = false,
@@ -942,7 +941,7 @@ class OfferRepository(
                 }
             ),
             NavigationItem(
-                title = stringResource(strings.menuTitle),
+                title = getString(strings.menuTitle),
                 icon = drawables.menuIcon,
                 tint = colors.black,
                 hasNews = false,

@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
@@ -29,7 +28,7 @@ import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
-import market.engine.fragments.base.listing.ListingNotFoundContent
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.bars.FiltersBar
@@ -90,9 +89,14 @@ fun ListingContent(
         }
     }
 
-    var hasActiveFilters by remember { mutableStateOf(true) }
+    val hasActiveFilters by remember(listingDataState) {
+        mutableStateOf(
+            listingData.filters.any { it.interpretation?.isNotBlank() == true } ||
+                searchData.userSearch || searchData.searchString.isNotEmpty()
+        )
+    }
 
-    val noFound = ListingNotFoundContent(
+    val noFound = listingNotFoundView(
         isLoading = data.loadState.refresh is LoadStateNotLoading,
         itemCount = data.itemCount,
         activeType = activeType,
@@ -101,13 +105,9 @@ fun ListingContent(
         onRefresh = listingBaseModel::refresh
     )
 
-
     LaunchedEffect(listingDataState) {
         categoryViewModel.updateFromSearchData(searchData)
         categoryViewModel.initialize(listingData.filters)
-
-        hasActiveFilters = listingData.filters.any { it.interpretation?.isNotBlank() == true } ||
-                searchData.userSearch || searchData.searchString.isNotEmpty()
     }
 
     when (activeType) {

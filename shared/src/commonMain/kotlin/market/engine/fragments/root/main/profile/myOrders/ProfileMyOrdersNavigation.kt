@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -75,18 +76,15 @@ fun ProfileMyOrdersNavigation(
                 ),
                 color = colors.transparent
             ) {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    val tabs = when (typeGroup){
+                val tabs = remember {
+                    when (typeGroup) {
                         DealTypeGroup.BUY -> {
                             listOf(
                                 DealType.BUY_IN_WORK to strings.tabInWorkLabel,
                                 DealType.BUY_ARCHIVE to strings.tabArchiveLabel
                             )
                         }
+
                         DealTypeGroup.SELL -> {
                             listOf(
                                 DealType.SELL_ALL to strings.tabAllLabel,
@@ -95,16 +93,20 @@ fun ProfileMyOrdersNavigation(
                             )
                         }
                     }
+                }
 
-                    tabs.forEach { tab ->
-                        item {
-                            SimpleTextButton(
-                                stringResource(tab.second),
-                                backgroundColor = if (select.value == tab.first) colors.rippleColor else colors.white,
-                                textStyle = MaterialTheme.typography.bodyMedium,
-                            ) {
-                                component.selectMyOrderPage(tab.first)
-                            }
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    items(tabs){ tab ->
+                        SimpleTextButton(
+                            stringResource(tab.second),
+                            backgroundColor = if (select.value == tab.first) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodyMedium,
+                        ) {
+                            component.selectMyOrderPage(tab.first)
                         }
                     }
                 }

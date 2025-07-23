@@ -5,14 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -21,10 +19,10 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.states.ScrollDataState
 import market.engine.core.network.ServerErrorException
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
+import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -41,34 +39,24 @@ fun BasketContent(
     val modelState = component.model.subscribeAsState()
     val viewModel = modelState.value.basketViewModel
 
-    val scrollState = rememberLazyListState(
-        initialFirstVisibleItemIndex = viewModel.scrollState.value.scrollItem,
-        initialFirstVisibleItemScrollOffset = viewModel.scrollState.value.offsetScrollItem
-    )
+    val scrollState = rememberLazyScrollState(viewModel)
 
-    val basketState = viewModel.uiState.collectAsState()
-    val basketItemsState = viewModel.uiDataState.collectAsState()
-    val deleteIds = basketState.value.deleteIds
-    val subtitle = basketState.value.subtitle
+    val basketState by viewModel.uiState.collectAsState()
+    val basketItemsState by viewModel.uiDataState.collectAsState()
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val isError = viewModel.errorMessage.collectAsState()
-    val toastItem = viewModel.toastItem.collectAsState()
+    val deleteIds = basketState.deleteIds
+    val subtitle = basketState.subtitle
+
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val isError by viewModel.errorMessage.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     BackHandler(
         modelState.value.backHandler
     ){}
 
-    LaunchedEffect(scrollState) {
-        snapshotFlow {
-            scrollState.firstVisibleItemIndex to scrollState.firstVisibleItemScrollOffset
-        }.collect { (index, offset) ->
-            viewModel.updateScroll(ScrollDataState(index, offset))
-        }
-    }
-
-    val noFound: (@Composable () ->Unit)? = remember(basketItemsState.value) {
-        if (basketItemsState.value.isEmpty()) {
+    val noFound: (@Composable () ->Unit)? = remember(basketItemsState) {
+        if (basketItemsState.isEmpty()) {
             {
                 NoItemsFoundLayout(
                     image = drawables.cartEmptyIcon,
@@ -84,11 +72,11 @@ fun BasketContent(
         }
     }
 
-    val error : (@Composable () ->Unit)? = remember(isError.value) {
-        if (isError.value.humanMessage.isNotBlank()) {
+    val error : (@Composable () ->Unit)? = remember(isError) {
+        if (isError.humanMessage.isNotBlank()) {
             {
                 OnError(
-                    isError.value
+                    isError
                 ) {
                     viewModel.onError(ServerErrorException())
                     viewModel.getUserCart()
@@ -102,7 +90,7 @@ fun BasketContent(
     EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
-                data = basketState.value.appBarData
+                data = basketState.appBarData
             ){
                 val title = stringResource(strings.yourBasketTitle)
 
@@ -128,20 +116,20 @@ fun BasketContent(
         },
         error = error,
         noFound = noFound,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
+        isLoading = isLoading,
+        toastItem = toastItem,
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
         LazyColumnWithScrollBars(
             modifierList = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-            state = scrollState,
+            state = scrollState.scrollState,
             contentPadding = contentPadding,
         ) {
-            items(basketItemsState.value, key = { item -> item.user.id }) { itemState ->
+            items(basketItemsState, key = { item -> item.user.id }) { itemState ->
                 BasketItemContent(
                     state = itemState,
-                    events = basketState.value.basketEvents
+                    events = basketState.basketEvents
                 )
             }
         }

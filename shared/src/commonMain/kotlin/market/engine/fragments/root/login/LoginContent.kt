@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,27 +62,27 @@ fun LoginContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val viewModel = model.loginViewModel
-    val uiState = viewModel.loginContentState.collectAsState()
+    val uiState by viewModel.loginContentState.collectAsState()
 
-    val emailText = uiState.value.email
-    val passwordText = uiState.value.password
-    val captchaText = uiState.value.captcha
-    val captchaImage = uiState.value.captchaImage
-    val appBarData = uiState.value.appBarData
+    val emailText = uiState.email
+    val passwordText = uiState.password
+    val captchaText = uiState.captcha
+    val captchaImage = uiState.captchaImage
+    val appBarData = uiState.appBarData
 
-    val auth2ContentState = uiState.value.auth2ContentState
+    val auth2ContentState = uiState.auth2ContentState
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val err = viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
 
-    val openBottomSheet = viewModel.openContent.collectAsState()
+    val openBottomSheet by viewModel.openContent.collectAsState()
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage != "") {
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage != "") {
             {
-                OnError(err.value) {
+                OnError(err) {
                     viewModel.refresh()
                 }
             }
@@ -112,16 +113,16 @@ fun LoginContent(
                 data = appBarData
             )
         },
-        toastItem = toastItem.value,
+        toastItem = toastItem,
         error = error,
-        isLoading = isLoading.value,
+        isLoading = isLoading,
         onRefresh = {
             viewModel.refreshPage()
         }
     )
     { contentPadding ->
         CustomBottomSheet(
-            initValue = openBottomSheet.value,
+            initValue = openBottomSheet,
             contentPadding = contentPadding,
             onClosed = {
                 viewModel.closeAuth2Content()

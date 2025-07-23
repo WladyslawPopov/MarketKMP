@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.AnnotatedString
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.flow.collectLatest
@@ -51,23 +52,23 @@ fun DynamicSettingsContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.dynamicSettingsViewModel
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val err = viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
     val settingsType = model.settingsType
     val code = model.code
 
-    val pageState = viewModel.dynamicSettingsState.collectAsState()
+    val pageState by viewModel.dynamicSettingsState.collectAsState()
 
-    val blocList = viewModel.blocList.collectAsState()
+    val blocList by viewModel.blocList.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage.isNotBlank()) {
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage.isNotBlank()) {
             {
-                OnError(err.value) {
+                OnError(err) {
                     viewModel.setUpPage()
                 }
             }
@@ -86,9 +87,9 @@ fun DynamicSettingsContent(
         }
     }
 
-    LaunchedEffect(pageState.value){
+    LaunchedEffect(pageState){
         richTextState.setHtml(
-            pageState.value.fields.find { it.widgetType == "text_area" }?.
+            pageState.fields.find { it.widgetType == "text_area" }?.
             data?.jsonPrimitive?.content ?: ""
         )
     }
@@ -100,9 +101,9 @@ fun DynamicSettingsContent(
     EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
-                data = pageState.value.appBarState
+                data = pageState.appBarState
             ){
-                TextAppBar(pageState.value.titleText)
+                TextAppBar(pageState.titleText)
             }
         },
         modifier = Modifier.background(colors.primaryColor).pointerInput(Unit) {
@@ -110,12 +111,12 @@ fun DynamicSettingsContent(
                 focusManager.clearFocus()
             }
         }.fillMaxSize(),
-        isLoading = isLoading.value,
+        isLoading = isLoading,
         onRefresh = {
             viewModel.setUpPage()
         },
         error = error,
-        toastItem = toastItem.value
+        toastItem = toastItem
     ) { contentPadding ->
         LazyColumnWithScrollBars(
             contentPadding = contentPadding,
@@ -137,13 +138,13 @@ fun DynamicSettingsContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
-                            pageState.value.fields.find { it.widgetType == "text_area" }?.let {
+                            pageState.fields.find { it.widgetType == "text_area" }?.let {
                                 DescriptionTextField(it, richTextState)
                             }
 
                             AcceptedPageButton(
                                 stringResource(strings.actionChangeLabel),
-                                enabled = !isLoading.value
+                                enabled = !isLoading
                             ) {
                                 viewModel.postSubmit()
                             }
@@ -153,7 +154,7 @@ fun DynamicSettingsContent(
 
                 "set_vacation" -> {
                     item {
-                        VacationSettingsContent(pageState.value.fields) {
+                        VacationSettingsContent(pageState.fields) {
                             viewModel.postSubmit()
                         }
                     }
@@ -161,7 +162,7 @@ fun DynamicSettingsContent(
 
                 "set_bidding_step" -> {
                     item {
-                        BiddingStepSettingsContent(pageState.value.fields) {
+                        BiddingStepSettingsContent(pageState.fields) {
                             viewModel.postSubmit()
                         }
                     }
@@ -169,7 +170,7 @@ fun DynamicSettingsContent(
 
                 "set_auto_feedback" -> {
                     item {
-                        AutoFeedbackSettingsContent(pageState.value.fields) {
+                        AutoFeedbackSettingsContent(pageState.fields) {
                             viewModel.postSubmit()
                         }
                     }
@@ -212,21 +213,21 @@ fun DynamicSettingsContent(
                         ) {
                             HeaderAlertText(
                                 rememberRichTextState().setHtml(
-                                    pageState.value.titleText
+                                    pageState.titleText
                                 ).annotatedString
                             )
 
-                            SetUpDynamicFields(pageState.value.fields, showRating = true)
+                            SetUpDynamicFields(pageState.fields, showRating = true)
 
                             AcceptedPageButton(
                                 stringResource(strings.actionAddEnterLabel),
-                                enabled = !isLoading.value
+                                enabled = !isLoading
                             ) {
                                 viewModel.postSubmit()
                             }
 
                             BlocListContent(
-                                blocList = blocList.value
+                                blocList = blocList
                             ) { id ->
                                 viewModel.deleteFromBlocList(id)
                             }
@@ -260,7 +261,7 @@ fun DynamicSettingsContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
-                            val field = pageState.value.fields.find { it.key == "bidders" }
+                            val field = pageState.fields.find { it.key == "bidders" }
 
                             if (field != null) {
                                 DynamicCheckboxGroup(
@@ -287,26 +288,26 @@ fun DynamicSettingsContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
-                            if (pageState.value.errorMessage != null) {
+                            if (pageState.errorMessage != null) {
                                 if (settingsType == "set_login") {
                                     Text(
-                                        pageState.value.errorMessage?.first!!,
+                                        text = pageState.errorMessage?.first ?: AnnotatedString(""),
                                         style = MaterialTheme.typography.titleMedium,
                                         color = colors.black
                                     )
 
                                     Text(
-                                        pageState.value.errorMessage?.second!!,
+                                        pageState.errorMessage?.second!!,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = colors.black
                                     )
                                 }
                             } else {
                                 HeaderAlertText(
-                                    richTextState.setHtml(pageState.value.titleText).annotatedString
+                                    richTextState.setHtml(pageState.titleText).annotatedString
                                 )
 
-                                SetUpDynamicFields(pageState.value.fields, code)
+                                SetUpDynamicFields(pageState.fields, code)
 
                                 AcceptedPageButton(
                                     stringResource(strings.actionChangeLabel)

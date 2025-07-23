@@ -5,7 +5,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
@@ -49,7 +48,6 @@ class DefaultFavoritesComponent(
 
     override val model: Value<FavoritesComponent.Model> = _model
 
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     private val updateBackHandlerItem = MutableValue(1L)
 
     init {
@@ -61,8 +59,6 @@ class DefaultFavoritesComponent(
                 updateBackHandlerItem.value = 1L
             }
         }
-
-        analyticsHelper.reportEvent("open_favorites", mapOf("type" to favType.name))
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {

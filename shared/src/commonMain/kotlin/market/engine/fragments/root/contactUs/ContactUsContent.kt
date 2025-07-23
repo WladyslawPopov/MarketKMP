@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,21 +60,21 @@ fun ContactUsContent(
 ) {
     val focusManager = LocalFocusManager.current
 
-    val modelState = component.model.subscribeAsState()
-    val model = modelState.value.contactUsViewModel
+    val modelState by component.model.subscribeAsState()
+    val model = modelState.contactUsViewModel
 
-    val isLoading = model.isShowProgress.collectAsState()
-    val err = model.errorMessage.collectAsState()
-    val toast = model.toastItem.collectAsState()
+    val isLoading by model.isShowProgress.collectAsState()
+    val err by model.errorMessage.collectAsState()
+    val toast by model.toastItem.collectAsState()
 
     val dataImage = model.dataImage.collectAsState()
 
-    val responseGetFields = model.responseGetFields.collectAsState()
+    val responseGetFields by model.responseGetFields.collectAsState()
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage != "") {
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage != "") {
             {
-                OnError(err.value) {
+                OnError(err) {
                     model.refresh()
                     model.getFields()
                 }
@@ -83,7 +84,7 @@ fun ContactUsContent(
         }
     }
 
-    BackHandler(modelState.value.backHandler){
+    BackHandler(modelState.backHandler){
         component.onBack()
     }
 
@@ -126,9 +127,9 @@ fun ContactUsContent(
                 )
             }
         },
-        toastItem = toast.value,
+        toastItem = toast,
         error = error,
-        isLoading = isLoading.value,
+        isLoading = isLoading,
         onRefresh = { model.getFields() }
     ) { contentPadding ->
         LazyColumnWithScrollBars(
@@ -137,7 +138,7 @@ fun ContactUsContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = contentPadding
         ) {
-            items(responseGetFields.value?.fields ?: emptyList()) { field ->
+            items(responseGetFields) { field ->
                 when (field.widgetType) {
                     "input" -> {
                         if (field.choices.isNullOrEmpty()) {

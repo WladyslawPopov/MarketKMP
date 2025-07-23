@@ -13,7 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,12 +39,12 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.checkValidation
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getRemainingMinutesTime
-import market.engine.fragments.root.main.proposalPage.ProposalViewModel
 import market.engine.core.theme.Colors
 import market.engine.core.theme.Strings
 import market.engine.widgets.buttons.SimpleTextButton
@@ -61,9 +61,12 @@ fun ProposalsItemContent(
     offer: Offer,
     proposals: Proposals,
     type: ProposalType,
-    viewModel: ProposalViewModel,
+    initFields: List<Fields>,
+    selectedChoice: Int,
+    isLoading: Boolean,
+    changeChoice: (Boolean, Int) -> Unit,
+    confirmProposal: (List<Fields>) -> Unit,
     goToUser: (Long) -> Unit,
-    refresh: () -> Unit
 ) {
     val user = proposals.buyerInfo ?: offer.sellerData
     val countLeft = offer.currentQuantity
@@ -494,7 +497,14 @@ fun ProposalsItemContent(
                     }
 
                     if (showBody.value) {
-                        GetBody(offer.id, type, proposals.buyerInfo?.id ?: 1L, viewModel, refresh)
+                        GetBody(
+                            proposals.buyerInfo?.id ?: 1L,
+                            initFields,
+                            selectedChoice,
+                            isLoading,
+                            changeChoice,
+                            confirmProposal
+                        )
                     }
 
                     if (showEnd.value) {
@@ -564,7 +574,14 @@ fun ProposalsItemContent(
                         .padding(dimens.mediumPadding)
                         .fillMaxWidth(),
                 ) {
-                    GetBody(offer.id, type, proposals.buyerInfo?.id ?: 0L, viewModel, refresh)
+                    GetBody(
+                        proposals.buyerInfo?.id ?: 1L,
+                        initFields,
+                        selectedChoice,
+                        isLoading,
+                        changeChoice,
+                        confirmProposal
+                    )
                 }
             }
         }
@@ -573,26 +590,16 @@ fun ProposalsItemContent(
 
 @Composable
 fun GetBody(
-    offerId: Long,
-    proposalType: ProposalType,
     buyerId : Long,
-    viewModel: ProposalViewModel,
-    refresh : () -> Unit
+    initialFields : List<Fields>,
+    selectedChoice : Int,
+    isLoading : Boolean,
+    changeChoice : (Boolean, Int) -> Unit,
+    confirmProposal : (List<Fields>) -> Unit,
 ) {
-    val fieldsState = remember { mutableStateOf(viewModel.rememberFields.value[buyerId]) }
-    val fields = fieldsState.value
+    val fields by remember { mutableStateOf(initialFields) }
 
-    LaunchedEffect(fieldsState.value){
-        if (fieldsState.value == null) {
-            fieldsState.value = viewModel.getFieldsProposal(offerId, buyerId, if(proposalType == ProposalType.MAKE_PROPOSAL) "make_proposal" else "act_on_proposal")
-            viewModel.rememberFields.value.remove(buyerId)
-            viewModel.rememberFields.value[buyerId] = fieldsState.value
-        }else{
-            fieldsState.value?.find { it.key == "quantity" }?.data = JsonPrimitive(1)
-        }
-    }
-
-    if(fields != null) {
+    if(fields.isNotEmpty()) {
         val quantityTextState = remember {
             mutableStateOf(
                 TextFieldValue(
@@ -620,10 +627,7 @@ fun GetBody(
         val forLabel = stringResource(strings.forLabel)
         val counterLabel = stringResource(strings.countsSign)
 
-        val errorState = remember { mutableStateOf<String?>(null) }
-
-        val selectedChoice =
-            remember { mutableStateOf(viewModel.rememberChoice.value[buyerId] ?: 0) }
+        val countPriceState = remember { mutableStateOf<String?>(null) }
 
         val focusManager = LocalFocusManager.current
 
@@ -643,29 +647,13 @@ fun GetBody(
                     "type" -> {
                         if (buyerId != 0L) {
                             DynamicRadioButtons(field) { isChecked, choice ->
-                                if (isChecked) {
-                                    selectedChoice.value = choice
-                                } else {
-                                    selectedChoice.value = 0
-                                }
-                                viewModel.rememberChoice.value[buyerId] = selectedChoice.value
-
-                                if (selectedChoice.value != 2) {
-                                    priceTextState.value = TextFieldValue(text = "")
-                                    commentTextState.value = TextFieldValue(text = "")
-                                    quantityTextState.value = TextFieldValue(text = "")
-                                    errorState.value = null
-
-                                    fields.find { it.key == "comment" }?.data = null
-                                    fields.find { it.key == "price" }?.data = null
-                                    fields.find { it.key == "quantity" }?.data = null
-                                }
+                                changeChoice(isChecked, choice)
                             }
                         }
                     }
 
                     "comment" -> {
-                        AnimatedVisibility(selectedChoice.value == 2) {
+                        AnimatedVisibility(selectedChoice == 2) {
                             val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
 
                             val labelString = buildString {
@@ -690,7 +678,7 @@ fun GetBody(
                     }
 
                     "price", "quantity" -> {
-                        AnimatedVisibility(selectedChoice.value == 2) {
+                        AnimatedVisibility(selectedChoice == 2) {
                             val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
                             val maxNumber =
                                 field.validators?.find { it.type == "between" }?.parameters?.max
@@ -720,7 +708,7 @@ fun GetBody(
                                     val price = priceTextState.value.text.toDoubleOrNull() ?: 1.0
                                     val count = quantityTextState.value.text.toIntOrNull() ?: 1
 
-                                    errorState.value = buildString {
+                                    countPriceState.value = buildString {
                                         append((price / count).roundToLong())
                                         append(" ")
                                         append(currency)
@@ -738,7 +726,7 @@ fun GetBody(
                                 label = labelString,
                                 suffix = stringResource(if (field.key == "price") strings.currencyCode else strings.countsSign),
                                 keyboardType = KeyboardType.Number,
-                                error = if (field.key == "price") errorState.value else null
+                                error = if (field.key == "price") countPriceState.value else null
                             )
                         }
                     }
@@ -754,28 +742,17 @@ fun GetBody(
                     stringResource(strings.actionConfirm),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
-                    enabled = !viewModel.isShowProgress.value && (selectedChoice.value != 2 || priceTextState.value.text.isNotBlank())
+                    enabled = !isLoading && (selectedChoice != 2 || priceTextState.value.text.isNotBlank())
                 ) {
                     if (fields.find { it.key == "type" }?.data == null) {
-                        fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice.value)
+                        fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice)
                     }
                     if (buyerId != 1L) {
                         fields.find { it.key == "buyer_id" }?.data = JsonPrimitive(buyerId)
                     }
 
-                    viewModel.confirmProposal(
-                        offerId,
-                        proposalType,
-                        fields = fields,
-                        onSuccess = {
-                            fields.clear()
-                            viewModel.rememberChoice.value[buyerId] = 0
-                            viewModel.rememberFields.value[buyerId] = fields
-                            refresh()
-                        },
-                        onError = { fields ->
-                            fieldsState.value = fields
-                        }
+                    confirmProposal(
+                        fields
                     )
                 }
             }

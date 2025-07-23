@@ -28,19 +28,19 @@ fun ProfileSettingsContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.profileSettingsViewModel
-    val isLoading = viewModel.isShowProgress.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
     val settingsType = model.type
-    val err = viewModel.errorMessage.collectAsState()
-    val toastItem = viewModel.toastItem.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     BackHandler(model.backHandler){
         component.goToBack()
     }
 
-    val error : (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage.isNotBlank()) {
+    val error : (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage.isNotBlank()) {
             {
-                OnError(err.value) {
+                OnError(err) {
                     viewModel.refreshPage()
                 }
             }
@@ -51,12 +51,12 @@ fun ProfileSettingsContent(
 
     EdgeToEdgeScaffold(
         modifier = Modifier.fillMaxSize(),
-        isLoading = isLoading.value,
+        isLoading = isLoading,
         onRefresh = {
             viewModel.refreshPage()
         },
         error = error,
-        toastItem = toastItem.value
+        toastItem = toastItem
     ) { contentPadding ->
         LazyColumnWithScrollBars(
             contentPadding = contentPadding

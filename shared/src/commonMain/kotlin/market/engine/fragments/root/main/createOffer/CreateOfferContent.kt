@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -91,38 +92,40 @@ fun CreateOfferContent(
     val viewModel = model.value.createOfferViewModel
     val type = model.value.createOfferType
 
-    val isLoading = viewModel.isShowProgress.collectAsState()
-    val err = viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
 
-    val uiState = viewModel.createOfferContentState.collectAsState()
+    val uiState by viewModel.createOfferContentState.collectAsState()
 
-    val newOfferId = viewModel.newOfferId.collectAsState()
+    val newOfferId by viewModel.newOfferId.collectAsState()
 
-    val categorySD = uiState.value.categoryState.categoryViewModel.searchData.collectAsState()
-    val categoryID = categorySD.value.searchCategoryID
+    val categorySD by uiState.categoryState.categoryViewModel.searchData.collectAsState()
+    val categoryID = categorySD.searchCategoryID
 
-    val isEditCategory = uiState.value.categoryState.openCategory
-    val choiceCodeSaleType = viewModel.choiceCodeSaleType.collectAsState()
-    val selectedDate = viewModel.selectedDate.collectAsState()
-    val payloadState = uiState.value.dynamicPayloadState
+    val isEditCategory = uiState.categoryState.openCategory
 
-    val categoryState = uiState.value.categoryState
-    val appBarState = uiState.value.appBarState
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val payloadState = uiState.dynamicPayloadState
 
-    val catHistory = uiState.value.catHistory
+    val categoryState = uiState.categoryState
+    val appBarState = uiState.appBarState
 
-    val first = uiState.value.firstDynamicContent
-    val second = uiState.value.secondDynamicContent
-    val third = uiState.value.thirdDynamicContent
-    val end = uiState.value.endDynamicContent
+    val catHistory = uiState.catHistory
+
+    val first = uiState.firstDynamicContent
+    val second = uiState.secondDynamicContent
+    val third = uiState.thirdDynamicContent
+    val end = uiState.endDynamicContent
 
     val photoTempViewModel = viewModel.photoTempViewModel
 
-    val images = photoTempViewModel.responseImages.collectAsState()
+    val images by photoTempViewModel.responseImages.collectAsState()
+
+    val choiceCodeSaleType by viewModel.choiceCodeSaleType.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     val goToUp = remember { mutableStateOf(false) }
 
@@ -144,10 +147,10 @@ fun CreateOfferContent(
         files?.let { photoTempViewModel.getImages(it) }
     }
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage.isNotBlank()) {
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage.isNotBlank()) {
             {
-                OnError(err.value) {
+                OnError(err) {
                     viewModel.refreshPage()
                 }
             }
@@ -196,8 +199,8 @@ fun CreateOfferContent(
         },
         error = error,
         noFound = null,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
+        isLoading = isLoading,
+        toastItem = toastItem,
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
         when{
@@ -215,7 +218,7 @@ fun CreateOfferContent(
                 )
             }
 
-            !isEditCategory && payloadState != null && newOfferId.value == null ->{
+            !isEditCategory && payloadState != null && newOfferId == null ->{
                 LazyColumnWithScrollBars(
                     modifierList = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
@@ -326,7 +329,7 @@ fun CreateOfferContent(
                                                     payloadState.fields.find { it.key == "startingprice" }
                                                         ?.let { field ->
                                                             AnimatedVisibility(
-                                                                choiceCodeSaleType.value == 0 || choiceCodeSaleType.value == 1,
+                                                                choiceCodeSaleType == 0 || choiceCodeSaleType == 1,
                                                                 enter = fadeIn(),
                                                                 exit = fadeOut()
                                                             ) {
@@ -344,7 +347,7 @@ fun CreateOfferContent(
                                                     payloadState.fields.find { it.key == "buynowprice" }
                                                         ?.let { field ->
                                                             AnimatedVisibility(
-                                                                choiceCodeSaleType.value == 2 || choiceCodeSaleType.value == 1,
+                                                                choiceCodeSaleType == 2 || choiceCodeSaleType == 1,
                                                                 enter = fadeIn(),
                                                                 exit = fadeOut()
                                                             ) {
@@ -420,7 +423,7 @@ fun CreateOfferContent(
                                                 }
 
                                                 "quantity" -> {
-                                                    when (choiceCodeSaleType.value) {
+                                                    when (choiceCodeSaleType) {
                                                         1 -> {
                                                             field.data = JsonPrimitive(1)
                                                         }
@@ -547,7 +550,7 @@ fun CreateOfferContent(
                                         stringResource(strings.chooseAction),
                                         fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                         alignment = Alignment.TopEnd,
-                                        enabled = images.value.size < MAX_IMAGE_COUNT
+                                        enabled = images.size < MAX_IMAGE_COUNT
                                     ) {
                                         if (!getPermissionHandler().checkImagePermissions()) {
                                             getPermissionHandler().requestImagePermissions {
@@ -562,11 +565,11 @@ fun CreateOfferContent(
                                 }
 
                                 AnimatedVisibility(
-                                    images.value.isNotEmpty(),
+                                    images.isNotEmpty(),
                                     enter = fadeIn(),
                                     exit = fadeOut()
                                 ) {
-                                    PhotoDraggableGrid(images.value, photoTempViewModel)
+                                    PhotoDraggableGrid(images, photoTempViewModel)
                                 }
                             }
                         }
@@ -580,7 +583,7 @@ fun CreateOfferContent(
                                                     stringResource(strings.offersGroupStartTSTile)
                                                 )
 
-                                                SessionStartContent(selectedDate.value, field){
+                                                SessionStartContent(selectedDate, field){
                                                     viewModel.setSelectData(it)
                                                 }
                                             }
@@ -611,31 +614,31 @@ fun CreateOfferContent(
                             text = stringResource(label),
                             modifier = Modifier.fillMaxWidth()
                                 .padding(dimens.mediumPadding),
-                            enabled = !isLoading.value
+                            enabled = !isLoading
                         ) {
                             viewModel.postPage()
                         }
                     }
                 }
             }
-            newOfferId.value != null -> {
+            newOfferId != null -> {
                 val title = remember {
                     payloadState?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
                         ?: ""
                 }
                 //success offer
                 SuccessContent(
-                    images.value,
+                    images,
                     title,
                     payloadState?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                     modifier = Modifier.padding(contentPadding)
                         .padding(dimens.mediumPadding),
-                    futureTime = selectedDate.value ?: getCurrentDate().toLong(),
+                    futureTime = selectedDate ?: getCurrentDate().toLong(),
                     goToOffer = {
-                        component.goToOffer(newOfferId.value!!)
+                        component.goToOffer(newOfferId!!)
                     },
                     addSimilarOffer = {
-                        component.createNewOffer(offerId= newOfferId.value, type = CreateOfferType.COPY)
+                        component.createNewOffer(offerId= newOfferId, type = CreateOfferType.COPY)
                     },
                     createNewOffer = {
                         component.createNewOffer(type=CreateOfferType.CREATE)

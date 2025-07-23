@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -70,30 +71,25 @@ fun ProfileMyBidsNavigation(
                 ),
                 color = colors.transparent
             ) {
-                val active = stringResource(strings.activeTab)
-                val inactive = stringResource(strings.inactiveTab)
+                val tabs = remember {
+                    listOf(
+                        LotsType.MY_BIDS_ACTIVE to strings.activeTab,
+                        LotsType.MY_BIDS_INACTIVE to strings.inactiveTab,
+                    )
+                }
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
-                ) {
-                    item {
+                ){
+                    items(tabs){ tab ->
                         SimpleTextButton(
-                            active,
-                            backgroundColor = if (select.value == LotsType.MY_BIDS_ACTIVE) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
+                            stringResource(tab.second),
+                            backgroundColor = if (select.value == tab.first) colors.rippleColor else colors.white,
+                            textStyle = MaterialTheme.typography.bodyMedium,
                         ) {
-                            component.selectOfferPage(LotsType.MY_BIDS_ACTIVE)
-                        }
-                    }
-                    item {
-                        SimpleTextButton(
-                            inactive,
-                            if (select.value == LotsType.MY_BIDS_INACTIVE) colors.rippleColor else colors.white,
-                            textStyle = MaterialTheme.typography.bodySmall
-                        ) {
-                            component.selectOfferPage(LotsType.MY_BIDS_INACTIVE)
+                            component.selectOfferPage(tab.first)
                         }
                     }
                 }

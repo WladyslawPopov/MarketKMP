@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -11,22 +13,19 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FavoritesContent(
@@ -39,18 +38,20 @@ fun FavoritesContent(
     val listingBaseViewModel = viewModel.listingBaseViewModel
     val categoryState = viewModel.filtersCategoryState
 
-    val listingDataState = listingBaseViewModel.listingData.collectAsState()
+    val listingDataState by listingBaseViewModel.listingData.collectAsState()
 
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val err = viewModel.errorMessage.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
 
-    val updateItem = viewModel.updateItem.collectAsState()
+    val updateItem by viewModel.updateItem.collectAsState()
 
-    val ld = listingDataState.value.data
+    val ld = listingDataState.data
 
-    val activeType = listingBaseViewModel.activeWindowType.collectAsState()
-    val selectedItems = listingBaseViewModel.selectItems.collectAsState()
-    val filterBarUiState = listingBaseViewModel.filterBarUiState.collectAsState()
+    val activeType by listingBaseViewModel.activeWindowType.collectAsState()
+    val selectedItems by listingBaseViewModel.selectItems.collectAsState()
+
+    val toastItem by viewModel.toastItem.collectAsState()
+
     val listingState = rememberLazyScrollState(viewModel)
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
@@ -59,38 +60,28 @@ fun FavoritesContent(
         viewModel.onBackNavigation()
     }
 
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                if (ld.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
-                    ) {
-                        listingBaseViewModel.clearAllFilters()
-                    }
-                } else {
-                    NoItemsFoundLayout(
-                        title = stringResource(strings.emptyFavoritesLabel),
-                        image = drawables.emptyFavoritesImage
-                    ) {
-                        viewModel.refresh()
-                    }
-                }
-            }
+    val hasActiveFilters by remember(listingDataState) { mutableStateOf(
+        ld.filters.any { it.interpretation?.isNotBlank() == true }
+    ) }
+
+    val noFound = listingNotFoundView(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount,
+        activeType = activeType,
+        hasActiveFilters = hasActiveFilters,
+        onClearFilters = listingBaseViewModel::clearListingData,
+        onRefresh = listingBaseViewModel::refresh
+    )
+
+    val error : (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage != "") {
+            { OnError(err) { viewModel.refresh() } }
         } else {
             null
         }
     }
 
-    val error : (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage != "") {
-            { OnError(err.value) { viewModel.refresh() } }
-        } else {
-            null
-        }
-    }
-
-    when (activeType.value) {
+    when (activeType) {
         ActiveWindowListingType.FILTERS -> {
             OfferFilterContent(
                 ld.filters,
@@ -117,7 +108,7 @@ fun FavoritesContent(
             EdgeToEdgeScaffold(
                 topBar = {
                     DeletePanel(
-                        selectedItems.value.size,
+                        selectedItems.size,
                         onCancel = {
                             listingBaseViewModel.clearSelectedItems()
                         },
@@ -126,8 +117,10 @@ fun FavoritesContent(
                         }
                     )
 
+                    val filterBarUiState by listingBaseViewModel.filterBarUiState.collectAsState()
+
                     FiltersBar(
-                        filterBarUiState.value,
+                        filterBarUiState,
                         isVisible = listingState.areBarsVisible.value,
                     )
                 },
@@ -137,7 +130,7 @@ fun FavoritesContent(
                 error = error,
                 noFound = noFound,
                 isLoading = isLoading.value,
-                toastItem = viewModel.toastItem.value,
+                toastItem = toastItem,
                 modifier = modifier.fillMaxSize()
             ) { contentPadding ->
                 PagingLayout(
@@ -148,18 +141,17 @@ fun FavoritesContent(
                     content = { offer ->
                         CabinetOfferItem(
                             offer,
-                            updateItem.value,
-                            selectedItems.value.contains(offer.item.id),
+                            updateItem,
+                            selectedItems.contains(offer.item.id),
                             onSelected = {
-                                if (selectedItems.value.contains(offer.item.id)) {
+                                if (selectedItems.contains(offer.item.id)) {
                                     listingBaseViewModel.removeSelectItem(offer.item.id)
                                 } else {
                                     listingBaseViewModel.addSelectItem(offer.item.id)
                                 }
-
                             }
                         )
-                    },
+                    }
                 )
             }
         }

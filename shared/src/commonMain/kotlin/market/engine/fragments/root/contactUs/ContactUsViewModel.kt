@@ -21,14 +21,15 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.DynamicPayload
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
 class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
 
-    private val _responseGetFields = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responseGetFields: StateFlow<DynamicPayload<OperationResult>?> = _responseGetFields.asStateFlow()
+    private val _responseGetFields = MutableStateFlow<List<Fields>>(emptyList())
+    val responseGetFields = _responseGetFields.asStateFlow()
 
     private val _dataImage = MutableStateFlow("")
     val dataImage: StateFlow<String> = _dataImage.asStateFlow()
@@ -61,7 +62,7 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
                                 payload.fields.find { it.key == "variant" }?.data = JsonPrimitive(9)
                             }
 
-                            _responseGetFields.value = payload
+                            _responseGetFields.value = payload.fields
                         }catch (e : Exception){
                             throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
                         }
@@ -80,7 +81,7 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
     fun postContactUs(onSuccess : () -> Unit) {
         viewModelScope.launch {
             val body = HashMap<String, JsonElement>()
-            responseGetFields.value?.fields?.forEach {
+            responseGetFields.value.forEach {
                 if (it.data != null && it.widgetType != "captcha_image") {
                     body[it.key ?: ""] = it.data!!
                 }
@@ -111,9 +112,7 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
                             delay(2000)
                             onSuccess()
                         }else{
-                            _responseGetFields.value = _responseGetFields.value?.copy(
-                                fields = payload.recipe?.fields ?: payload.fields
-                            )
+                            _responseGetFields.value = payload.recipe?.fields ?: payload.fields
                             val events = mapOf(
                                 "body" to body.toString(),
                                 "error_type" to payload.operationResult?.message
@@ -146,15 +145,13 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
                     val result = res.success!!
 
                     _responseGetFields.update { res ->
-                        res?.copy(
-                            fields = res.fields.map{
-                                if (it.key == "attachment") {
-                                    it.copy(data = JsonPrimitive(result.tempId))
-                                } else {
-                                    it.copy()
-                                }
+                        res.map {
+                            if (it.key == "attachment") {
+                                it.copy(data = JsonPrimitive(result.tempId))
+                            } else {
+                                it.copy()
                             }
-                        )
+                        }
                     }
                     _dataImage.value = item.file?.name ?: ""
                 }
@@ -171,15 +168,13 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
     fun clearDataImage(){
         _dataImage.value = ""
         _responseGetFields.update { res ->
-            res?.copy(
-                fields = res.fields.map{
-                    if (it.key == "attachment") {
-                        it.copy(data = null)
-                    } else {
-                        it.copy()
-                    }
+            res.map {
+                if (it.key == "attachment") {
+                    it.copy(data = null)
+                } else {
+                    it.copy()
                 }
-            )
+            }
         }
     }
 

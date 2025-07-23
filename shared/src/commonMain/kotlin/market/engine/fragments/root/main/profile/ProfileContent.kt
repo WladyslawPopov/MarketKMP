@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,7 +22,7 @@ fun ProfileContent(
     publicProfileNavigationItems: List<NavigationItem>
 ) {
     val viewModel = component.model.value.profileViewModel
-    val isLoading = viewModel.isShowProgress.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
 
     BackHandler(
         component.model.value.backHandler
@@ -31,7 +32,7 @@ fun ProfileContent(
 
    EdgeToEdgeScaffold(
        modifier = modifier.padding(top = TopAppBarDefaults.TopAppBarExpandedHeight).fillMaxSize(),
-       isLoading = isLoading.value,
+       isLoading = isLoading,
        onRefresh = {
            viewModel.viewModelScope.launch {
                viewModel.setLoading(true)

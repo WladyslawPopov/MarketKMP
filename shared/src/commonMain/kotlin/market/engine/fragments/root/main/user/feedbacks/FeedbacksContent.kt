@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
@@ -34,8 +35,8 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.rememberLazyScrollState
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.items.FeedbackItem
 import market.engine.widgets.rows.ColumnWithScrollBars
@@ -53,8 +54,8 @@ fun FeedbacksContent(
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
     val state = rememberLazyScrollState(viewModel)
     val listingBaseViewModel = viewModel.listingBaseViewModel
-    val listingDataState = listingBaseViewModel.listingData.collectAsState()
-    val listingData = listingDataState.value
+    val listingDataState by listingBaseViewModel.listingData.collectAsState()
+    val listingData = listingDataState.data
 
     val htmlText = rememberRichTextState()
 
@@ -63,16 +64,17 @@ fun FeedbacksContent(
     )
 
     val filters = viewModel.filters.collectAsState()
-    val currentFilter = remember(listingDataState.value) {
+
+    val currentFilter = remember(listingDataState) {
         if (
-            listingData.data.filters.find {
+            listingData.filters.find {
                 it.key == "evaluation"
             }?.value == "" ||
-            listingData.data.filters.find { it.key == "evaluation" }?.value == null
+            listingData.filters.find { it.key == "evaluation" }?.value == null
         ) {
             filters.value[0]
         } else {
-            filters.value[(listingData.data.filters.find { it.key == "evaluation" }?.value?.toInt()
+            filters.value[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt()
                 ?: 0) + 1]
         }
     }
@@ -95,28 +97,19 @@ fun FeedbacksContent(
         }
     }
 
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                if (listingData.data.filters.find { it.key == "evaluation" }?.value == "") {
-                    NoItemsFoundLayout(
-                        title = stringResource(strings.notFoundFeedbackLabel),
-                        textButton = stringResource(strings.refreshButton)
-                    ) {
-                        viewModel.updatePage()
-                    }
-                }else{
-                    NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
-                    ) {
-                        viewModel.refreshListing()
-                    }
-                }
-            }
-        } else {
-            null
-        }
+    val hasActiveFilters by remember(listingDataState) {
+        mutableStateOf(
+            listingData.filters.any { it.interpretation?.isNotBlank() == true }
+        )
     }
+
+    val noFound = listingNotFoundView(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount,
+        hasActiveFilters = hasActiveFilters,
+        onClearFilters = listingBaseViewModel::clearListingData,
+        onRefresh = listingBaseViewModel::refresh
+    )
 
     EdgeToEdgeScaffold(
         topBar = {
@@ -150,9 +143,7 @@ fun FeedbacksContent(
         },
         modifier = Modifier.fillMaxSize(),
         isLoading = if (model.type == ReportPageType.ABOUT_ME) false else isLoading.value,
-        onRefresh = {
-            viewModel.updatePage()
-        },
+        onRefresh = viewModel::updatePage,
         noFound = noFound
     ) { contentPadding ->
         when {

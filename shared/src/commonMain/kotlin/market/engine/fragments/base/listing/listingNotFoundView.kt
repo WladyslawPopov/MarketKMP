@@ -7,14 +7,13 @@ import market.engine.fragments.base.screens.NoItemsFoundLayout
 import org.jetbrains.compose.resources.stringResource
 
 
-@Composable
-fun ListingNotFoundContent(
+fun listingNotFoundView(
     isLoading: Boolean,
     itemCount: Int,
-    activeType: ActiveWindowListingType,
-    hasActiveFilters: Boolean,
-    onClearFilters: () -> Unit,
-    onRefresh: () -> Unit
+    activeType: ActiveWindowListingType = ActiveWindowListingType.LISTING,
+    hasActiveFilters: Boolean = false,
+    onClearFilters: () -> Unit = {},
+    onRefresh: () -> Unit = {}
 ): @Composable (() -> Unit)? {
     return when {
         activeType == ActiveWindowListingType.LISTING -> {

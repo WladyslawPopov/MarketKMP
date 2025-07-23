@@ -36,15 +36,14 @@ import kotlinx.coroutines.flow.collectLatest
 import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
+import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.DialogsHeader
 import market.engine.widgets.bars.MessengerBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -62,38 +61,36 @@ fun DialogsContent(
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.dialogsViewModel
-    val uiState = viewModel.dialogContentState.collectAsState()
+    val uiState by viewModel.dialogContentState.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
 
     val listingBaseViewModel = viewModel.listingBaseViewModel
 
-    val messageBarData = viewModel.messageBarState.collectAsState()
+    val messageBarData by viewModel.messageBarState.collectAsState()
 
-    val images = viewModel.images.collectAsState()
-    val selectIndex = viewModel.selectedImageIndex.collectAsState()
+    val images by viewModel.images.collectAsState()
+    val selectIndex by viewModel.selectedImageIndex.collectAsState()
 
-    val listingData = viewModel.listingData.value.data
+    val headerItem = uiState.mesHeader
+    val conversation = uiState.conversations
+    val appBarData = uiState.appBarState
 
-    val headerItem = uiState.value.mesHeader
-    val conversation = uiState.value.conversations
-    val appBarData = uiState.value.appBarState
-
-    val isLoading = viewModel.isShowProgress.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
 
     val focusManager = LocalFocusManager.current
 
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     val pagerFullState = rememberPagerState(
-        pageCount = { images.value.size },
+        pageCount = { images.size },
     )
 
     var mesBarHeight by remember { mutableStateOf(dimens.zero) }
     val density = LocalDensity.current
 
-    LaunchedEffect(images.value, selectIndex.value) {
+    LaunchedEffect(images, selectIndex) {
         snapshotFlow {
-            images.value to selectIndex.value
+            images to selectIndex
         }.collectLatest { (images, selectedIndex) ->
             if (selectedIndex != null && images.isNotEmpty() && images.size > selectedIndex) {
                 pagerFullState.scrollToPage(selectedIndex)
@@ -107,28 +104,10 @@ fun DialogsContent(
 
     val listingState = rememberLazyScrollState(viewModel)
 
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
-                    NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
-                    ) {
-                        viewModel.updatePage()
-                    }
-                } else {
-                    NoItemsFoundLayout(
-                        title = stringResource(strings.simpleNotFoundLabel),
-                        icon = drawables.dialogIcon
-                    ) {
-                        viewModel.updatePage()
-                    }
-                }
-            }
-        } else {
-            null
-        }
-    }
+    val noFound = listingNotFoundView(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount
+    )
 
     EdgeToEdgeScaffold(
         topBar = {
@@ -167,13 +146,13 @@ fun DialogsContent(
         },
         error = null,
         noFound = noFound,
-        isLoading = isLoading.value,
-        toastItem = toastItem.value,
+        isLoading = isLoading,
+        toastItem = toastItem,
         showContentWhenLoading = true,
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->
         CustomBottomSheet(
-            initValue = selectIndex.value != null,
+            initValue = selectIndex != null,
             contentPadding = contentPadding,
             onClosed = {
                 viewModel.closeImages()
@@ -181,8 +160,8 @@ fun DialogsContent(
             sheetContent = {
                 FullScreenImageViewer(
                     pagerFullState = pagerFullState,
-                    images = images.value,
-                    isUpdate = images.value.isNotEmpty(),
+                    images = images,
+                    isUpdate = images.isNotEmpty(),
                     modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                 )
             }
@@ -238,9 +217,9 @@ fun DialogsContent(
                         .zIndex(15f)
                 ) {
                     MessengerBar(
-                        data = messageBarData.value,
+                        data = messageBarData,
                         events = viewModel.messageBarEvents,
-                        isLoading = isLoading.value
+                        isLoading = isLoading
                     )
                 }
             }

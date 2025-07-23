@@ -5,7 +5,6 @@ import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -14,13 +13,23 @@ import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.DynamicPayload
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
 class RegViewModel : CoreViewModel() {
-    private val _responseGetRegFields = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
-    val responseGetRegFields: StateFlow<DynamicPayload<OperationResult>?> = _responseGetRegFields.asStateFlow()
+    private val _responseGetRegFields = MutableStateFlow<List<Fields>>(emptyList())
+    val responseGetRegFields= _responseGetRegFields.asStateFlow()
+
+    private val _showSuccessReg = MutableStateFlow(false)
+    val showSuccessReg = _showSuccessReg.asStateFlow()
+
+    init {
+        getRegFields()
+
+        analyticsHelper.reportEvent("view_register_account", mapOf())
+    }
 
     fun getRegFields() {
         setLoading(true)
@@ -33,7 +42,7 @@ class RegViewModel : CoreViewModel() {
                         try {
                             val serializer = DynamicPayload.serializer(OperationResult.serializer())
                             val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            _responseGetRegFields.value = payload
+                            _responseGetRegFields.value = payload.fields
                         }catch (e : Exception){
                             throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
                         }
@@ -49,11 +58,11 @@ class RegViewModel : CoreViewModel() {
         }
     }
 
-    fun postRegistration(onSuccess : () -> Unit){
+    fun postRegistration(){
         viewModelScope.launch {
             setLoading(true)
             val body = HashMap<String, JsonElement>()
-            responseGetRegFields.value?.fields?.forEach {
+            responseGetRegFields.value.forEach {
                 if (it.data != null && it.widgetType != "captcha_image") {
                     body[it.key ?: ""] = it.data!!
                 }
@@ -82,11 +91,9 @@ class RegViewModel : CoreViewModel() {
                                         ?: getString(strings.operationSuccess)
                                 )
                             )
-                            onSuccess()
+                            _showSuccessReg.value = true
                         } else {
-                            _responseGetRegFields.value = _responseGetRegFields.value?.copy(
-                                fields = payload.recipe?.fields ?: payload.fields
-                            )
+                            _responseGetRegFields.value = payload.recipe?.fields ?: payload.fields
                             val events = mapOf(
                                 "login_type" to "email",
                                 "body" to body.toString()
