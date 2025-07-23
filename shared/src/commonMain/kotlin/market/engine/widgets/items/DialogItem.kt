@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.messenger
+package market.engine.widgets.items
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable

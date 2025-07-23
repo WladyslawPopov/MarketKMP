@@ -38,7 +38,7 @@ import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
-import market.engine.fragments.root.main.messenger.DialogsHeader
+import market.engine.widgets.bars.DialogsHeader
 import market.engine.widgets.items.ProposalsItemContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource

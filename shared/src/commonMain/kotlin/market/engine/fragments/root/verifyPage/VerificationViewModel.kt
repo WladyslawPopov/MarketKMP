@@ -1,6 +1,5 @@
 package market.engine.fragments.root.verifyPage
 
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -18,22 +17,123 @@ import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
-class VerificationViewModel : CoreViewModel() {
-    val action = mutableStateOf("")
+class VerificationViewModel(
+    val settingsType: String,
+    val owner: Long?,
+    val code: String?,
+    val component: VerificationComponent
+) : CoreViewModel() {
 
     val userOperations : UserOperations by lazy { getKoin().get() }
 
-    fun init(settingsType: String, owner: Long?, code: String?) {
+    init {
         refresh()
-        when (settingsType) {
-            "set_password" -> {
-                getSetPassword(owner)
-            }
+        setPage()
+        val eventParameters = mapOf("settings_type" to settingsType)
+        analyticsHelper.reportEvent("view_verification_page", eventParameters)
+    }
 
-            else -> {
-                if (code != null && owner != null) {
-                    getSetEmail(owner, code)
+    fun setPage(type: String = settingsType){
+        if(type != "") {
+            viewModelScope.launch {
+                try {
+                    setLoading(true)
+                    val bodySMS = HashMap<String, JsonElement>()
+                    bodySMS["action"] = JsonPrimitive(type)
+
+                    val buf = withContext(Dispatchers.IO) {
+                        operationsMethods.postOperationFields(
+                            owner ?: UserData.login,
+                            "request_additional_confirmation",
+                            "users",
+                            bodySMS
+                        )
+                    }
+
+                    val resSMS = buf.success
+                    val resSmsErr = buf.error
+                    withContext(Dispatchers.Main) {
+                        if (resSMS != null) {
+                            showToast(
+                                successToastItem.copy(
+                                    message = resSMS.operationResult?.message ?: getString(strings.operationSuccess)
+                                )
+                            )
+                        } else {
+                            if (resSmsErr != null) {
+                                onError(
+                                    resSmsErr
+                                )
+                            }
+                            component.onBack()
+                        }
+                    }
+                } catch (e : ServerErrorException){
+                    onError(e)
+                } catch (e : Exception){
+                    onError(ServerErrorException(e.message ?: ""))
+                } finally {
+                    setLoading(false)
                 }
+            }
+        }else{
+            if (code != null && owner != null) {
+                getSetEmail(owner, code)
+            }
+        }
+    }
+
+    fun postCode(code: String) {
+        viewModelScope.launch {
+            setLoading(true)
+            try {
+                val bodySMS = HashMap<String, JsonElement>()
+                bodySMS["action"] = JsonPrimitive(settingsType)
+                bodySMS["code"] = JsonPrimitive(code)
+
+                val buf = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperationFields(
+                        UserData.login,
+                        "enter_additional_confirmation_code",
+                        "users",
+                        bodySMS
+                    )
+                }
+                val resE = buf.success
+                val resEerr = buf.error
+
+                withContext(Dispatchers.Main) {
+                    if (resE != null) {
+                        val eventParameters = mapOf(
+                            "user_id" to UserData.login,
+                            "profile_source" to "settings"
+                        )
+                        analyticsHelper.reportEvent(
+                            "change_email_success",
+                            eventParameters
+                        )
+                        showToast(
+                            successToastItem.copy(
+                                message = resE.operationResult?.message
+                                    ?: getString(strings.operationSuccess)
+                            )
+                        )
+                        delay(2000)
+                        component.onBack()
+                    } else {
+                        if (resEerr != null) {
+                            onError(
+                                resEerr
+                            )
+                        }
+                    }
+                }
+            } catch (e: ServerErrorException) {
+                onError(e)
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: ""))
+            } finally {
+                setLoading(false)
             }
         }
     }
@@ -50,41 +150,12 @@ class VerificationViewModel : CoreViewModel() {
 
                 if (res != null) {
                     if (res.status == "ok") {
-                        if (res.body != null) {
-                            val bodySMS = HashMap<String, JsonElement>()
-                            bodySMS["action"] = JsonPrimitive("change_email")
-
-                            val buf = withContext(Dispatchers.IO) {
-                                operationsMethods.postOperationFields(
-                                    owner,
-                                    "request_additional_confirmation",
-                                    "users",
-                                    bodySMS
-                                )
-                            }
-
-                            val resSMS = buf.success
-                            val resSmsErr = buf.error
-                            withContext(Dispatchers.Main) {
-                                if (resSMS != null) {
-                                    showToast(
-                                        successToastItem.copy(
-                                            message = resSMS.operationResult?.message ?: getString(strings.operationSuccess)
-                                        )
-                                    )
-                                    action.value = "change_email"
-                                } else {
-                                    if (resSmsErr != null) {
-                                        onError(
-                                            resSmsErr
-                                        )
-                                    }
-                                    action.value = "close"
-                                }
-                            }
+                        val body = res.body?.action
+                        if (body != null) {
+                            setPage(body)
                         } else {
                             onError(ServerErrorException(res.errorCode ?:"", res.humanMessage ?: ""))
-                            action.value = "close"
+                            component.onBack()
                         }
                     } else {
                         if (res.status == "operation_success") {
@@ -93,21 +164,22 @@ class VerificationViewModel : CoreViewModel() {
                                     message = getString(strings.operationSuccess)
                                 )
                             )
-                            action.value = "login"
+                            delay(2000)
+                            component.onBack()
                         } else {
                             showToast(
                                 errorToastItem.copy(
                                     message = res.humanMessage ?: ""
                                 )
                             )
-                            action.value = "close"
+                            delay(2000)
+                            component.onBack()
                         }
                     }
                 } else {
                     if (resErr != null) {
                         onError(resErr)
                     }
-                    action.value = "close"
                 }
             } catch (e : ServerErrorException){
                 onError(e)
@@ -115,181 +187,6 @@ class VerificationViewModel : CoreViewModel() {
                 onError(ServerErrorException(e.message ?: ""))
             } finally {
                 setLoading(false)
-            }
-        }
-    }
-
-    private fun getSetPassword(owner: Long?) {
-        viewModelScope.launch {
-            val body = HashMap<String, JsonElement>()
-            body["action"] = JsonPrimitive("change_password")
-
-            val buffer = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    owner ?: UserData.login,
-                    "request_additional_confirmation",
-                    "users",
-                    body
-                )
-            }
-            val res = buffer.success
-            val resErr = buffer.error
-            withContext(Dispatchers.Main) {
-                if (res != null) {
-                    showToast(
-                        successToastItem.copy(
-                            message = res.operationResult?.message ?: getString(strings.operationSuccess)
-                        )
-                    )
-                }else{
-                    if (resErr != null) {
-                        onError(
-                            resErr
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    fun postSetEmail(code: String, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            setLoading(true)
-
-            val bodySMS = HashMap<String, JsonElement>()
-            bodySMS["action"] = JsonPrimitive("change_email")
-            bodySMS["code"] = JsonPrimitive(code)
-
-            val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    UserData.login,
-                    "enter_additional_confirmation_code",
-                    "users",
-                    bodySMS
-                )
-            }
-            val resE = buf.success
-            val resEerr = buf.error
-
-            withContext(Dispatchers.Main) {
-                setLoading(false)
-                if (resE != null) {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings"
-                    )
-                    analyticsHelper.reportEvent(
-                        "change_email_success",
-                        eventParameters
-                    )
-                    showToast(
-                        successToastItem.copy(
-                            message = resE.operationResult?.message ?: getString(strings.operationSuccess)
-                        )
-                    )
-                    delay(2000)
-                    onSuccess()
-                } else {
-                    if (resEerr != null) {
-                        onError(
-                            resEerr
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    fun postSetPassword(owner: Long?,code: String, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            setLoading(true)
-
-            val bodySMS = HashMap<String, JsonElement>()
-            bodySMS["action"] = JsonPrimitive("change_password")
-            bodySMS["code"] = JsonPrimitive(code)
-
-            val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    owner ?: UserData.login,
-                    "enter_additional_confirmation_code",
-                    "users",
-                    bodySMS
-                )
-            }
-            val resE = buf.success
-            val resEerr = buf.error
-            withContext(Dispatchers.Main) {
-                setLoading(false)
-                if (resE != null) {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings"
-                    )
-                    analyticsHelper.reportEvent(
-                        "change_password_success",
-                        eventParameters
-                    )
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-                    delay(2000)
-                    onSuccess()
-                } else {
-                    if (resEerr != null) {
-                        onError(
-                            resEerr
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    fun postSetPhone(code: String, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            setLoading(true)
-            val bodySMS = HashMap<String, JsonElement>()
-            bodySMS["code"] = JsonPrimitive(code)
-
-            val buf = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    UserData.login,
-                    "verify_phone",
-                    "users",
-                    bodySMS
-                )
-            }
-            val resE = buf.success
-            val resEerr = buf.error
-
-            withContext(Dispatchers.Main) {
-                setLoading(false)
-                if (resE != null) {
-                    val eventParameters = mapOf(
-                        "user_id" to UserData.login,
-                        "profile_source" to "settings"
-                    )
-                    analyticsHelper.reportEvent(
-                        "set_phone_success",
-                        eventParameters
-                    )
-
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    delay(2000)
-
-                    onSuccess()
-                } else {
-                    if (resEerr != null) {
-                        onError(resEerr)
-                    }
-                }
             }
         }
     }

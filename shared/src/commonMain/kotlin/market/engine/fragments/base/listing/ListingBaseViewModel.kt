@@ -313,6 +313,13 @@ class ListingBaseViewModel(
         null
     )
 
+    fun isHideFilterBar(listingState : ScrollState, noFound : Boolean) : Boolean {
+        return listingState.areBarsVisible.value &&
+                activeWindowType.value == ActiveWindowListingType.LISTING ||
+                activeWindowType.value == ActiveWindowListingType.CATEGORY ||
+                noFound
+    }
+
     fun setListingData(data : ListingData){
         _listingData.update {
             it.copy(

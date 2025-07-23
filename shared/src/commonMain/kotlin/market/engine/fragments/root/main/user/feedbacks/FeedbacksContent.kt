@@ -62,6 +62,21 @@ fun FeedbacksContent(
         data.loadState.refresh is LoadStateLoading
     )
 
+    val filters = viewModel.filters.collectAsState()
+    val currentFilter = remember(listingDataState.value) {
+        if (
+            listingData.data.filters.find {
+                it.key == "evaluation"
+            }?.value == "" ||
+            listingData.data.filters.find { it.key == "evaluation" }?.value == null
+        ) {
+            filters.value[0]
+        } else {
+            filters.value[(listingData.data.filters.find { it.key == "evaluation" }?.value?.toInt()
+                ?: 0) + 1]
+        }
+    }
+
     LaunchedEffect(aboutMe){
         if (aboutMe != null) {
             htmlText.setHtml(aboutMe)
@@ -119,9 +134,9 @@ fun FeedbacksContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         getDropdownMenu(
-                            selectedText = viewModel.currentFilter.value,
+                            selectedText = currentFilter,
                             selectedTextDef = stringResource(strings.allFilterParams),
-                            selects = viewModel.filters,
+                            selects = filters.value,
                             onClearItem = {
                                 viewModel.refreshListing()
                             },

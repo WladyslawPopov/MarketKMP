@@ -4,16 +4,12 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.common.AnalyticsFactory
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface VerificationComponent {
     val model : Value<Model>
 
     data class Model(
-        val owner : Long?,
-        val code : String?,
-        var settingsType : String,
         val verificationViewModel: VerificationViewModel,
         val backHandler: BackHandler
     )
@@ -27,15 +23,15 @@ class DefaultVerificationComponent(
     componentContext: ComponentContext,
 ) : VerificationComponent, ComponentContext by componentContext
 {
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
-    private  val verificationViewModel : VerificationViewModel = VerificationViewModel()
+    private  val verificationViewModel : VerificationViewModel = VerificationViewModel(
+        owner = owner,
+        code = code,
+        settingsType = settingsType,
+        component = this
+    )
 
     private val _model = MutableValue(
         VerificationComponent.Model(
-            owner = owner,
-            code = code,
-            settingsType = settingsType,
             verificationViewModel = verificationViewModel,
             backHandler = backHandler
         )
@@ -45,11 +41,5 @@ class DefaultVerificationComponent(
 
     override fun onBack() {
         goBack()
-    }
-
-    init {
-        verificationViewModel.init(settingsType, owner, code)
-        val eventParameters = mapOf("settings_type" to settingsType)
-        analyticsHelper.reportEvent("view_verification_page", eventParameters)
     }
 }

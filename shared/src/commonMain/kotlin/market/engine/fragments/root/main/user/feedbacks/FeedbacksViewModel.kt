@@ -1,13 +1,14 @@
 package market.engine.fragments.root.main.user.feedbacks
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -32,20 +33,17 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long) : CoreVie
 
     private val listingData = listingBaseViewModel.listingData
 
-    val filters = mutableListOf<String>()
-
-    val currentFilter = mutableStateOf("")
+    private val _filters = MutableStateFlow<List<String>>(emptyList())
+    val filters = _filters.asStateFlow()
 
     init {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                filters.addAll(
-                    listOf(
-                        getString(strings.allFilterParams),
-                        getString(strings.positiveFilterParams),
-                        getString(strings.negativeFilterParams),
-                        getString(strings.neutralFilterParams)
-                    )
+                _filters.value = listOf(
+                    getString(strings.allFilterParams),
+                    getString(strings.positiveFilterParams),
+                    getString(strings.negativeFilterParams),
+                    getString(strings.neutralFilterParams)
                 )
             }
             withContext(Dispatchers.Main) {
@@ -53,22 +51,12 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long) : CoreVie
             }
         }
     }
+
     val pagingParamsFlow: Flow<ListingData> = combine(
         listingData,
         updatePage
     ) { listingData, _ ->
-
         resetScroll()
-        currentFilter.value = if(
-            listingData.data.filters.find {
-                it.key == "evaluation" }?.value == "" ||
-            listingData.data.filters.find { it.key == "evaluation" }?.value == null
-        ) {
-            filters[0]
-        }else{
-            filters[(listingData.data.filters.find { it.key == "evaluation" }?.value?.toInt() ?: 0) + 1]
-        }
-
         listingData
     }
 
@@ -85,7 +73,7 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long) : CoreVie
         )
     }.stateIn(
         viewModelScope,
-        started = SharingStarted.Lazily,
+        started = SharingStarted.Eagerly,
         PagingData.empty()
     ).cachedIn(viewModelScope)
 
@@ -107,36 +95,40 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long) : CoreVie
     }
 
     fun setNewFilter(filter : String){
-        currentFilter.value = filter
+        val allFilterKey = _filters.value.getOrNull(0)
+        val positiveFilterKey = _filters.value.getOrNull(2)
+        val negativeFilterKey = _filters.value.getOrNull(1)
+        val neutralFilterKey = _filters.value.getOrNull(3)
 
-        val listingData = listingData.value.data.copy()
+        val originalFilters = listingBaseViewModel.listingData.value.data.filters
 
-        when (filters.indexOf(filter)) {
-            0 -> {
-                listingData.filters.find { it.key == "evaluation" }?.value = ""
-                listingData.filters.find { it.key == "evaluation" }?.interpretation = null
-            }
-
-            1 -> {
-                listingData.filters.find { it.key == "evaluation" }?.value = "0"
-                listingData.filters.find { it.key == "evaluation" }?.interpretation = ""
-            }
-
-            2 -> {
-                listingData.filters.find { it.key == "evaluation" }?.value = "1"
-                listingData.filters.find { it.key == "evaluation" }?.interpretation = ""
-            }
-
-            3 -> {
-                listingData.filters.find { it.key == "evaluation" }?.value = "2"
-                listingData.filters.find { it.key == "evaluation" }?.interpretation = ""
+        val newFilters = originalFilters.map { filterItem ->
+            if (filterItem.key == "evaluation") {
+                val newEvaluationFilter = filterItem.copy()
+                when (filter) {
+                    allFilterKey -> {
+                        newEvaluationFilter.value = ""
+                        newEvaluationFilter.interpretation = null
+                    }
+                    positiveFilterKey -> {
+                        newEvaluationFilter.value = "1"
+                        newEvaluationFilter.interpretation = ""
+                    }
+                    negativeFilterKey -> {
+                        newEvaluationFilter.value = "0"
+                        newEvaluationFilter.interpretation = ""
+                    }
+                    neutralFilterKey -> {
+                        newEvaluationFilter.value = "2"
+                        newEvaluationFilter.interpretation = ""
+                    }
+                }
+                newEvaluationFilter
+            } else {
+                filterItem
             }
         }
 
-        listingBaseViewModel.setListingData(
-            listingBaseViewModel.listingData.value.copy(
-                data = listingData
-            )
-        )
+        listingBaseViewModel.applyFilters(newFilters)
     }
 }

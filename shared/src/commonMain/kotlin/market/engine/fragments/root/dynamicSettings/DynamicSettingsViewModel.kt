@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.common.Platform
 import market.engine.core.data.constants.errorToastItem
@@ -379,26 +380,14 @@ class DynamicSettingsViewModel(
 
                         delay(1500)
 
-                        when (settingsType) {
-                            "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" -> {
-                                setUpPage()
-                            }
-                            "set_phone" -> {
-                                component.goToVerificationPage("set_phone",owner, code)
-                            }
+                        val body = payload.body?.jsonObject["action"]?.jsonPrimitive?.content
 
-                            "set_password", "forgot_password", "reset_password" -> {
-                                if (payload.body != null) {
-                                    component.goToVerificationPage("set_password",owner, code)
-                                } else {
-                                    component.onBack()
-                                }
-                            }
-
-                            else -> {
-                                component.onBack()
-                            }
+                        if (body?.isNotBlank() == true) {
+                            component.goToVerificationPage(body,owner, code)
+                        } else {
+                            component.onBack()
                         }
+
                     } else {
                         val eventParameters = mapOf(
                             "user_id" to UserData.login,

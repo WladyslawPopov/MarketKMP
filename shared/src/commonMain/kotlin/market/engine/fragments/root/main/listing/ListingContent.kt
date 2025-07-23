@@ -11,8 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
@@ -20,15 +23,14 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.widgets.filterContents.search.SearchContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
+import market.engine.fragments.base.listing.ListingNotFoundContent
 import market.engine.fragments.base.screens.OnError
-import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SubCategoryBar
@@ -39,7 +41,6 @@ import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.items.offer_Items.PublicOfferItemGrid
 import market.engine.widgets.items.offer_Items.PublicOfferItem
-import org.jetbrains.compose.resources.stringResource
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,70 +52,65 @@ fun ListingContent(
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
     val viewModel = model.listingViewModel
-    val uiState = viewModel.listingDataState.collectAsState()
-    val errorString = viewModel.errorString.collectAsState()
+    val uiState by viewModel.listingDataState.collectAsState()
+    val errorString by viewModel.errorString.collectAsState()
     val data = viewModel.pagingDataFlow.collectAsLazyPagingItems()
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
-    val err = viewModel.errorMessage.collectAsState()
+    val err by viewModel.errorMessage.collectAsState()
     val listingBaseModel = viewModel.listingBaseVM
-    val updateItem = viewModel.updateItem.collectAsState()
+
     val searchDataState = listingBaseModel.searchDataState.collectAsState()
 
     val isLoadingListing: State<Boolean> =
         rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
     val regions = viewModel.regionOptions.collectAsState()
-    val categoryViewModel = viewModel.listingCategoryModel
-    val listingDataState = listingBaseModel.listingData.collectAsState()
-    val listingData = listingDataState.value.data
-    val searchData = listingDataState.value.searchData
 
-    val activeType = listingBaseModel.activeWindowType.collectAsState()
-    val filterBarUiState = listingBaseModel.filterBarUiState.collectAsState()
+    val categoryViewModel = viewModel.listingCategoryModel
+
+    val listingDataState by listingBaseModel.listingData.collectAsState()
+    val activeType by listingBaseModel.activeWindowType.collectAsState()
+    val updateItem by viewModel.updateItem.collectAsState()
+
+    val listingData = listingDataState.data
+    val searchData = listingDataState.searchData
+
+    val listingState = rememberLazyScrollState(viewModel)
 
     BackHandler(model.backHandler) {
         viewModel.backClick()
     }
 
-    val error: (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage != "") {
-            { OnError(err.value) { viewModel.refresh() } }
+    val error: (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage != "") {
+            { OnError(err) { viewModel.refresh() } }
         } else {
             null
         }
     }
 
-    val noFound = remember(data.loadState.refresh) {
-        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
-            @Composable {
-                if (listingData.filters.any { it.interpretation != null && it.interpretation != "" } ||
-                    searchData.userSearch || searchData.searchString.isNotEmpty()
-                ) {
-                    NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
-                    ) {
-                        listingBaseModel.clearListingData()
-                    }
-                } else {
-                    NoItemsFoundLayout {
-                        viewModel.refresh()
-                    }
-                }
-            }
-        } else {
-            null
-        }
-    }
+    var hasActiveFilters by remember { mutableStateOf(true) }
 
-    val listingState = rememberLazyScrollState(viewModel)
+    val noFound = ListingNotFoundContent(
+        isLoading = data.loadState.refresh is LoadStateNotLoading,
+        itemCount = data.itemCount,
+        activeType = activeType,
+        hasActiveFilters = hasActiveFilters,
+        onClearFilters = listingBaseModel::clearListingData,
+        onRefresh = listingBaseModel::refresh
+    )
 
-    LaunchedEffect(listingDataState.value) {
+
+    LaunchedEffect(listingDataState) {
         categoryViewModel.updateFromSearchData(searchData)
         categoryViewModel.initialize(listingData.filters)
+
+        hasActiveFilters = listingData.filters.any { it.interpretation?.isNotBlank() == true } ||
+                searchData.userSearch || searchData.searchString.isNotEmpty()
     }
 
-    when (activeType.value) {
+    when (activeType) {
         ActiveWindowListingType.FILTERS -> {
             FilterListingContent(
                 modifier = Modifier.padding(top = TopAppBarDefaults.TopAppBarExpandedHeight),
@@ -152,14 +148,14 @@ fun ListingContent(
         else -> {
             EdgeToEdgeScaffold(
                 modifier = modifier.fillMaxSize(),
-                isLoading = isLoadingListing.value && activeType.value == ActiveWindowListingType.LISTING,
-                toastItem = toastItem.value,
+                isLoading = isLoadingListing.value && activeType == ActiveWindowListingType.LISTING,
+                toastItem = toastItem,
                 onRefresh = viewModel::updatePage,
                 error = error,
                 noFound = noFound,
                 topBar = {
                     SimpleAppBar(
-                        data = uiState.value.appBarData,
+                        data = uiState.appBarData,
                         color = if (!listingState.areBarsVisible.value)
                             colors.primaryColor.copy(alphaBars)
                         else
@@ -173,18 +169,19 @@ fun ListingContent(
                         }
                     }
 
+                    val filterBarUiState by listingBaseModel.filterBarUiState.collectAsState()
+
                     FiltersBar(
-                        filterBarUiState.value,
-                        isVisible = listingState.areBarsVisible.value &&
-                                activeType.value == ActiveWindowListingType.LISTING ||
-                                activeType.value == ActiveWindowListingType.CATEGORY
+                        filterBarUiState,
+                        isVisible = listingBaseModel.isHideFilterBar(listingState, noFound != null)
                     )
                 }
-            ) { contentPadding ->
-                when (activeType.value) {
+            ) {
+                contentPadding ->
+                when (activeType) {
                     ActiveWindowListingType.CATEGORY -> {
                         AnimatedVisibility(
-                            activeType.value == ActiveWindowListingType.CATEGORY,
+                            activeType == ActiveWindowListingType.CATEGORY,
                             enter = expandVertically(),
                             exit = shrinkVertically()
                         ) {
@@ -211,12 +208,12 @@ fun ListingContent(
                                 if (listingBaseModel.listingType.value == 0) {
                                     PublicOfferItem(
                                         offer,
-                                        updateItem.value,
+                                        updateItem,
                                     )
                                 } else {
                                     PublicOfferItemGrid(
                                         offer,
-                                        updateItem.value,
+                                        updateItem,
                                     )
                                 }
                             },
@@ -232,8 +229,8 @@ fun ListingContent(
                 }
 
                 CreateSubscribeDialog(
-                    errorString.value != "",
-                    errorString.value,
+                    errorString != "",
+                    errorString,
                     onDismiss = {
                         viewModel.clearErrorSubDialog()
                     },

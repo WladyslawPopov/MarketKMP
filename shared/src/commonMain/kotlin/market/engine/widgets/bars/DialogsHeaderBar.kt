@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.messenger
+package market.engine.widgets.bars
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -31,7 +32,7 @@ fun DialogsHeader(
             .clickable {
                 headerItem.onClick()
             }
-            .background(color = colors.white)
+            .background(colors.white.copy(alphaBars))
             .fillMaxWidth().padding(dimens.smallPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly

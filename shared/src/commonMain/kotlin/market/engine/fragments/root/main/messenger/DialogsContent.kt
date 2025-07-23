@@ -33,6 +33,7 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.flow.collectLatest
+import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -44,8 +45,11 @@ import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.widgets.bars.DialogsHeader
+import market.engine.widgets.bars.MessengerBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.filterContents.CustomBottomSheet
+import market.engine.widgets.items.DialogItem
 import market.engine.widgets.items.SeparatorDialogItem
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.texts.TextAppBar
@@ -130,7 +134,7 @@ fun DialogsContent(
         topBar = {
             SimpleAppBar(
                 data = appBarData,
-                color = colors.white
+                color = colors.white.copy(alphaBars)
             ){
                 if (conversation?.interlocutor != null) {
                     UserRow(
@@ -165,6 +169,7 @@ fun DialogsContent(
         noFound = noFound,
         isLoading = isLoading.value,
         toastItem = toastItem.value,
+        showContentWhenLoading = true,
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->
         CustomBottomSheet(
@@ -220,7 +225,10 @@ fun DialogsContent(
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .background(colors.primaryColor.copy(0.5f))
+                        .background(
+                            colors.primaryColor.copy(alphaBars),
+                            MaterialTheme.shapes.medium
+                        )
                         .clip(MaterialTheme.shapes.medium)
                         .onSizeChanged {
                             val newHeight = with(density) { it.height.toDp() }
@@ -231,7 +239,8 @@ fun DialogsContent(
                 ) {
                     MessengerBar(
                         data = messageBarData.value,
-                        events = viewModel.messageBarEvents
+                        events = viewModel.messageBarEvents,
+                        isLoading = isLoading.value
                     )
                 }
             }

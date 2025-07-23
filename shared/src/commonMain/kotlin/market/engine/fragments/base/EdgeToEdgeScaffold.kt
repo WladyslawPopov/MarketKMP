@@ -40,6 +40,7 @@ fun EdgeToEdgeScaffold(
     toastItem: ToastItem? = null,
     isLoading : Boolean = false,
     onRefresh: () -> Unit = {},
+    showContentWhenLoading: Boolean = false,
     topBar: (@Composable () -> Unit)? = null,
     error: (@Composable () -> Unit)? = null,
     noFound: (@Composable () -> Unit)? = null,
@@ -99,7 +100,7 @@ fun EdgeToEdgeScaffold(
         )
         {
             AnimatedVisibility(
-                visible = !isLoading,
+                visible = !isLoading || showContentWhenLoading,
                 enter = fadeIn(),
                 exit = fadeOut()
             )

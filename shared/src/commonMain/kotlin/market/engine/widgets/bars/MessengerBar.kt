@@ -1,11 +1,10 @@
-package market.engine.fragments.root.main.messenger
+package market.engine.widgets.bars
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -37,7 +36,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun MessengerBar(
     data: MessengerBarState,
-    events: MessengerBarEvents
+    events: MessengerBarEvents,
+    isLoading: Boolean
 ) {
     val messageTextState = data.messageTextState
     val imagesUpload = data.imagesUpload
@@ -126,7 +126,7 @@ fun MessengerBar(
         SmallIconButton(
             drawables.sendMesIcon,
             colors.black,
-            enabled = messageTextState.trim().isNotEmpty(),
+            enabled = messageTextState.trim().isNotEmpty() && !isLoading,
             modifierIconSize = Modifier.size(dimens.mediumIconSize),
         ) {
             events.sendMessage()

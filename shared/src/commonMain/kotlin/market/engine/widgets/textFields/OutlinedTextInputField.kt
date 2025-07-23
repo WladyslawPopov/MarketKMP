@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -137,11 +136,7 @@ fun OutlinedTextInputField(
                 unfocusedBorderColor = colors.black,
                 focusedBorderColor = colors.textA0AE,
                 unfocusedTextColor = colors.black,
-                focusedTextColor = colors.black,
-                selectionColors = TextSelectionColors(
-                    handleColor = colors.promoHighlight,
-                    backgroundColor = colors.promoHighlight.copy(alpha = 0.4f)
-                )
+                focusedTextColor = colors.black
             ),
             modifier = if(focusRequester != null) Modifier
                 .widthIn(max = 600.dp).fillMaxWidth()
