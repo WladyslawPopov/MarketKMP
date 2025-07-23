@@ -67,7 +67,7 @@ fun MyOrdersContent(
 
     val listingState = rememberLazyScrollState(viewModel)
 
-    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh, activeType) {
         when {
             activeType == ActiveWindowListingType.LISTING -> {
                 if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {

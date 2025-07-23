@@ -75,6 +75,12 @@ class FavViewModel(
 
     val activeType = listingBaseViewModel.activeWindowType
 
+    val offerListFilter = Filter(
+        "list_id",
+        "$idList",
+        "",
+        null
+    )
 
     val filtersCategoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
@@ -140,11 +146,7 @@ class FavViewModel(
 
                 FavScreenType.FAV_LIST -> {
                     LD(
-                        filters = buildList {
-                            add(
-                                Filter("list_id", "$idList", "", null)
-                            )
-                        },
+                        filters = OfferFilters.getByTypeFilter(null) + offerListFilter,
                         methodServer = "get_cabinet_listing_in_list",
                         objServer = "offers"
                     )

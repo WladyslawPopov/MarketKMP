@@ -60,7 +60,7 @@ fun SubscriptionsContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh, activeType) {
 
         when {
             activeType == ActiveWindowListingType.LISTING -> {

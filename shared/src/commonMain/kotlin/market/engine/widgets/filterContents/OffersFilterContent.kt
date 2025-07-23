@@ -50,13 +50,11 @@ import org.jetbrains.compose.resources.stringResource
 fun OfferFilterContent(
     initialFilters: List<Filter>,
     filtersCategoryState: CategoryState,
-    typeFilters: LotsType,
+    typeFilters: LotsType?,
     modifier: Modifier = Modifier,
     onClose: (newFilters : List<Filter>) -> Unit,
 ) {
     var listingData by remember { mutableStateOf(initialFilters.map { it.copy() }) }
-
-    val isRefreshing = remember { mutableStateOf(false) }
 
     val focusManager: FocusManager = LocalFocusManager.current
 
@@ -99,51 +97,46 @@ fun OfferFilterContent(
     val setNewType: (String, String) -> Unit = { type, choice->
         when(type){
             "with_sales" ->{
-                listingData.find { it.key == "with_sales" }?.value = choice
-                listingData.find { it.key == "with_sales" }?.interpretation = myOfferExpandChoice.find { it.first == choice }?.second
-                listingData.find { it.key == "without_sales" }?.value = ""
-                listingData.find { it.key == "without_sales" }?.interpretation = null
+                listingData = listingData.map { filter ->
+                    when(filter.key){
+                        "with_sales" -> filter.copy(
+                            value = choice,
+                            interpretation = myOfferExpandChoice.find { it.first == choice }?.second
+                        )
+                        "without_sales" -> filter.copy(value = "", interpretation = null)
+                        else -> filter.copy()
+                    }
+                }
             }
             "without_sales" ->{
-                listingData.find { it.key == "without_sales" }?.value = choice
-                listingData.find { it.key == "without_sales" }?.interpretation = myOfferExpandChoice.find { it.first == choice }?.second
-                listingData.find { it.key == "with_sales" }?.value = ""
-                listingData.find { it.key == "with_sales" }?.interpretation = null
+                listingData = listingData.map { filter ->
+                    when(filter.key){
+                        "without_sales" -> filter.copy(
+                            value = choice,
+                            interpretation = myOfferExpandChoice.find { it.first == choice }?.second
+                        )
+                        "with_sales" -> filter.copy(value = "", interpretation = null)
+                        else -> filter.copy()
+                    }
+                }
             }
             "clear" ->{
-                listingData.find { it.key == "with_sales" }?.value = ""
-                listingData.find { it.key == "with_sales" }?.interpretation = null
-                listingData.find { it.key == "without_sales" }?.value = ""
-                listingData.find { it.key == "without_sales" }?.interpretation = null
+                listingData = listingData.map {
+                    when(it.key){
+                        "without_sales" -> it.copy(value = "", interpretation = null)
+                        "with_sales" -> it.copy(value = "", interpretation = null)
+                        else -> it.copy()
+                    }
+                }
             }
         }
     }
 
-    val defCat = stringResource(strings.categoryMain)
-
     val openCategory = remember { mutableStateOf(filtersCategoryState.openCategory) }
-
-    val trigger = remember { mutableStateOf(0) }
 
     val viewModel = filtersCategoryState.categoryViewModel
 
-    val activeCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
-    val selectedCategory = remember { mutableStateOf(listingData.find { it.key == "category" }?.interpretation ?: defCat) }
-    val selectedType = remember { mutableStateOf(listingData.find { it.key == "sale_type" }?.interpretation ?: offersType[0].second) }
-
-    val selectedFilterKey = remember {
-        mutableStateOf(
-            listingData.find { it.key == "state" }?.value
-        )
-    }
-
-    val expandChoice = remember {
-        mutableStateOf(
-            myOfferExpandChoice.find { f->
-                listingData.find { it.key == f.first && it.interpretation != null } != null
-            }?.first
-        )
-    }
+    val defCat = stringResource(strings.categoryMain)
 
     AnimatedVisibility(
         visible = true,
@@ -164,9 +157,7 @@ fun OfferFilterContent(
                     title = stringResource(strings.filter),
                     isShowClearBtn = isShowClear.value,
                     onClear = {
-                        OfferFilters.clearTypeFilter(typeFilters)
                         listingData = OfferFilters.getByTypeFilter(typeFilters)
-                        isRefreshing.value = true
                         isShowClear.value = false
                         onClose(listingData)
                     },
@@ -191,17 +182,18 @@ fun OfferFilterContent(
                         onCompleted = {
                             val sd = viewModel.searchData.value
                             if (sd.searchCategoryID != 1L) {
-                                listingData.find { it.key == "category" }?.value =
-                                    sd.searchCategoryID.toString()
-                                listingData.find { it.key == "category" }?.interpretation =
-                                    sd.searchCategoryName
-                                listingData.find { it.key == "category" }?.operation =
-                                    sd.searchIsLeaf.toString()
+                                listingData = listingData.map {
+                                    if(it.key == "category"){
+                                        it.copy(
+                                            value = sd.searchCategoryID.toString(),
+                                            interpretation = sd.searchCategoryName,
+                                            operation =  sd.searchIsLeaf.toString()
+                                        )
+                                    }else{
+                                        it.copy()
+                                    }
+                                }
                             }
-
-                            selectedCategory.value = sd.searchCategoryName
-                            activeCategory.value = sd.searchCategoryID
-                            trigger.value++
                             openCategory.value = false
                         }
                     )
@@ -231,13 +223,12 @@ fun OfferFilterContent(
                                                 favExpandChoice.forEach { pair ->
                                                     RadioOptionRow(
                                                         pair,
-                                                        selectedFilterKey.value
+                                                        listingData.find { it.key == "state" }?.value
                                                     ) { _, choice ->
-                                                        listingData.find { it.key == "state" }?.value =
-                                                            choice
-                                                        selectedFilterKey.value = choice
+                                                        listingData = listingData.map {
+                                                            if(it.key == "state") it.copy(value = choice) else it.copy()
+                                                        }
                                                         isShowClear.value = checkSize()
-                                                        isRefreshing.value = true
                                                     }
                                                 }
                                             }
@@ -254,21 +245,23 @@ fun OfferFilterContent(
                                         onExpandChange = { isExpanded2 = !isExpanded2 },
                                         content = {
                                             Column {
+                                                val choice = remember(listingData) {
+                                                    myOfferExpandChoice.find { f ->
+                                                        listingData.find { it.key == f.first && it.interpretation != null } != null
+                                                    }?.first
+                                                }
+
                                                 myOfferExpandChoice.forEach { pair ->
                                                     RadioOptionRow(
                                                         pair,
-                                                        expandChoice.value
+                                                        choice
                                                     ) { isChecked, choice ->
                                                         if (isChecked) {
                                                             setNewType("clear", choice)
-                                                            expandChoice.value = null
                                                         } else {
-                                                            expandChoice.value = choice
                                                             setNewType(choice, choice)
                                                         }
-
                                                         isShowClear.value = checkSize()
-                                                        isRefreshing.value = true
                                                     }
                                                 }
                                             }
@@ -281,29 +274,163 @@ fun OfferFilterContent(
                         }
 
                         item {
-                            InputsOfferFilterContent(
-                                listingData,
-                                trigger.value,
-                                onFiltersUpdated = {
-                                    trigger.value++
-                                    isRefreshing.value = true
-                                    isShowClear.value = checkSize()
-                                },
-                                openCategory = {
-                                    openCategory.value = true
-                                },
-                                clearCategory = {
-                                    listingData.find { it.key == "category" }?.value = ""
-                                    listingData.find { it.key == "category" }?.interpretation =
-                                        null
-                                    listingData.find { it.key == "category" }?.operation = null
-                                    filtersCategoryState.categoryViewModel.resetToRoot()
-
-                                    activeCategory.value = 1L
-                                    selectedCategory.value = defCat
-                                    trigger.value++
-                                }
+                            Column(
+                                modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                             )
+                            {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                )
+                                {
+                                    val idTextState = remember(listingData) {
+                                        mutableStateOf(listingData.find { it.key == "id"}?.value ?: "")
+                                    }
+                                    val nameTextState = remember(listingData) {
+                                        mutableStateOf(listingData.find { it.key == "search"}?.value ?: "")
+                                    }
+                                    val offerId = stringResource(strings.offerIdParameterName)
+                                    val offerName = stringResource(strings.offerNameParameterName)
+
+                                    TextFieldWithState(
+                                        label = offerId,
+                                        textState = idTextState,
+                                        onTextChange = { text ->
+                                            listingData = if (idTextState.value.isNotBlank()) {
+                                                listingData.map {
+                                                    if(it.key == "id") it.copy(
+                                                        value = text,
+                                                        interpretation = "$offerId: $text"
+                                                    ) else it.copy()
+                                                }
+                                            }else{
+                                                listingData.map {
+                                                    if(it.key == "id") it.copy(
+                                                        value = "",
+                                                        interpretation = null
+                                                    ) else it.copy()
+                                                }
+                                            }
+                                            isShowClear.value = checkSize()
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        isNumber = true
+                                    )
+
+                                    TextFieldWithState(
+                                        label = offerName,
+                                        textState = nameTextState,
+                                        onTextChange = { text ->
+                                            listingData = if (nameTextState.value.isNotBlank()) {
+                                                listingData.map {
+                                                    if(it.key == "search") it.copy(
+                                                        value = text,
+                                                        interpretation = "$offerName: $text"
+                                                    ) else it.copy()
+                                                }
+                                            }else{
+                                                listingData.map {
+                                                    if(it.key == "search") it.copy(
+                                                        value = "",
+                                                        interpretation = null
+                                                    ) else it.copy()
+                                                }
+                                            }
+                                            isShowClear.value = checkSize()
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                )
+                                {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    {
+                                        val sellerLoginTextState = remember(listingData) {
+                                            mutableStateOf(listingData.find { it.key == "seller_login" }?.value ?: "")
+                                        }
+                                        val sellerLogin = stringResource(strings.sellerLoginParameterName)
+
+                                        if (listingData.find { it.key == "seller_login" }?.value != null) {
+                                            TextFieldWithState(
+                                                label = sellerLogin,
+                                                textState = sellerLoginTextState,
+                                                onTextChange = { text ->
+                                                    listingData = if (sellerLoginTextState.value.isNotBlank()) {
+                                                        listingData.map {
+                                                            if(it.key == "seller_login") it.copy(
+                                                                value = text,
+                                                                interpretation = "$sellerLogin: $text"
+                                                            ) else it.copy()
+                                                        }
+                                                    }else{
+                                                        listingData.map {
+                                                            if(it.key == "seller_login") it.copy(
+                                                                value = "",
+                                                                interpretation = null
+                                                            ) else it.copy()
+                                                        }
+                                                    }
+                                                    isShowClear.value = checkSize()
+                                                },
+                                                modifier = Modifier
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    {
+                                        val selectedCategoryID = remember(listingData) {
+                                            listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L
+                                        }
+                                        val selectedCategoryName = remember(listingData) {
+                                            listingData.find { it.key == "category" }?.interpretation ?: defCat
+                                        }
+
+                                        FilterButton(
+                                            selectedCategoryName,
+                                            color = if (selectedCategoryID == 1L)
+                                                colors.simpleButtonColors else colors.themeButtonColors,
+                                            onClick = {
+                                                openCategory.value = true
+                                            },
+                                            onCancelClick = if(selectedCategoryID != 1L){
+                                                {
+                                                    listingData = listingData.map {
+                                                        if (it.key == "category") {
+                                                            it.copy(
+                                                                value = "",
+                                                                interpretation = null,
+                                                                operation = null
+                                                            )
+                                                        } else {
+                                                            it.copy()
+                                                        }
+                                                    }
+                                                    filtersCategoryState.categoryViewModel.resetToRoot()
+                                                }
+                                            }else{
+                                                null
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         item {
@@ -312,36 +439,43 @@ fun OfferFilterContent(
                             Column(
                                 horizontalAlignment = Alignment.Start,
                                 verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                            ) {
+                            )
+                            {
+                                val selectedType = remember(listingData) {
+                                    listingData.find { it.key == "sale_type" }
+                                        ?.interpretation ?: offersType[0].second
+                                }
+
                                 Text(
                                     text = title,
                                     style = MaterialTheme.typography.titleSmall
                                 )
 
                                 getDropdownMenu(
-                                    selectedType.value,
+                                    selectedType,
                                     offersType[0].second,
                                     offersTypeFilterMap,
                                     modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                                     onItemClick = { type ->
                                         offersType.find { it.second == type }?.let { pair ->
-                                            listingData.find { it.key == "sale_type" }?.value =
-                                                pair.first
-                                            listingData.find { it.key == "sale_type" }?.interpretation =
-                                                pair.second
-                                            selectedType.value = pair.second
+                                            listingData = listingData.map {
+                                                if(it.key == "sale_type") it.copy(
+                                                    value = pair.first,
+                                                    interpretation = pair.second
+                                                ) else it.copy()
+                                            }
                                         }
-
-                                        isRefreshing.value = true
+                                        
                                         isShowClear.value = checkSize()
                                     },
                                     onClearItem = {
-                                        listingData.find { it.key == "sale_type" }?.value =
-                                            ""
-                                        listingData.find { it.key == "sale_type" }?.interpretation =
-                                            null
-                                        selectedType.value = offersType[0].second
-                                        isRefreshing.value = true
+                                        listingData = listingData.map {
+                                            if(it.key == "sale_type") it.copy(
+                                                value = "",
+                                                interpretation = null
+                                            ) else it.copy()
+                                        }
+                                        
                                         isShowClear.value = checkSize()
                                     }
                                 )
@@ -360,137 +494,3 @@ fun OfferFilterContent(
         }
     }
 }
-
-@Composable
-fun InputsOfferFilterContent(
-    filters: List<Filter>,
-    trigger: Int,
-    onFiltersUpdated: () -> Unit,
-    openCategory: () -> Unit,
-    clearCategory: () -> Unit,
-) {
-    if (trigger < 0) return
-    val defCat = stringResource(strings.categoryMain)
-    val idTextState = remember(trigger) { mutableStateOf(filters.find { it.key == "id"}?.value ?: "") }
-    val nameTextState = remember(trigger) { mutableStateOf(filters.find { it.key == "search"}?.value ?: "") }
-    val sellerLoginTextState = remember(trigger) { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
-    val selectedCategoryID = remember(trigger) { mutableStateOf(filters.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L) }
-    val selectedCategoryName = remember(trigger) { mutableStateOf(filters.find { it.key == "category" }?.interpretation ?: defCat) }
-
-    Column(
-        modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val offerId = stringResource(strings.offerIdParameterName)
-            TextFieldWithState(
-                label = offerId,
-                textState = idTextState,
-                onTextChange = { text ->
-                    if (idTextState.value.isNotBlank()) {
-                        filters.find { it.key == "id"}?.apply {
-                            value = text
-                            interpretation = "$offerId: $text"
-                        }
-                    }else{
-                        filters.find { it.key == "id" }.let {
-                            it?.value = ""
-                            it?.interpretation = null
-                        }
-                    }
-
-                    idTextState.value = text
-                    onFiltersUpdated()
-                },
-                modifier = Modifier.weight(1f),
-                isNumber = true
-            )
-
-            val offerName = stringResource(strings.offerNameParameterName)
-            TextFieldWithState(
-                label = offerName,
-                textState = nameTextState,
-                onTextChange = { text ->
-                    if (nameTextState.value.isNotBlank()) {
-                        filters.find { filter -> filter.key == "search"}?.apply {
-                            value = text
-                            interpretation = "$offerName: $text"
-                        }
-                    }else{
-                        filters.find { it.key == "search" }.let {
-                            it?.value = ""
-                            it?.interpretation = null
-                        }
-                    }
-                    nameTextState.value = text
-                    onFiltersUpdated()
-                },
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.weight(1f)
-            ) {
-                val sellerLogin = stringResource(strings.sellerLoginParameterName)
-                if (filters.find { it.key == "seller_login" }?.value != null) {
-                    TextFieldWithState(
-                        label = sellerLogin,
-                        textState = sellerLoginTextState,
-                        onTextChange = { text ->
-                            if (sellerLoginTextState.value.isNotBlank()) {
-                                filters.find { filter -> filter.key == "seller_login" }?.apply {
-                                    value = text
-                                    interpretation = "$sellerLogin: $text"
-                                }
-                            } else {
-                                filters.find { it.key == "seller_login" }.let {
-                                    it?.value = ""
-                                    it?.interpretation = null
-                                }
-                            }
-                            sellerLoginTextState.value = text
-                            onFiltersUpdated()
-                        },
-                        modifier = Modifier
-                    )
-                }
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.weight(1f)
-            ) {
-                FilterButton(
-                    selectedCategoryName.value,
-                    color = if (selectedCategoryID.value == 1L)
-                        colors.simpleButtonColors else colors.themeButtonColors,
-                    onClick = {
-                        openCategory()
-                    },
-                    onCancelClick = if(selectedCategoryID.value != 1L){
-                       clearCategory
-                    }else{
-                        null
-                    }
-                )
-            }
-        }
-    }
-}
-
-
-

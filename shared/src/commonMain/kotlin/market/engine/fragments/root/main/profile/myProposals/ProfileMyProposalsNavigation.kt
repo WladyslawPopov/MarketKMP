@@ -78,7 +78,7 @@ fun ProfileMyProposalsNavigation(
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     items(tabs){ tab ->

@@ -99,21 +99,17 @@ class MyOrdersViewModel(
             listingBaseViewModel.setListingData(
                 listingBaseViewModel.listingData.value.copy(
                     data = LD(
-                        filters = buildList {
-                            val filters = if (orderSelected != null) {
-                                DealFilters.getByTypeFilter(type).map {
-                                    if (it.key == "id")
-                                        it.copy(
-                                            value = orderSelected.toString(),
-                                            interpretation = "id: $orderSelected"
-                                        )
-                                    else it.copy()
-                                }
-                            } else {
-                                DealFilters.getByTypeFilter(type)
+                        filters = if (orderSelected != null) {
+                            DealFilters.getByTypeFilter(type).map {
+                                if (it.key == "id")
+                                    it.copy(
+                                        value = orderSelected.toString(),
+                                        interpretation = "id: $orderSelected"
+                                    )
+                                else it.copy()
                             }
-
-                            addAll(filters)
+                        } else {
+                            DealFilters.getByTypeFilter(type)
                         },
                         methodServer = buildString {
                             val method = if (type in arrayOf(

@@ -15,6 +15,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
+import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
@@ -28,6 +29,7 @@ import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
 import org.jetbrains.compose.resources.stringResource
+import kotlin.collections.plus
 
 @Composable
 fun FavoritesContent(
@@ -36,6 +38,7 @@ fun FavoritesContent(
 ) {
     val modelState = component.model.subscribeAsState()
     val model = modelState.value
+    val type = model.favType
     val viewModel = model.favViewModel
     val listingBaseViewModel = viewModel.listingBaseViewModel
     val categoryState = viewModel.filtersCategoryState
@@ -62,7 +65,7 @@ fun FavoritesContent(
         viewModel.onBackNavigation()
     }
 
-    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh, activeType) {
 
         when {
             activeType == ActiveWindowListingType.LISTING -> {
@@ -107,10 +110,19 @@ fun FavoritesContent(
             OfferFilterContent(
                 ld.filters,
                 categoryState,
-                LotsType.FAVORITES,
+                if(type == FavScreenType.FAVORITES) LotsType.FAVORITES else null,
                 modifier
             ) { newFilters ->
-                listingBaseViewModel.applyFilters(newFilters)
+                if(type == FavScreenType.FAV_LIST){
+                    if (newFilters.contains(viewModel.offerListFilter)){
+                        listingBaseViewModel.applyFilters(newFilters)
+                    }else{
+                        listingBaseViewModel.applyFilters(newFilters + viewModel.offerListFilter)
+
+                    }
+                }else{
+                    listingBaseViewModel.applyFilters(newFilters)
+                }
             }
         }
 

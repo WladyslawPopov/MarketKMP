@@ -54,8 +54,6 @@ fun OrderFilterContent(
 ) {
     var filters by remember { mutableStateOf(initialFilters.map { it.copy() }) }
 
-    val isRefreshing = remember { mutableStateOf(false) }
-
     val focusManager: FocusManager = LocalFocusManager.current
 
     val checkSize: () -> Boolean = {
@@ -64,40 +62,6 @@ fun OrderFilterContent(
 
     val isShowClear = remember { mutableStateOf(checkSize()) }
 
-    val sellerLoginTextState =
-        remember { mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "") }
-    val sellerIdTextState =
-        remember { mutableStateOf(filters.find { it.key == "seller_id" }?.value ?: "") }
-
-    val buyerIdTextState =
-        remember { mutableStateOf(filters.find { it.key == "buyer_id" }?.value ?: "") }
-    val buyerLoginTextState =
-        remember { mutableStateOf(filters.find { it.key == "buyer_login" }?.value ?: "") }
-
-    val idOrderTextState = remember { mutableStateOf(filters.find { it.key == "id" }?.value ?: "") }
-
-    val idOfferTextState =
-        remember { mutableStateOf(filters.find { it.key == "offer_id" }?.value ?: "") }
-    val nameOfferTextState =
-        remember { mutableStateOf(filters.find { it.key == "search" }?.value ?: "") }
-
-    val from = stringResource(strings.fromAboutTimeLabel)
-    val to = stringResource(strings.toAboutTimeLabel)
-
-    val showDateDialog: MutableState<String?> = remember { mutableStateOf(null) }
-
-    val fromThisDateTextState = remember {
-        mutableStateOf(
-            filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation
-            ?: from
-        )
-    }
-    val toThisDateTextState = remember {
-        mutableStateOf(
-            filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation
-            ?: to
-        )
-    }
 
     AnimatedVisibility(
         visible = true,
@@ -120,9 +84,7 @@ fun OrderFilterContent(
                     title = stringResource(strings.filter),
                     isShowClearBtn = isShowClear.value,
                     onClear = {
-                        DealFilters.clearTypeFilter(typeFilters)
                         filters = DealFilters.getByTypeFilter(typeFilters)
-                        isRefreshing.value = true
                         isShowClear.value = checkSize()
                         onClose(filters)
                     },
@@ -148,6 +110,14 @@ fun OrderFilterContent(
                         ) {
                             val sellerId = stringResource(strings.sellerIdParameterName)
                             val sellerLogin = stringResource(strings.sellerLoginParameterName)
+                            val sellerLoginTextState =
+                                remember(filters) {
+                                    mutableStateOf(filters.find { it.key == "seller_login" }?.value ?: "")
+                                }
+                            val sellerIdTextState =
+                                remember(filters) {
+                                    mutableStateOf(filters.find { it.key == "seller_id" }?.value ?: "")
+                                }
 
                             if (filters.find { it.key == "seller_id" }?.value != null) {
                                 TextFieldWithState(
@@ -166,8 +136,6 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        sellerIdTextState.value = text
-                                        isRefreshing.value = true
                                         isShowClear.value = checkSize()
                                     },
                                     isNumber = true,
@@ -192,8 +160,6 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        sellerLoginTextState.value = text
-                                        isRefreshing.value = true
                                         isShowClear.value = checkSize()
                                     },
                                     modifier = Modifier.weight(1f)
@@ -209,6 +175,15 @@ fun OrderFilterContent(
                         ) {
                             val buyerId = stringResource(strings.buyerIdParameterName)
                             val buyerLogin = stringResource(strings.buyerLoginParameterName)
+
+                            val buyerIdTextState =
+                                remember(filters) {
+                                    mutableStateOf(filters.find { it.key == "buyer_id" }?.value ?: "")
+                                }
+                            val buyerLoginTextState =
+                                remember(filters) {
+                                    mutableStateOf(filters.find { it.key == "buyer_login" }?.value ?: "")
+                                }
 
                             if (filters.find { it.key == "buyer_id" }?.value != null) {
                                 TextFieldWithState(
@@ -227,8 +202,7 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        buyerIdTextState.value = text
-                                        isRefreshing.value = true
+                                        
                                         isShowClear.value = checkSize()
                                     },
                                     isNumber = true,
@@ -253,8 +227,7 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        buyerLoginTextState.value = text
-                                        isRefreshing.value = true
+
                                         isShowClear.value = checkSize()
                                     },
                                     modifier = Modifier.weight(1f),
@@ -270,6 +243,14 @@ fun OrderFilterContent(
                         ) {
                             val offerId = stringResource(strings.offerIdParameterName)
                             val orderId = stringResource(strings.orderIdParameterName)
+                            val idOrderTextState = remember(filters) {
+                                mutableStateOf(filters.find { it.key == "id" }?.value ?: "")
+                            }
+
+                            val idOfferTextState =
+                                remember(filters) {
+                                    mutableStateOf(filters.find { it.key == "offer_id" }?.value ?: "")
+                                }
 
                             if (filters.find { it.key == "offer_id" }?.value != null) {
                                 TextFieldWithState(
@@ -288,8 +269,6 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        idOfferTextState.value = text
-                                        isRefreshing.value = true
                                         isShowClear.value = checkSize()
                                     },
                                     isNumber = true,
@@ -313,7 +292,6 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        isRefreshing.value = true
                                         isShowClear.value = checkSize()
                                     },
                                     isNumber = true,
@@ -329,6 +307,10 @@ fun OrderFilterContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             val offerTitle = stringResource(strings.searchOfferNameParameterName)
+                            val nameOfferTextState =
+                                remember(filters) {
+                                    mutableStateOf(filters.find { it.key == "search" }?.value ?: "")
+                                }
 
                             if (filters.find { it.key == "search" }?.value != null) {
                                 TextFieldWithState(
@@ -347,7 +329,6 @@ fun OrderFilterContent(
                                                 it?.interpretation = null
                                             }
                                         }
-                                        isRefreshing.value = true
                                         isShowClear.value = checkSize()
                                     },
                                     modifier = Modifier.weight(1f),
@@ -364,12 +345,31 @@ fun OrderFilterContent(
                         }
                     }
                     item {
+                        val from = stringResource(strings.fromAboutTimeLabel)
+                        val to = stringResource(strings.toAboutTimeLabel)
+
+                        val showDateDialog: MutableState<String?> = remember { mutableStateOf(null) }
+
+                        val fromThisDateTextState = remember(filters) {
+                            mutableStateOf(
+                                filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation
+                                    ?: from
+                            )
+                        }
+                        val toThisDateTextState = remember(filters) {
+                            mutableStateOf(
+                                filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation
+                                    ?: to
+                            )
+                        }
+
                         Column(
                             modifier = Modifier.widthIn(min = 300.dp, max = 500.dp)
                                 .padding(dimens.mediumPadding),
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                             horizontalAlignment = Alignment.Start
-                        ) {
+                        )
+                        {
                             DynamicLabel(
                                 stringResource(strings.dateCreatedLabel),
                                 false,
@@ -398,6 +398,37 @@ fun OrderFilterContent(
                                 }
                             }
                         }
+
+                        DateDialog(
+                            showDialog = showDateDialog.value != null,
+                            onDismiss = {
+                                showDateDialog.value = null
+                            },
+                            onSucceed = { futureTimeInSeconds ->
+                                if (showDateDialog.value == "from") {
+                                    filters = filters.map {
+                                        if (it.key == "created_ts" && it.operation == "gte") {
+                                            it.copy(
+                                                value = futureTimeInSeconds.toString(),
+                                                interpretation = "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                                            )
+                                        } else it.copy()
+                                    }
+                                } else {
+                                    filters = filters.map {
+                                        if (it.key == "created_ts" && it.operation == "lte") {
+                                            it.copy(
+                                                value = futureTimeInSeconds.toString(),
+                                                interpretation = "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                                            )
+                                        } else it.copy()
+                                    }
+                                }
+
+                                isShowClear.value = checkSize()
+                                showDateDialog.value = null
+                            }
+                        )
                     }
                 }
 
@@ -407,35 +438,6 @@ fun OrderFilterContent(
                 ) {
                     onClose(filters)
                 }
-
-                DateDialog(
-                    showDialog = showDateDialog.value != null,
-                    onDismiss = {
-                        showDateDialog.value = null
-                    },
-                    onSucceed = { futureTimeInSeconds ->
-                        if (showDateDialog.value == "from") {
-                            fromThisDateTextState.value =
-                                "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
-                            filters.find { it.key == "created_ts" && it.operation == "gte" }?.value =
-                                futureTimeInSeconds.toString()
-                            filters.find { it.key == "created_ts" && it.operation == "gte" }?.interpretation =
-                                fromThisDateTextState.value
-
-                        } else {
-                            toThisDateTextState.value =
-                                "$to: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
-                            filters.find { it.key == "created_ts" && it.operation == "lte" }?.value =
-                                futureTimeInSeconds.toString()
-                            filters.find { it.key == "created_ts" && it.operation == "lte" }?.interpretation =
-                                toThisDateTextState.value
-                        }
-
-                        isRefreshing.value = true
-                        isShowClear.value = checkSize()
-                        showDateDialog.value = null
-                    }
-                )
             }
         }
     }

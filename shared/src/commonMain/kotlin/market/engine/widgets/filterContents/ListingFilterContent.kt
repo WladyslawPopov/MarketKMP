@@ -64,8 +64,6 @@ fun FilterListingContent(
     val isShowClear = remember { mutableStateOf(checkSize()) }
 
     val focusManager: FocusManager = LocalFocusManager.current
-    
-    val isRefreshing = remember { mutableStateOf(false) }
 
     val saleTypeFilters = listOf(
         "starting_price" to stringResource(strings.saleTypeNameFromOne) + " 1 ${
@@ -101,43 +99,8 @@ fun FilterListingContent(
 
     val timeOptions = timeFilterMap.map { it.second }
 
-    val regionSelected = remember { mutableStateOf(listingData.find { it.key == "region" }?.interpretation) }
-
-    val timeNewSelected = remember {
-        mutableStateOf(
-            timeFilterMap.find { time ->
-                time.first == listingData.find { it.key == "new" }?.value
-            }?.second
-        )
-    }
-    val timeNewWithoutRelistedSelected = remember {
-        mutableStateOf(
-            timeFilterMap.find { time ->
-                time.first == listingData.find { it.key == "new_without_relisted" }?.value
-            }?.second
-        )
-    }
-    val timeEndingSelected = remember {
-        mutableStateOf(
-            timeFilterMap.find { time ->
-                time.first == listingData.find { it.key == "ending" }?.value
-            }?.second
-        )
-    }
-
     val scrollState = rememberLazyListState()
 
-    val saleTypeFilterKey = remember {
-        mutableStateOf(
-            saleTypeFilters.find { f->
-                listingData.find {
-                    it.key == f.first &&
-                            it.interpretation != null &&
-                            it.interpretation != ""
-                } != null
-            }?.first
-        )
-    }
 
     var isExpanded1 by remember {
         mutableStateOf(
@@ -211,6 +174,18 @@ fun FilterListingContent(
                             onExpandChange = { isExpanded1 = !isExpanded1 },
                             content = {
                                 Column {
+                                    val saleTypeFilterKey = remember {
+                                        mutableStateOf(
+                                            saleTypeFilters.find { f->
+                                                listingData.find {
+                                                    it.key == f.first &&
+                                                            it.interpretation != null &&
+                                                            it.interpretation != ""
+                                                } != null
+                                            }?.first
+                                        )
+                                    }
+
                                     saleTypeFilters.forEach { pair ->
                                         RadioOptionRow(
                                             pair,
@@ -233,7 +208,6 @@ fun FilterListingContent(
                                                 )
                                             }
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
                                         }
                                     }
                                 }
@@ -275,7 +249,7 @@ fun FilterListingContent(
                                                 listingData
                                             )
                                             isShowClear.value = checkSize()
-                                            isRefreshing.value = true
+                                           
                                         }
                                     }
                                 }
@@ -288,6 +262,8 @@ fun FilterListingContent(
                             horizontalAlignment = Alignment.Start,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
+                            val regionSelected = remember { mutableStateOf(listingData.find { it.key == "region" }?.interpretation) }
+
                             Text(
                                 text = stringResource(strings.regionParameterName),
                                 style = MaterialTheme.typography.titleSmall,
@@ -308,14 +284,13 @@ fun FilterListingContent(
                                     regionSelected.value = newRegion
 
                                     isShowClear.value = checkSize()
-                                    isRefreshing.value = true
+                                   
                                 },
                                 onClearItem = {
                                     listingData.find { it.key == "region" }?.interpretation =
                                         null
                                     regionSelected.value = null
                                     isShowClear.value = checkSize()
-                                    isRefreshing.value = true
                                 }
                             )
                         }
@@ -324,7 +299,6 @@ fun FilterListingContent(
                     item {
                         PriceFilter(listingData) {
                             isShowClear.value = checkSize()
-                            isRefreshing.value = true
                         }
                     }
                     //time filter
@@ -346,6 +320,13 @@ fun FilterListingContent(
                                 ) {
                                     item {
                                         val title = stringResource(strings.offersFor)
+                                        val timeNewSelected = remember {
+                                            mutableStateOf(
+                                                timeFilterMap.find { time ->
+                                                    time.first == listingData.find { it.key == "new" }?.value
+                                                }?.second
+                                            )
+                                        }
 
                                         Column(
                                             modifier = Modifier.fillMaxWidth(),
@@ -372,7 +353,7 @@ fun FilterListingContent(
                                                     timeNewSelected.value = time
 
                                                     isShowClear.value = checkSize()
-                                                    isRefreshing.value = true
+                                                   
                                                 },
                                                 onClearItem = {
                                                     listingData.find { it.key == "new" }?.value =
@@ -382,7 +363,7 @@ fun FilterListingContent(
 
                                                     timeNewSelected.value = null
                                                     isShowClear.value = checkSize()
-                                                    isRefreshing.value = true
+                                                   
                                                 }
                                             )
                                         }
@@ -391,6 +372,15 @@ fun FilterListingContent(
                                     item {
                                         val title =
                                             stringResource(strings.newOffersWithoutRelistedFor)
+
+                                        val timeNewWithoutRelistedSelected = remember {
+                                            mutableStateOf(
+                                                timeFilterMap.find { time ->
+                                                    time.first == listingData.find { it.key == "new_without_relisted" }?.value
+                                                }?.second
+                                            )
+                                        }
+
                                         Column(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalAlignment = Alignment.Start,
@@ -416,7 +406,7 @@ fun FilterListingContent(
                                                     timeNewWithoutRelistedSelected.value = time
 
                                                     isShowClear.value = checkSize()
-                                                    isRefreshing.value = true
+                                                   
                                                 },
                                                 onClearItem = {
                                                     listingData.find { it.key == "new_without_relisted" }?.value =
@@ -427,7 +417,7 @@ fun FilterListingContent(
                                                     timeNewWithoutRelistedSelected.value = null
 
                                                     isShowClear.value = checkSize()
-                                                    isRefreshing.value = true
+                                                   
                                                 }
                                             )
                                         }
@@ -435,6 +425,15 @@ fun FilterListingContent(
 
                                     item {
                                         val title = stringResource(strings.endingWith)
+
+                                        val timeEndingSelected = remember {
+                                            mutableStateOf(
+                                                timeFilterMap.find { time ->
+                                                    time.first == listingData.find { it.key == "ending" }?.value
+                                                }?.second
+                                            )
+                                        }
+
                                         Column(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalAlignment = Alignment.Start,
@@ -460,7 +459,7 @@ fun FilterListingContent(
                                                     timeEndingSelected.value = time
 
                                                     isShowClear.value = checkSize()
-                                                    isRefreshing.value = true
+                                                   
                                                 },
                                                 onClearItem = {
                                                     listingData.find { it.key == "ending" }?.value =
@@ -471,7 +470,7 @@ fun FilterListingContent(
                                                     timeEndingSelected.value = null
 
                                                     isShowClear.value = checkSize()
-                                                    isRefreshing.value = true
+                                                   
                                                 }
                                             )
                                         }

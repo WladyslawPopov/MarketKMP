@@ -16,7 +16,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
-import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.floatingCreateOfferButton
 import market.engine.fragments.base.BackHandler
@@ -56,7 +55,7 @@ fun MyOffersContent(
         viewModel.onBackNavigation()
     }
 
-    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh, activeType) {
         when {
             activeType == ActiveWindowListingType.LISTING -> {
                 if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
@@ -103,7 +102,7 @@ fun MyOffersContent(
             OfferFilterContent(
                 listingData.filters,
                 categoryState,
-                LotsType.FAVORITES,
+                viewModel.type,
                 modifier
             ) { newFilters ->
                 listingBaseViewModel.applyFilters(newFilters)

@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
@@ -38,7 +39,7 @@ fun ProfileSettingsNavigation(
     publicProfileNavigationItems: List<NavigationItem>
 ) {
     val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
-    val selectedTabIndex = remember { mutableStateOf(0) }
+    val selectedTabIndex = rememberSaveable { mutableStateOf(0) }
 
     CustomModalDrawer(
         modifier = modifier,

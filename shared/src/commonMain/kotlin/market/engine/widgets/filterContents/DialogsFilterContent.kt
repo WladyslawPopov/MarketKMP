@@ -44,8 +44,6 @@ fun DialogsFilterContent(
 ) {
     var filters by remember { mutableStateOf(initialFilters.map { it.copy() }) }
 
-    val isRefreshing = remember { mutableStateOf(false) }
-
     val focusManager: FocusManager = LocalFocusManager.current
 
     val checkSize: () -> Boolean = {
@@ -62,19 +60,6 @@ fun DialogsFilterContent(
     var isExpanded by remember {
         mutableStateOf(true)
     }
-
-    val selectedFilterKey = remember {
-        mutableStateOf(
-            typeFilters.find { f->
-                filters.find { it.key == f.first && it.interpretation?.isNotBlank() == true } != null
-            }?.first
-        )
-    }
-
-    val userLoginTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_login" }?.value ?: "") }
-    val userIdTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_id" }?.value ?: "") }
-    val idObjectTextState = remember { mutableStateOf(filters.find { it.key == "object_id"}?.value ?: "") }
-
 
     AnimatedVisibility(
         visible = true,
@@ -98,9 +83,7 @@ fun DialogsFilterContent(
                     isShowClearBtn = isShowClear.value,
                     onClear = {
                         isShowClear.value = false
-                        MsgFilters.clearFilters()
                         filters = MsgFilters.filters
-                        isRefreshing.value = true
                         isShowClear.value = checkSize()
                         onClose(filters)
                     },
@@ -126,6 +109,14 @@ fun DialogsFilterContent(
                             onExpandChange = { isExpanded = !isExpanded },
                             content = {
                                 Column {
+                                    val selectedFilterKey = remember {
+                                        mutableStateOf(
+                                            typeFilters.find { f->
+                                                filters.find { it.key == f.first && it.interpretation?.isNotBlank() == true } != null
+                                            }?.first
+                                        )
+                                    }
+
                                     typeFilters.forEach { pair ->
                                         RadioOptionRow(
                                             pair,
@@ -150,7 +141,7 @@ fun DialogsFilterContent(
                                                     typeFilters.find { it.first == choice }?.second
                                                 selectedFilterKey.value = choice
                                             }
-                                            isRefreshing.value = true
+                                            
                                             isShowClear.value = checkSize()
                                         }
                                     }
@@ -167,6 +158,8 @@ fun DialogsFilterContent(
                         ) {
                             val userId = stringResource(strings.userIdParameterName)
                             val userLogin = stringResource(strings.userLoginParameterName)
+                            val userLoginTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_login" }?.value ?: "") }
+                            val userIdTextState = remember { mutableStateOf(filters.find { it.key == "interlocutor_id" }?.value ?: "") }
 
                             if (filters.find { it.key == "interlocutor_id" }?.value != null) {
                                 TextFieldWithState(
@@ -186,7 +179,7 @@ fun DialogsFilterContent(
                                             }
                                         }
                                         userIdTextState.value = text
-                                        isRefreshing.value = true
+                                        
                                         isShowClear.value = checkSize()
                                     },
                                     isNumber = true,
@@ -212,7 +205,7 @@ fun DialogsFilterContent(
                                             }
                                         }
                                         userLoginTextState.value = text
-                                        isRefreshing.value = true
+                                        
                                         isShowClear.value = checkSize()
                                     },
                                     modifier = Modifier.weight(1f).padding(dimens.smallPadding)
@@ -228,6 +221,7 @@ fun DialogsFilterContent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             val objectId = stringResource(strings.offerOrderIdParameterName)
+                            val idObjectTextState = remember { mutableStateOf(filters.find { it.key == "object_id"}?.value ?: "") }
 
                             if (filters.find { it.key == "object_id" }?.value != null) {
                                 TextFieldWithState(
@@ -247,7 +241,7 @@ fun DialogsFilterContent(
                                             }
                                         }
                                         idObjectTextState.value = text
-                                        isRefreshing.value = true
+                                        
                                         isShowClear.value = checkSize()
                                     },
                                     isNumber = true,

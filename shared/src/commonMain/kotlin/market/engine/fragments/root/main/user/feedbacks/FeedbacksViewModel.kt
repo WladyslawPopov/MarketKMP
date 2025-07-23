@@ -79,7 +79,6 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long) : CoreVie
 
     fun refreshListing(){
         refresh()
-        ReportFilters.clearTypeFilter(type)
         val newFilters = ReportFilters.getByTypeFilter(type)
         newFilters.find { it.key == "user_id" }?.value = userId.toString()
 
