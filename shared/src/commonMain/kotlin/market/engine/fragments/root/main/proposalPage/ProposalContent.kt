@@ -57,11 +57,11 @@ fun ProposalContent(
 
     val toastItem by viewModel.toastItem.collectAsState()
 
-    val subtitle by viewModel.subtitle.collectAsState()
+    val subtitle = viewModel.subtitle.collectAsState()
 
-    val initFields by viewModel.responseFields.collectAsState()
+    val initFields = viewModel.responseFields.collectAsState()
 
-    val selectedChoice by viewModel.selectedChoice.collectAsState()
+    val selectedChoice = viewModel.selectedChoice.collectAsState()
 
     val noFound : (@Composable () -> Unit)? = remember(proposalState) {
         if (proposalState?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
@@ -116,8 +116,9 @@ fun ProposalContent(
             }
 
             val headerItem by viewModel.mesHeaderItem.collectAsState()
-
-            DialogsHeader(headerItem)
+            if(headerItem.title.text.isNotBlank()) {
+                DialogsHeader(headerItem)
+            }
         },
         onRefresh = {
             viewModel.update()
@@ -140,7 +141,7 @@ fun ProposalContent(
         )
         {
             item {
-                if(subtitle.text != "") {
+                if(subtitle.value.text != "") {
                     Row(
                         modifier = Modifier
                             .padding(dimens.smallPadding)
@@ -152,7 +153,7 @@ fun ProposalContent(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            subtitle,
+                            subtitle.value,
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.darkBodyTextColor
                         )
@@ -165,8 +166,8 @@ fun ProposalContent(
                     offer,
                     body,
                     type,
-                    initFields,
-                    selectedChoice,
+                    initFields.value,
+                    selectedChoice.value,
                     isLoading,
                     changeChoice = { b, i ->
                         viewModel.changeChoice(b, i)

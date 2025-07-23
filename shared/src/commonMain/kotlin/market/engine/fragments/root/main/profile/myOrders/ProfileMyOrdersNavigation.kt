@@ -16,6 +16,7 @@ import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import kotlinx.serialization.Serializable
 import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
@@ -97,7 +98,7 @@ fun ProfileMyOrdersNavigation(
 
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ){
                     items(tabs){ tab ->

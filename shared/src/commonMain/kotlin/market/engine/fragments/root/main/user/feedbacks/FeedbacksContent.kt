@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
@@ -35,8 +34,8 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
-import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.rememberLazyScrollState
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.items.FeedbackItem
 import market.engine.widgets.rows.ColumnWithScrollBars
@@ -63,7 +62,7 @@ fun FeedbacksContent(
         data.loadState.refresh is LoadStateLoading
     )
 
-    val filters = viewModel.filters.collectAsState()
+    val filters by viewModel.filters.collectAsState()
 
     val currentFilter = remember(listingDataState) {
         if (
@@ -72,9 +71,9 @@ fun FeedbacksContent(
             }?.value == "" ||
             listingData.filters.find { it.key == "evaluation" }?.value == null
         ) {
-            filters.value[0]
+            filters[0]
         } else {
-            filters.value[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt()
+            filters[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt()
                 ?: 0) + 1]
         }
     }
@@ -97,19 +96,29 @@ fun FeedbacksContent(
         }
     }
 
-    val hasActiveFilters by remember(listingDataState) {
-        mutableStateOf(
-            listingData.filters.any { it.interpretation?.isNotBlank() == true }
-        )
-    }
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
 
-    val noFound = listingNotFoundView(
-        isLoading = data.loadState.refresh is LoadStateNotLoading,
-        itemCount = data.itemCount,
-        hasActiveFilters = hasActiveFilters,
-        onClearFilters = listingBaseViewModel::clearListingData,
-        onRefresh = listingBaseViewModel::refresh
-    )
+        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+            @Composable {
+                if (listingData.filters.find { it.key == "evaluation" }?.value == "") {
+                    NoItemsFoundLayout(
+                        title = stringResource(strings.notFoundFeedbackLabel),
+                        textButton = stringResource(strings.refreshButton)
+                    ) {
+                        viewModel.updatePage()
+                    }
+                } else {
+                    NoItemsFoundLayout(
+                        textButton = stringResource(strings.resetLabel)
+                    ) {
+                        viewModel.refreshListing()
+                    }
+                }
+            }
+        } else {
+            null
+        }
+    }
 
     EdgeToEdgeScaffold(
         topBar = {
@@ -129,7 +138,7 @@ fun FeedbacksContent(
                         getDropdownMenu(
                             selectedText = currentFilter,
                             selectedTextDef = stringResource(strings.allFilterParams),
-                            selects = filters.value,
+                            selects = filters,
                             onClearItem = {
                                 viewModel.refreshListing()
                             },

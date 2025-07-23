@@ -12,7 +12,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -22,15 +21,16 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.widgets.filterContents.search.SearchContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
-import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.listing.rememberLazyScrollState
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SubCategoryBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -40,6 +40,7 @@ import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.items.offer_Items.PublicOfferItemGrid
 import market.engine.widgets.items.offer_Items.PublicOfferItem
+import org.jetbrains.compose.resources.stringResource
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,21 +90,34 @@ fun ListingContent(
         }
     }
 
-    val hasActiveFilters by remember(listingDataState) {
-        mutableStateOf(
-            listingData.filters.any { it.interpretation?.isNotBlank() == true } ||
-                searchData.userSearch || searchData.searchString.isNotEmpty()
-        )
-    }
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+        when {
+            activeType == ActiveWindowListingType.LISTING -> {
+                if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+                    @Composable {
+                        if (listingData.filters.any { it.interpretation?.isNotBlank() == true } ||
+                            searchData.userSearch || searchData.searchString.isNotEmpty()) {
+                            NoItemsFoundLayout(
+                                textButton = stringResource(strings.resetLabel)
+                            ) {
+                                listingBaseModel.clearListingData()
+                            }
+                        } else {
+                            NoItemsFoundLayout {
+                                listingBaseModel.refresh()
+                            }
+                        }
+                    }
+                } else {
+                    null
+                }
+            }
 
-    val noFound = listingNotFoundView(
-        isLoading = data.loadState.refresh is LoadStateNotLoading,
-        itemCount = data.itemCount,
-        activeType = activeType,
-        hasActiveFilters = hasActiveFilters,
-        onClearFilters = listingBaseModel::clearListingData,
-        onRefresh = listingBaseModel::refresh
-    )
+            else -> {
+                null
+            }
+        }
+    }
 
     LaunchedEffect(listingDataState) {
         categoryViewModel.updateFromSearchData(searchData)

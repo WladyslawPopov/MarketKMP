@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.offer
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -128,17 +129,18 @@ fun OfferContent(
 
     val remainingTime = viewModel.remainingTime.collectAsState()
 
-    val isMenuVisible by offerRepository.isMenuVisible.collectAsState()
+    val isMenuVisible = offerRepository.isMenuVisible.collectAsState()
 
-    val menuItems by produceState(initialValue = emptyList(), isMenuVisible) {
-        if (isMenuVisible) {
+    val menuItems = produceState(initialValue = emptyList(), isMenuVisible.value) {
+        if (isMenuVisible.value) {
             value = offerRepository.getDefOperations()
         }
     }
 
-    val listItems by produceState(initialValue = emptyList(), offerRepository) {
+    val listItems = produceState(initialValue = emptyList(), offerRepository.operationsList.value) {
         value = offerRepository.getAppBarOfferList()
     }
+
     val toastItem by viewModel.toastItem.collectAsState()
 
     val offer = uiState.offer
@@ -210,11 +212,11 @@ fun OfferContent(
         }
     }
 
-    val appbarData = remember(isMenuVisible, menuItems, listItems) {
+    val appbarData = remember(isMenuVisible.value, menuItems.value, listItems.value) {
         SimpleAppBarData(
             menuData = MenuData(
-                isMenuVisible = isMenuVisible,
-                menuItems = menuItems,
+                isMenuVisible = isMenuVisible.value,
+                menuItems = menuItems.value,
                 closeMenu = {
                     offerRepository.closeMenu()
                 }
@@ -226,7 +228,7 @@ fun OfferContent(
                     component.onBackClick()
                 }
             },
-            listItems = listItems,
+            listItems = listItems.value,
         )
     }
 
@@ -463,7 +465,8 @@ fun OfferContent(
                     LazyVerticalStaggeredGrid(
                         columns = columns,
                         modifier = Modifier
-                            .heightIn(200.dp, 5000.dp),
+                            .heightIn(200.dp, 20_000.dp)
+                            .animateContentSize(),
                         userScrollEnabled = false,
                         verticalItemSpacing = dimens.smallPadding,
                         horizontalArrangement = Arrangement.spacedBy(
@@ -532,38 +535,6 @@ fun OfferContent(
                                         //                                            component.navigateToOffers(offer.id)
                                         //                                        }
                                         //                                    }
-                                    }
-                                }
-                            }
-
-                            item {
-                                // state params
-                                Column(
-                                    modifier = Modifier
-                                        .background(
-                                            colors.white,
-                                            MaterialTheme.shapes.small
-                                        )
-                                        .clip(MaterialTheme.shapes.small)
-                                        .padding(dimens.smallPadding),
-                                    horizontalAlignment = Alignment.Start,
-                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                                )
-                                {
-                                    //bids winner or last bid
-                                    BidsWinnerOrLastBid(offer, offerState) {
-                                        viewModel.scrollToBids()
-                                    }
-
-                                    TimeOfferSession(
-                                        offer,
-                                        remainingTime.value,
-                                        offerState,
-                                    )
-
-                                    LocationOffer(offer) {
-                                        //go to Listing
-                                        component.goToRegion(offer.region)
                                     }
                                 }
                             }
@@ -681,6 +652,38 @@ fun OfferContent(
                             }
 
                             item {
+                                // state params
+                                Column(
+                                    modifier = Modifier
+                                        .background(
+                                            colors.white,
+                                            MaterialTheme.shapes.small
+                                        )
+                                        .clip(MaterialTheme.shapes.small)
+                                        .padding(dimens.smallPadding),
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                )
+                                {
+                                    //bids winner or last bid
+                                    BidsWinnerOrLastBid(offer, offerState) {
+                                        viewModel.scrollToBids()
+                                    }
+
+                                    TimeOfferSession(
+                                        offer,
+                                        remainingTime.value,
+                                        offerState,
+                                    )
+
+                                    LocationOffer(offer) {
+                                        //go to Listing
+                                        component.goToRegion(offer.region)
+                                    }
+                                }
+                            }
+
+                            item {
                                 //payment and delivery
                                 if (offerState != OfferStates.PROTOTYPE) {
                                     PaymentAndDeliverySection(
@@ -702,6 +705,24 @@ fun OfferContent(
                                         )
                                     }
                                 }
+                            }
+
+                            //descriptions offer
+                            item {
+                                DescriptionHtmlOffer(
+                                    descriptions = state.annotatedString,
+                                    descriptionsDecodeHtmlString = descriptionsDecodeHtmlString,
+                                    isExpanded = isExpanded,
+                                    isOverflowing = isOverflowing,
+                                    onContentSizeChanged = { measuredHeight ->
+                                        if (fullContentHeight == null && measuredHeight > 0) {
+                                            fullContentHeight = measuredHeight
+                                        }
+                                    },
+                                    onToggle = {
+                                        isExpanded = !isExpanded
+                                    }
+                                )
                             }
 
                             item {
@@ -844,60 +865,44 @@ fun OfferContent(
                                     }
                                 }
                             }
-                        }
-                    )
-                }
-                //descriptions offer
-                item {
-                    DescriptionHtmlOffer(
-                        descriptions = state.annotatedString,
-                        descriptionsDecodeHtmlString = descriptionsDecodeHtmlString,
-                        isExpanded = isExpanded,
-                        isOverflowing = isOverflowing,
-                        onContentSizeChanged = { measuredHeight ->
-                            if (fullContentHeight == null && measuredHeight > 0) {
-                                fullContentHeight = measuredHeight
-                            }
-                        },
-                        onToggle = {
-                            isExpanded = !isExpanded
-                        }
-                    )
-                }
-                //bids list
-                item {
-                    if (offerState == OfferStates.ACTIVE) {
-                        AuctionBidsSection(
-                            offer,
-                            isDeletesBids = false,
-                            onRebidClick = { bid ->
-                                if (UserData.token != "") {
-                                    offerRepository.onAddBidClick(bid)
-                                } else {
-                                    component.goToLogin()
-                                }
-                            },
-                            goToUser = {
-                                component.goToUser(it, false)
-                            }
-                        )
-                    }
-                }
-                // removed bids
-                item {
-                    if (offerState == OfferStates.ACTIVE) {
-                        AuctionBidsSection(
-                            offer,
-                            isDeletesBids = true,
-                            onRebidClick = { bid ->
-                                if (UserData.token != "") {
-                                    offerRepository.onAddBidClick(bid)
-                                } else {
-                                    component.goToLogin()
+
+                            //bids list
+                            item {
+                                if (offerState == OfferStates.ACTIVE) {
+                                    AuctionBidsSection(
+                                        offer,
+                                        isDeletesBids = false,
+                                        onRebidClick = { bid ->
+                                            if (UserData.token != "") {
+                                                offerRepository.onAddBidClick(bid)
+                                            } else {
+                                                component.goToLogin()
+                                            }
+                                        },
+                                        goToUser = {
+                                            component.goToUser(it, false)
+                                        }
+                                    )
                                 }
                             }
-                        )
-                    }
+                            // removed bids
+                            item {
+                                if (offerState == OfferStates.ACTIVE) {
+                                    AuctionBidsSection(
+                                        offer,
+                                        isDeletesBids = true,
+                                        onRebidClick = { bid ->
+                                            if (UserData.token != "") {
+                                                offerRepository.onAddBidClick(bid)
+                                            } else {
+                                                component.goToLogin()
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    )
                 }
                 //recommended list offers
                 item {

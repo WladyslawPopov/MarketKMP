@@ -247,17 +247,6 @@ class FavViewModel(
                 if (offer != null) {
                     oldItem.setNewParams(offer)
                 }
-
-                if (favType == FavScreenType.FAV_LIST) {
-                    getList(idList ?: 1L) {
-                        val isEmpty = oldItem.let { item ->
-                            it.offers.contains(item.id)
-                        }
-                        if (isEmpty) {
-                            refresh()
-                        }
-                    }
-                }
                 setUpdateItem(null)
             }
         }

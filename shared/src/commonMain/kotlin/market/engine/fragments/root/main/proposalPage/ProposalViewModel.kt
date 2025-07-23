@@ -74,8 +74,11 @@ class ProposalViewModel(
     }
 
     fun update(){
-        refresh()
-        getProposal()
+        viewModelScope.launch {
+            _responseGetOffer.value = getOfferById(offerId) ?: Offer()
+            refresh()
+            getProposal()
+        }
     }
 
     fun getProposal(){
@@ -83,7 +86,6 @@ class ProposalViewModel(
             setLoading(true)
             try {
                 val response = withContext(Dispatchers.IO) {
-                    _responseGetOffer.value = getOfferById(offerId) ?: Offer()
                     apiService.postOperation(offerId, "get_proposals", "offers", HashMap())
                 }
 
@@ -198,7 +200,7 @@ class ProposalViewModel(
             val error = buffer.error
             withContext(Dispatchers.Main) {
                 if (payload != null) {
-                    _selectedChoice.value = if (buyerId == 0L) 2 else 0
+                    _selectedChoice.value = if (buyerId == 1L) 2 else 0
                     _responseFields.value = payload.fields
                 } else {
                     if (error != null) {

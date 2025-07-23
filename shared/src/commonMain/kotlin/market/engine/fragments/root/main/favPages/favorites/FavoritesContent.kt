@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -13,19 +12,22 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
-import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OfferFilterContent
 import market.engine.widgets.filterContents.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FavoritesContent(
@@ -60,18 +62,37 @@ fun FavoritesContent(
         viewModel.onBackNavigation()
     }
 
-    val hasActiveFilters by remember(listingDataState) { mutableStateOf(
-        ld.filters.any { it.interpretation?.isNotBlank() == true }
-    ) }
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
 
-    val noFound = listingNotFoundView(
-        isLoading = data.loadState.refresh is LoadStateNotLoading,
-        itemCount = data.itemCount,
-        activeType = activeType,
-        hasActiveFilters = hasActiveFilters,
-        onClearFilters = listingBaseViewModel::clearListingData,
-        onRefresh = listingBaseViewModel::refresh
-    )
+        when {
+            activeType == ActiveWindowListingType.LISTING -> {
+                if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+                    @Composable {
+                        if (ld.filters.any { it.interpretation?.isNotBlank() == true }) {
+                            NoItemsFoundLayout(
+                                textButton = stringResource(strings.resetLabel)
+                            ) {
+                                listingBaseViewModel.clearListingData()
+                            }
+                        } else {
+                            NoItemsFoundLayout(
+                                title = stringResource(strings.emptyFavoritesLabel),
+                                image = drawables.emptyFavoritesImage
+                            ) {
+                                listingBaseViewModel.refresh()
+                            }
+                        }
+                    }
+                } else {
+                    null
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
 
     val error : (@Composable () -> Unit)? = remember(err) {
         if (err.humanMessage != "") {

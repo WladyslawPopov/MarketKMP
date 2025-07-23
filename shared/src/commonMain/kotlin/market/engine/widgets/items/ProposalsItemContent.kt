@@ -77,7 +77,8 @@ fun ProposalsItemContent(
     Card(
         shape = MaterialTheme.shapes.small,
         colors = colors.cardColors,
-    ) {
+    )
+    {
         if (proposals.proposals?.isNotEmpty() == true) {
 
             val showHistory = remember { mutableStateOf(false) }
@@ -597,7 +598,7 @@ fun GetBody(
     changeChoice : (Boolean, Int) -> Unit,
     confirmProposal : (List<Fields>) -> Unit,
 ) {
-    val fields by remember { mutableStateOf(initialFields) }
+    val fields by remember(initialFields) { mutableStateOf(initialFields) }
 
     if(fields.isNotEmpty()) {
         val quantityTextState = remember {
@@ -645,7 +646,7 @@ fun GetBody(
             fields.forEach { field ->
                 when (field.key) {
                     "type" -> {
-                        if (buyerId != 0L) {
+                        if (buyerId != 1L) {
                             DynamicRadioButtons(field) { isChecked, choice ->
                                 changeChoice(isChecked, choice)
                             }

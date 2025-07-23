@@ -4,7 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.common.AnalyticsFactory
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface RegistrationComponent {
@@ -22,7 +21,7 @@ class DefaultRegistrationComponent(
     componentContext: ComponentContext
 ) : RegistrationComponent, ComponentContext by componentContext {
 
-    private val regViewModel = RegViewModel(this)
+    private val regViewModel = RegViewModel()
 
     private val _model = MutableValue(
         RegistrationComponent.Model(

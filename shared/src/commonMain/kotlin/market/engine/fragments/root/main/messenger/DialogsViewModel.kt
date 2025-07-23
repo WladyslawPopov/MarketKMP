@@ -345,7 +345,9 @@ class DialogsViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<DialogsData>> = pagingParamsFlow.flatMapLatest{ pair ->
+    val pagingDataFlow: Flow<PagingData<DialogsData>> = pagingParamsFlow.flatMapLatest { pair ->
+
+
         val conversation = pair.first
         val listingData = pair.second
 
@@ -384,7 +386,7 @@ class DialogsViewModel(
                             title = getString(strings.actionDelete),
                             icon = drawables.deleteIcon,
                         ) {
-                            deleteMessage(dialog.id){
+                            deleteMessage(dialog.id) {
                                 //isDeleteItem.value = true
                             }
                         },
@@ -392,7 +394,7 @@ class DialogsViewModel(
                             id = "copy_message",
                             title = getString(strings.actionCopy),
                             icon = drawables.copyIcon,
-                        ){
+                        ) {
                             clipBoardEvent(dialog.message ?: "")
                             showToast(
                                 successToastItem.copy(
@@ -416,7 +418,7 @@ class DialogsViewModel(
                         null
                     }
                 }
-            }
+        }
     }.stateIn(
         viewModelScope,
         SharingStarted.Lazily,
@@ -424,6 +426,12 @@ class DialogsViewModel(
     ).cachedIn(viewModelScope)
 
     init {
+        update()
+        markReadConversation(dialogId)
+    }
+
+    fun update(){
+        setLoading(true)
         listingBaseViewModel.setReversingPaging(true)
         listingBaseViewModel.setListingData(
             ListingData(
@@ -461,7 +469,6 @@ class DialogsViewModel(
                 component.onBackClicked()
             }
         )
-        markReadConversation(dialogId)
     }
 
     fun markReadConversation(id : Long) {
@@ -514,6 +521,8 @@ class DialogsViewModel(
                 onError(e)
             }catch (e : Exception){
                 onError(ServerErrorException(e.message ?: "", ""))
+            }finally {
+                setLoading(false)
             }
         }
     }

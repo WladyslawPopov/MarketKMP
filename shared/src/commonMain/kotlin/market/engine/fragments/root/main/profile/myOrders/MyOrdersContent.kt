@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -13,17 +12,22 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
+import market.engine.core.data.types.DealType
+import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.filterContents.OrderFilterContent
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.MyOrderItem
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun MyOrdersContent(
@@ -46,26 +50,55 @@ fun MyOrdersContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
+    val dealType = model.type
+
+    val typeGroup = remember {
+        if (
+            dealType in arrayOf(
+                DealType.BUY_ARCHIVE,
+                DealType.BUY_IN_WORK
+            )
+        ) DealTypeGroup.SELL else DealTypeGroup.BUY
+    }
+
     BackHandler(model.backHandler){
         viewModel.onBack()
     }
 
     val listingState = rememberLazyScrollState(viewModel)
 
-    val hasActiveFilters by remember(listingDataState) {
-        mutableStateOf(
-            listingData.filters.any { it.interpretation?.isNotBlank() == true }
-        )
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+        when {
+            activeType == ActiveWindowListingType.LISTING -> {
+                if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+                    @Composable {
+                        if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
+                            NoItemsFoundLayout(
+                                textButton = stringResource(strings.resetLabel)
+                            ) {
+                                listingBaseViewModel.clearAllFilters()
+                                viewModel.refresh()
+                            }
+                        } else {
+                            NoItemsFoundLayout(
+                                title = stringResource(strings.simpleNotFoundLabel),
+                                icon = if (typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon
+                            ) {
+                                viewModel.refresh()
+                            }
+                        }
+                    }
+                } else {
+                    null
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
     }
 
-    val noFound = listingNotFoundView(
-        isLoading = data.loadState.refresh is LoadStateNotLoading,
-        itemCount = data.itemCount,
-        activeType = activeType,
-        hasActiveFilters = hasActiveFilters,
-        onClearFilters = listingBaseViewModel::clearListingData,
-        onRefresh = listingBaseViewModel::refresh
-    )
 
     val err = viewModel.errorMessage.collectAsState()
     val error : (@Composable () -> Unit)? = remember(err.value) {

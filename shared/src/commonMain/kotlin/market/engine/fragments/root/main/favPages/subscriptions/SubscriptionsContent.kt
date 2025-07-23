@@ -22,18 +22,20 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
+import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.dialogs.AccessDialog
 import market.engine.widgets.filterContents.SortingOrdersContent
 import market.engine.widgets.items.SubscriptionItem
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SubscriptionsContent(
@@ -58,14 +60,29 @@ fun SubscriptionsContent(
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
 
-    val noFound = listingNotFoundView(
-        isLoading = data.loadState.refresh is LoadStateNotLoading,
-        itemCount = data.itemCount,
-        activeType = activeType,
-        hasActiveFilters = false,
-        onClearFilters = listingBaseViewModel::clearListingData,
-        onRefresh = listingBaseViewModel::refresh
-    )
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+
+        when {
+            activeType == ActiveWindowListingType.LISTING -> {
+                if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+                    @Composable {
+                        NoItemsFoundLayout(
+                            title = stringResource(strings.emptySubscriptionsLabel),
+                            image = drawables.emptyFavoritesImage
+                        ) {
+                            listingBaseViewModel.refresh()
+                        }
+                    }
+                } else {
+                    null
+                }
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
 
     val err = viewModel.errorMessage.collectAsState()
 

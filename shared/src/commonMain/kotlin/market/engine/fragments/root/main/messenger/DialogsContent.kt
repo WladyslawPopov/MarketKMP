@@ -36,13 +36,14 @@ import kotlinx.coroutines.flow.collectLatest
 import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.BackHandler
-import market.engine.fragments.base.listing.listingNotFoundView
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
+import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.bars.DialogsHeader
 import market.engine.widgets.bars.MessengerBar
@@ -104,10 +105,20 @@ fun DialogsContent(
 
     val listingState = rememberLazyScrollState(viewModel)
 
-    val noFound = listingNotFoundView(
-        isLoading = data.loadState.refresh is LoadStateNotLoading,
-        itemCount = data.itemCount
-    )
+    val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh) {
+        if (data.loadState.refresh is LoadStateNotLoading && data.itemCount < 1) {
+            {
+                NoItemsFoundLayout(
+                    title = stringResource(strings.simpleNotFoundLabel),
+                    icon = drawables.dialogIcon
+                ) {
+                    viewModel.update()
+                }
+            }
+        } else {
+            null
+        }
+    }
 
     EdgeToEdgeScaffold(
         topBar = {
@@ -142,7 +153,7 @@ fun DialogsContent(
             }
         },
         onRefresh = {
-            viewModel.updatePage()
+            viewModel.update()
         },
         error = null,
         noFound = noFound,

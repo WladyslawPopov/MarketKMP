@@ -28,10 +28,10 @@ class OperationsMethods(private val apiService: APIService) {
 
                 if (response.success) {
                     payload.operationResult?.message = if (response.humanMessage?.isNotBlank() == true)
-                        response.humanMessage.toString() else getString(strings.operationSuccess)
+                        response.humanMessage else getString(strings.operationSuccess)
                 }else{
                     payload.operationResult?.message = if (response.humanMessage?.isNotBlank() == true)
-                        response.humanMessage.toString() else getString(strings.operationFailed)
+                        response.humanMessage else getString(strings.operationFailed)
                 }
 
                 ServerResponse(success = payload)
@@ -63,10 +63,10 @@ class OperationsMethods(private val apiService: APIService) {
 
                 if (response.success) {
                     payload.operationResult?.message = if (response.humanMessage?.isNotBlank() == true)
-                        response.humanMessage.toString() else getString(strings.operationSuccess)
+                        response.humanMessage else getString(strings.operationSuccess)
                 }else{
                     payload.operationResult?.message = if (response.humanMessage?.isNotBlank() == true)
-                        response.humanMessage.toString() else getString(strings.operationFailed)
+                        response.humanMessage else getString(strings.operationFailed)
                 }
 
                 ServerResponse(success = payload)
@@ -95,10 +95,10 @@ class OperationsMethods(private val apiService: APIService) {
 
                 if (response.success) {
                     payload.operationResult?.result = if (response.humanMessage?.isNotBlank() == true)
-                        response.humanMessage.toString() else getString(strings.operationSuccess)
+                        response.humanMessage else getString(strings.operationSuccess)
                 }else{
                     payload.operationResult?.result = if (response.humanMessage?.isNotBlank() == true)
-                        response.humanMessage.toString() else getString(strings.operationFailed)
+                        response.humanMessage else getString(strings.operationFailed)
                 }
 
                 ServerResponse(success = payload)
