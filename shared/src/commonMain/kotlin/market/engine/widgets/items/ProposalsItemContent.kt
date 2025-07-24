@@ -89,7 +89,7 @@ fun ProposalsItemContent(
 
             val showHistory = remember { mutableStateOf(false) }
 
-            val proposalsToDisplay = remember(proposals) {
+            val proposalsToDisplay = remember(proposals, showHistory.value) {
                 if (proposals.proposals.size > 1 && !showHistory.value) {
                     proposals.proposals.reversed().take(1)
                 } else {
@@ -193,7 +193,7 @@ fun ProposalsItemContent(
                             }
                             "proposal_reject" -> {
                                 showEnd.value = false
-                                showBody.value = countLeft > 0
+                                showBody.value = proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs && countLeft > 0
                                 statusIcon.value = drawables.dislikeIcon
                                 statusColor.value = colors.negativeRed
                                 titleColor.value = colors.black
@@ -235,7 +235,7 @@ fun ProposalsItemContent(
                             }
                             "proposal_left_unanswered" -> {
                                 showEnd.value = false
-                                showBody.value = countLeft > 0
+                                showBody.value = proposal.createdTs == proposals.proposals.lastOrNull()?.createdTs && countLeft > 0
                                 statusColor.value = colors.negativeRed
                                 titleColor.value = colors.black
                                 statusIcon.value = drawables.dislikeIcon
@@ -455,7 +455,6 @@ fun ProposalsItemContent(
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.fillMaxWidth(0.7f)
                         )
-
                         val btnPos = if (!showHistory.value) 0 else proposals.proposals.size - 1
 
                         if (index == btnPos && proposals.proposals.size > 1) {

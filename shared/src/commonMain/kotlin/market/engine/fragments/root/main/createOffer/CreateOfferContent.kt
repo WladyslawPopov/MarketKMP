@@ -578,7 +578,7 @@ fun CreateOfferContent(
                                 when (field.key) {
                                     "session_start" -> {
                                         item {
-                                            if (!(type == CreateOfferType.EDIT && field.data?.jsonPrimitive?.intOrNull == 0)) {
+                                            if (type != CreateOfferType.EDIT) {
                                                 SeparatorLabel(
                                                     stringResource(strings.offersGroupStartTSTile)
                                                 )
