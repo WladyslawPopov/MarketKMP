@@ -24,7 +24,6 @@ import market.engine.fragments.root.main.home.createHomeChild
 import market.engine.fragments.root.main.favPages.ChildFavorites
 import market.engine.fragments.root.main.favPages.FavoritesConfig
 import market.engine.fragments.root.main.basket.createBasketChild
-import market.engine.fragments.root.main.favPages.FavPagesViewModel
 import market.engine.fragments.root.main.favPages.createFavoritesChild
 import market.engine.fragments.root.main.profile.ChildProfile
 import market.engine.fragments.root.main.profile.ProfileConfig
@@ -93,10 +92,6 @@ class DefaultMainComponent(
         )
     )
     override val model = _model
-
-    private val favPagesViewModel by lazy {
-        FavPagesViewModel()
-    }
 
     private var openPage: String? = null
 
@@ -216,7 +211,6 @@ class DefaultMainComponent(
                 createFavoritesChild(
                     config,
                     componentContext,
-                    favPagesViewModel,
                     modelNavigation.value.favoritesNavigation,
                     navigateToMyOrders = { id, type ->
                         navigateToBottomItem(
@@ -313,24 +307,22 @@ class DefaultMainComponent(
                 if (UserData.token == "") {
                     goToLogin(true)
                 }else {
-                    favPagesViewModel.getFavTabList {
-                        when {
-                            activeCurrent == "Favorites" -> {
-                                modelNavigation.value.favoritesNavigation.popToFirst()
-                            }
-
-                            openPage == "subscribe" -> {
-                                modelNavigation.value.favoritesNavigation.replaceCurrent(
-                                    FavoritesConfig.FavPagesScreen(
-                                        FavScreenType.SUBSCRIBED,
-                                        getCurrentDate()
-                                    )
-                                )
-                            }
+                    when {
+                        activeCurrent == "Favorites" -> {
+                            modelNavigation.value.favoritesNavigation.popToFirst()
                         }
-                        activeCurrent = "Favorites"
-                        modelNavigation.value.mainNavigation.replaceCurrent(config)
+
+                        openPage == "subscribe" -> {
+                            modelNavigation.value.favoritesNavigation.replaceCurrent(
+                                FavoritesConfig.FavPagesScreen(
+                                    FavScreenType.SUBSCRIBED,
+                                    getCurrentDate()
+                                )
+                            )
+                        }
                     }
+                    activeCurrent = "Favorites"
+                    modelNavigation.value.mainNavigation.replaceCurrent(config)
                 }
             }
             is MainConfig.Profile -> {

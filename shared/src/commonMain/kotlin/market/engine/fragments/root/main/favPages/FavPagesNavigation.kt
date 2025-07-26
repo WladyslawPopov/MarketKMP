@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,9 +20,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.items.MenuItem
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.SetUpDynamicFields
@@ -45,21 +48,22 @@ fun FavPagesNavigation(
     component: FavPagesComponent,
     modifier: Modifier
 ) {
-    val model = component.model.subscribeAsState()
-    val viewModel = model.value.viewModel
-    val err = viewModel.errorMessage.collectAsState()
+    val model by component.model.subscribeAsState()
+    val viewModel = model.viewModel
+    val err by viewModel.errorMessage.collectAsState()
 
-    val uiState = viewModel.favPagesState.collectAsState()
-    val customDialogState = viewModel.customDialogState.collectAsState()
+    val uiState by viewModel.favPagesState.collectAsState()
+    val customDialogState by viewModel.customDialogState.collectAsState()
 
-    val favTabList = remember { mutableStateOf(uiState.value.favTabList) }
-    val isDragMode = uiState.value.isDragMode
-    val appBarState = uiState.value.appState
-    val initPos = viewModel.initPosition.collectAsState()
-    val updateFullPage = viewModel.updatePage.collectAsState()
+    val pages by component.componentsPages.subscribeAsState()
+
+    val favTabListState = viewModel.favoritesTabList.collectAsState()
+
+    val isDragMode = uiState.isDragMode
+    val appBarState = uiState.appState
 
     val tooltipState = rememberTooltipState()
-    val toastItem = viewModel.toastItem.collectAsState()
+    val toastItem by viewModel.toastItem.collectAsState()
 
     val onTooltipClick = remember {
         mutableStateOf(
@@ -73,27 +77,18 @@ fun FavPagesNavigation(
         )
     }
 
-    LaunchedEffect(initPos.value) {
-        if (initPos.value != component.componentsPages.value.selectedIndex) {
-            component.selectPage(initPos.value)
-        }
+    val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(pages){
+        lazyListState.animateScrollToItem(
+            pages.selectedIndex
+        )
     }
 
-    LaunchedEffect(updateFullPage.value) {
-        if(updateFullPage.value > 0) {
-            component.fullRefresh()
-        }
-    }
-
-    val lazyListState = rememberLazyListState(
-        initialFirstVisibleItemIndex =
-            (initPos.value).coerceIn(0, (favTabList.value.size-1).coerceAtLeast(0))
-    )
-
-    val error : (@Composable () -> Unit)? = remember(err.value) {
-        if (err.value.humanMessage != "") {
+    val error : (@Composable () -> Unit)? = remember(err) {
+        if (err.humanMessage != "") {
             {
-                OnError(err.value) {
+                OnError(err) {
                     component.onRefresh()
                 }
             }
@@ -112,13 +107,24 @@ fun FavPagesNavigation(
                     SimpleAppBar(
                         data = appBarState
                     ) {
+                        val menuList = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
+
                         ReorderTabRow(
-                            tabs = favTabList.value,
-                            selectedTab = initPos.value,
+                            tabs = favTabListState.value,
+                            selectedTab = pages.selectedIndex,
                             isDragMode = isDragMode,
-                            menuList = viewModel.menuItems.value,
+                            menuList = menuList.value,
                             onTabsReordered = { newList ->
-                                favTabList.value = newList
+                                viewModel.updateFavTabList(newList)
+                            },
+                            onLongClick = { id ->
+                                viewModel.viewModelScope.launch {
+                                    if (id > 1000) {
+                                        menuList.value = viewModel.getOperationFavTab(id)
+                                    }else{
+                                        menuList.value = viewModel.getDefOperationFavTab()
+                                    }
+                                }
                             },
                             lazyListState = lazyListState,
                             modifier = Modifier.fillMaxWidth().padding(end = dimens.smallPadding),
@@ -132,18 +138,19 @@ fun FavPagesNavigation(
         },
         error = error,
         noFound = null,
-        toastItem = toastItem.value,
+        toastItem = toastItem,
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             ChildPages(
                 modifier = Modifier.fillMaxSize(),
-                pages = component.componentsPages,
+                pages = pages,
                 scrollAnimation = PagesScrollAnimation.Default,
                 onPageSelected = {
                     viewModel.selectPage(it)
                 }
-            ) { _, page ->
+            )
+            { _, page ->
                 when (page) {
                     is FavPagesComponents.SubscribedChild -> {
                         SubscriptionsContent(
@@ -169,9 +176,8 @@ fun FavPagesNavigation(
                         .blur(dimens.extraLargePadding)
                         .pointerInput(Unit) {
                             detectTapGestures {
-                                viewModel.updateFavTabList(favTabList.value)
+                                component.updateNavigationPages()
                                 viewModel.closeDragMode()
-                                component.fullRefresh()
                             }
                         }
                 )
@@ -179,7 +185,7 @@ fun FavPagesNavigation(
         }
 
         CustomDialog(
-            uiState = customDialogState.value,
+            uiState = customDialogState,
         ){ state ->
             Column {
                 if (state.fields.isNotEmpty()) {

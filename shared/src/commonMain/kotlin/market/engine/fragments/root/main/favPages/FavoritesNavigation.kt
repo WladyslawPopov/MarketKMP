@@ -141,7 +141,6 @@ fun FavoritesNavigation(
 fun createFavoritesChild(
     config: FavoritesConfig,
     componentContext: ComponentContext,
-    favPagesViewModel: FavPagesViewModel,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,
@@ -150,7 +149,6 @@ fun createFavoritesChild(
             DefaultFavPagesComponent(
                 favoritesNavigation = favoritesNavigation,
                 componentContext = componentContext,
-                viewModel = favPagesViewModel,
                 favType = config.favScreenType
             )
         )

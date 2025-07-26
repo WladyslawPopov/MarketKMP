@@ -8,9 +8,9 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import market.engine.core.data.items.Tab
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
@@ -31,53 +31,79 @@ interface FavPagesComponent {
 
     fun selectPage(p: Int)
 
-    fun fullRefresh()
+    fun updateNavigationPages()
 
     fun onRefresh()
 }
 
 class DefaultFavPagesComponent(
     private val favoritesNavigation : StackNavigation<FavoritesConfig>,
-    val viewModel: FavPagesViewModel,
     val favType: FavScreenType,
     componentContext: ComponentContext,
 ) : FavPagesComponent, ComponentContext by componentContext {
+
+    val viewModel = FavPagesViewModel(this)
 
     private val navigation = PagesNavigation<FavPagesConfig>()
 
     override val favScreenType: FavScreenType = favType
 
-    val favTabs = viewModel.favoritesTabList
-    val initPos = viewModel.initPosition
-
-
     private var initialModel = MutableValue(
         FavPagesComponent.Model(
-            viewModel = viewModel,
+            viewModel = viewModel
         )
     )
 
-    override val componentsPages: Value<ChildPages<*, FavPagesComponents>> =
+    override val model = initialModel
+
+    override fun updateNavigationPages(){
+        val tabs = viewModel.favoritesTabList.value
+        val initPosition = viewModel.initPosition.value
+
+        val configs = tabs.map { FavPagesConfig(it.id) }
+
+        val selectedIndex = calculateSelectedIndex(tabs, favType, initPosition)
+
+        navigation.navigate(
+            transformer = {
+                Pages(
+                    items = configs,
+                    selectedIndex = selectedIndex
+                )
+            },
+            onComplete = { _, _ -> }
+        )
+
+        viewModel.analyticsHelper.reportEvent(
+            "update_offers_list", mapOf()
+        )
+    }
+
+    private fun calculateSelectedIndex(tabs: List<Tab>, favType: FavScreenType, initPosition: Int): Int {
+        return when {
+            favType == FavScreenType.SUBSCRIBED -> {
+                tabs.indexOfFirst { it.id == 222L }.coerceAtLeast(0)
+            }
+            else -> {
+                initPosition.coerceIn(0, (tabs.lastIndex).coerceAtLeast(0))
+            }
+        }
+    }
+
+    override val componentsPages: Value<ChildPages<*, FavPagesComponents>> by lazy {
         childPages(
             source = navigation,
             serializer = FavPagesConfig.serializer(),
             handleBackButton = true,
             initialPages = {
-                val list = favTabs.value.map {
-                    FavPagesConfig(it.id)
-                }
+                val tabs = viewModel.favoritesTabList.value
+                val initPosition = viewModel.initPosition.value
 
                 Pages(
-                    list,
-                    selectedIndex =
-                        when{
-                            favType == FavScreenType.SUBSCRIBED -> {
-                                list.indexOf(list.find { it.favItemId == 222L })
-                            }
-                            else -> {
-                                (initPos.value).coerceIn(0, (initPos.value).coerceAtLeast(0))
-                            }
-                        },
+                    tabs.map {
+                        FavPagesConfig(it.id)
+                    },
+                    selectedIndex = calculateSelectedIndex(tabs, favType, initPosition),
                 )
             },
             key = "FavoritesStack",
@@ -95,12 +121,17 @@ class DefaultFavPagesComponent(
                                 },
                                 navigateToListing = {
                                     favoritesNavigation.pushNew(
-                                        FavoritesConfig.ListingScreen(it.data, it.searchData, getCurrentDate())
+                                        FavoritesConfig.ListingScreen(
+                                            it.data,
+                                            it.searchData,
+                                            getCurrentDate()
+                                        )
                                     )
                                 }
                             )
                         )
                     }
+
                     else -> {
                         FavPagesComponents.FavoritesChild(
                             component = DefaultFavoritesComponent(
@@ -112,20 +143,22 @@ class DefaultFavPagesComponent(
                                         )
                                     )
                                 },
-                                favType =  when(config.favItemId){
+                                favType = when (config.favItemId) {
                                     111L -> {
                                         FavScreenType.FAVORITES
                                     }
+
                                     333L -> {
                                         FavScreenType.NOTES
                                     }
+
                                     else -> {
                                         FavScreenType.FAV_LIST
                                     }
                                 },
                                 idList = config.favItemId,
                                 updateTabs = {
-                                    fullRefresh()
+                                    viewModel.getFavTabList()
                                 },
                                 navigateToProposalPage = { type, id ->
                                     favoritesNavigation.pushNew(
@@ -145,22 +178,10 @@ class DefaultFavPagesComponent(
                 }
             }
         )
-
-    override val model = initialModel
+    }
 
     override fun selectPage(p: Int) {
         navigation.select(p)
-    }
-
-    override fun fullRefresh() {
-        viewModel.getFavTabList {
-            favoritesNavigation.replaceCurrent(
-                FavoritesConfig.FavPagesScreen(
-                    favType,
-                    getCurrentDate()
-                )
-            )
-        }
     }
 
     override fun onRefresh() {

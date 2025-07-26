@@ -190,8 +190,6 @@ class OfferRepository(
                             viewModel. analyticsHelper.reportEvent("offer_unwatch", eventParameters)
                         }
 
-                        viewModel.updateUserInfo()
-
                         viewModel.showToast(
                             successToastItem.copy(
                                 message = getString(strings.operationSuccess)
@@ -203,6 +201,8 @@ class OfferRepository(
                                 isWatchedByMe = !offer.isWatchedByMe
                             )
                         }
+
+                        viewModel.updateUserInfo()
                     } else {
                         if (buf.error != null)
                             viewModel.onError(buf.error!!)

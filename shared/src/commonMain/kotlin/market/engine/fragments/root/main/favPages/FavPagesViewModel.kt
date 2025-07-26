@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.favPages
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.AnnotatedString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -36,11 +35,10 @@ import org.jetbrains.compose.resources.getString
 
 data class FavPagesState(
     val appState : SimpleAppBarData = SimpleAppBarData(),
-    val favTabList: List<Tab> = emptyList(),
     val isDragMode: Boolean = false
 )
 
-class FavPagesViewModel() : CoreViewModel() {
+class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
 
     private val offersListOperations = OffersListOperations(apiService)
 
@@ -51,8 +49,6 @@ class FavPagesViewModel() : CoreViewModel() {
     val initPosition = _initPosition.asStateFlow()
 
     private val _isDragMode = MutableStateFlow(false)
-
-    val menuItems = mutableStateOf(listOf<MenuItem>())
 
     private val _isMenuVisible = MutableStateFlow(false)
 
@@ -79,7 +75,7 @@ class FavPagesViewModel() : CoreViewModel() {
                 isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
                 badgeCount = null,
                 onClick = {
-                    updatePage()
+                    getFavTabList()
                 }
             ),
             NavigationItem(
@@ -115,24 +111,20 @@ class FavPagesViewModel() : CoreViewModel() {
             ),
         )
 
-        if(favTabList.isNotEmpty() && favTabList.size > currentTab) {
-            getOperationFavTab(favTabList[currentTab].id) {
-                menuItems.value = it
-            }
-        }
 
         FavPagesState(
             appState = SimpleAppBarData(
                 menuData = MenuData(
                     isMenuVisible = isMenuVisible,
-                    menuItems = menuItems.value,
+                    menuItems = if(isVisibleMenu)
+                        getOperationFavTab(favTabList[currentTab].id)
+                    else getDefOperationFavTab(),
                     closeMenu = {
                         _isMenuVisible.value = false
                     }
                 ),
                 listItems = listItems,
             ),
-            favTabList = favTabList,
             isDragMode = isDragMode
         )
     }.stateIn(
@@ -141,7 +133,11 @@ class FavPagesViewModel() : CoreViewModel() {
         FavPagesState()
     )
 
-    fun getFavTabList(onSuccess: () -> Unit) {
+    init {
+        getFavTabList()
+    }
+
+    fun getFavTabList() {
         viewModelScope.launch {
             val newList = arrayListOf(
                 FavoriteListItem(
@@ -195,22 +191,11 @@ class FavPagesViewModel() : CoreViewModel() {
                             onClick = {
                                 selectPage(newList.indexOf(it))
                             },
-                            onLongClick = {
-                                if (it.id > 1000) {
-                                    getOperationFavTab(it.id){ menu->
-                                        menuItems.value = menu
-                                    }
-                                }else{
-                                    getDefOperationFavTab { menu ->
-                                        menuItems.value = menu
-                                    }
-                                }
-                            },
                         )
                     }
-                }
 
-                onSuccess()
+                    component.updateNavigationPages()
+                }
             }
         }
     }
@@ -218,18 +203,17 @@ class FavPagesViewModel() : CoreViewModel() {
     fun updateFavTabList(list: List<Tab>){
         viewModelScope.launch {
             try {
-                list.forEachIndexed { index, it ->
-                    db.favoritesTabListItemQueries.insertEntry(
-                        itemId = it.id,
-                        owner = UserData.login,
-                        position = index.toLong()
-                    )
-                }
-                analyticsHelper.reportEvent(
-                    "update_offers_list", mapOf()
-                )
-
                 _favoritesTabList.value = list
+
+                withContext(Dispatchers.Unconfined) {
+                    list.forEachIndexed { index, it ->
+                        db.favoritesTabListItemQueries.insertEntry(
+                            itemId = it.id,
+                            owner = UserData.login,
+                            position = index.toLong()
+                        )
+                    }
+                }
             }  catch (e: ServerErrorException) {
                 onError(e)
             } catch (e: Exception) {
@@ -238,64 +222,53 @@ class FavPagesViewModel() : CoreViewModel() {
         }
     }
 
-    fun getDefOperationFavTab(onSuccess: (List<MenuItem>) -> Unit){
-        viewModelScope.launch {
-            onSuccess(
-                listOf(
-                    MenuItem(
-                        icon = drawables.reorderIcon,
-                        id = "reorder",
-                        title = getString(strings.reorderTabLabel),
-                        onClick = {
-                            makeOperation("reorder", 1L)
-                        }
-                    )
-                )
+    suspend fun getDefOperationFavTab() : List<MenuItem>{
+        return listOf(
+            MenuItem(
+                icon = drawables.reorderIcon,
+                id = "reorder",
+                title = getString(strings.reorderTabLabel),
+                onClick = {
+                    makeOperation("reorder", 1L)
+                }
             )
-        }
+        )
     }
 
-    fun getOperationFavTab(id: Long, onSuccess: (List<MenuItem>) -> Unit){
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) { offersListOperations.getOperations(id) }
+    suspend fun getOperationFavTab(id: Long) : List<MenuItem> {
 
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
+        val data = withContext(Dispatchers.IO) { offersListOperations.getOperations(id) }
 
-                if (!res.isNullOrEmpty()){
-                    val defReorderMenuItem = MenuItem(
-                        icon = drawables.reorderIcon,
-                        id = "reorder",
-                        title = getString(strings.reorderTabLabel),
-                        onClick = {
-                            makeOperation("reorder", 1L)
+        return withContext(Dispatchers.Main) {
+            val res = data.success
+
+            val defReorderMenuItem = MenuItem(
+                icon = drawables.reorderIcon,
+                id = "reorder",
+                title = getString(strings.reorderTabLabel),
+                onClick = {
+                    makeOperation("reorder", 1L)
+                }
+            )
+
+            return@withContext buildList {
+                addAll(
+                    listOf(
+                        defReorderMenuItem
+                    )
+                )
+                if(res?.isNotEmpty() == true) {
+                    addAll(
+                        res.map {
+                            MenuItem(
+                                id = it.id ?: "",
+                                title = it.name ?: "",
+                                onClick = {
+                                    makeOperation(it.id ?: "", id)
+                                }
+                            )
                         }
                     )
-
-                    onSuccess(
-                        buildList {
-                        addAll(
-                            listOf(
-                                defReorderMenuItem
-                            )
-                        )
-                        addAll(
-                            res.map {
-                                MenuItem(
-                                    id = it.id ?: "",
-                                    title = it.name ?: "",
-                                    onClick = {
-                                        makeOperation(it.id ?: "", id)
-                                    }
-                                )
-                            }
-                        )
-                    }
-                    )
-                }else{
-                    if (error != null)
-                        onError(error)
                 }
             }
         }
@@ -317,7 +290,8 @@ class FavPagesViewModel() : CoreViewModel() {
                             closeDialog()
                         },
                         onSuccessful = {
-                            postOperation(UserData.login, type,"users", f)
+                            postOperation(UserData.login, type,"users")
+                            _initPosition.value = favoritesTabList.value.lastIndex +1
                         }
                     )
                 }
@@ -333,7 +307,7 @@ class FavPagesViewModel() : CoreViewModel() {
                             closeDialog()
                         },
                         onSuccessful = {
-                            postOperation(id, type,"offers_lists", f)
+                            postOperation(id, type,"offers_lists")
                         }
                     )
                 }
@@ -355,16 +329,14 @@ class FavPagesViewModel() : CoreViewModel() {
                     type,
                     "offers_lists",
                     onSuccess = {
+                        _favoritesTabList.update { tabs ->
+                            tabs.filter { it.id != id }
+                        }
+                        getFavTabList()
                         db.favoritesTabListItemQueries.deleteById(
                             itemId = id,
                             owner = UserData.login
                         )
-                        _initPosition.value =
-                            _initPosition.value.coerceIn(
-                                0,
-                                _favoritesTabList.value.size - 1
-                            )
-                        updatePage()
                     },
                     errorCallback = {}
                 )
@@ -376,7 +348,7 @@ class FavPagesViewModel() : CoreViewModel() {
                     type,
                     "offers_lists",
                     onSuccess = {
-                        updatePage()
+                        getFavTabList()
                     },
                     errorCallback = {}
                 )
@@ -388,9 +360,9 @@ class FavPagesViewModel() : CoreViewModel() {
         }
     }
 
-    fun postOperation(id: Long, type: String, method: String, fieldsDialog: List<Fields>){
+    fun postOperation(id: Long, type: String, method: String){
         val bodyPost = HashMap<String, JsonElement>()
-        fieldsDialog.forEach { field ->
+        _customDialogState.value.fields.forEach { field ->
             if (field.data != null) {
                 bodyPost[field.key ?: ""] = field.data!!
             }
@@ -403,10 +375,7 @@ class FavPagesViewModel() : CoreViewModel() {
             bodyPost,
             onSuccess = {
                 closeDialog()
-                getFavTabList {
-                    updatePage()
-                    _initPosition.value = _favoritesTabList.value.lastIndex + 1
-                }
+                getFavTabList()
             },
             errorCallback = { f ->
                 if (f != null) {
@@ -432,6 +401,7 @@ class FavPagesViewModel() : CoreViewModel() {
 
     fun selectPage(page: Int){
         _initPosition.value = page
+        component.selectPage(page)
     }
 
     fun setNewField(field: Fields){
