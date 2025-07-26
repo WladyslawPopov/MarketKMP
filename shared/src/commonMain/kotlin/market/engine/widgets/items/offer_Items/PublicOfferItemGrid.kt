@@ -14,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -24,7 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.states.OfferItemState
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
@@ -36,29 +38,27 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PublicOfferItemGrid(
-    state: OfferItemState,
+    offerRepository: OfferRepository,
     updateItem : Long?
 ) {
-    val item = state.item
-    val onItemClick = state.onItemClick
-    val addToFavorites = state.addToFavorites
-
+    val offer by offerRepository.offerState.collectAsState()
+    val events = offerRepository.events
 
     LaunchedEffect(updateItem) {
-        if (updateItem == item.id){
-            state.updateItemState()
+        if (updateItem == offer.id){
+            offerRepository.updateItem()
         }
     }
 
     val pagerState = rememberPagerState(
-        pageCount = { item.images.size },
+        pageCount = { offer.images.size },
     )
 
     Card(
-        colors = if (!item.isPromo) colors.cardColors else colors.cardColorsPromo,
+        colors = if (!offer.isPromo) colors.cardColors else colors.cardColorsPromo,
         shape = MaterialTheme.shapes.small,
         onClick = {
-            onItemClick()
+            events.openCabinetOffer(offer)
         }
     ) {
         Column(
@@ -69,9 +69,9 @@ fun PublicOfferItemGrid(
             Box(
                 modifier = Modifier.size(250.dp),
             ) {
-                if (item.images.isNotEmpty()) {
+                if (offer.images.isNotEmpty()) {
                     HorizontalImageViewer(
-                        images = item.images,
+                        images = offer.images,
                         pagerState = pagerState,
                     )
                 }else {
@@ -82,7 +82,7 @@ fun PublicOfferItemGrid(
                     )
                 }
 
-                if (item.videoUrls?.isNotEmpty() == true) {
+                if (offer.videoUrls.isNotEmpty()) {
                     SmallImageButton(
                         drawables.iconYouTubeSmall,
                         modifierIconSize = Modifier.size(dimens.mediumIconSize),
@@ -92,8 +92,8 @@ fun PublicOfferItemGrid(
                     }
                 }
 
-                if (item.discount > 0) {
-                    val pd = "-" + item.discount.toString() + "%"
+                if (offer.discount > 0) {
+                    val pd = "-" + offer.discount.toString() + "%"
 
                     DiscountBadge(pd)
                 }
@@ -108,16 +108,16 @@ fun PublicOfferItemGrid(
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.Top
                 ) {
-                    TitleText(item.title, modifier = Modifier.weight(1f))
+                    TitleText(offer.title, modifier = Modifier.weight(1f))
 
                     SmallIconButton(
-                        icon = if (item.isWatchedByMe) drawables.favoritesIconSelected
+                        icon = if (offer.isWatchedByMe) drawables.favoritesIconSelected
                         else drawables.favoritesIcon,
                         color = colors.inactiveBottomNavIconColor,
                         modifierIconSize = Modifier.size(dimens.smallIconSize),
                         modifier = Modifier.align(Alignment.Top).weight(0.2f)
                     ){
-                        addToFavorites(item)
+                        offerRepository.addToFavorites()
                     }
                 }
 
@@ -132,7 +132,7 @@ fun PublicOfferItemGrid(
                         modifier = Modifier.size(dimens.extraSmallIconSize),
                     )
                     Text(
-                        text = item.location,
+                        text = offer.location,
                         style = MaterialTheme.typography.labelSmall,
                         maxLines = 2,
                         minLines = 2,
@@ -141,7 +141,7 @@ fun PublicOfferItemGrid(
                     )
                 }
 
-                if (!item.isPrototype) {
+                if (!offer.isPrototype) {
                     val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
 
                     Row(
@@ -157,8 +157,8 @@ fun PublicOfferItemGrid(
 
                         Text(
                             text = buildString {
-                                if (item.session != null)
-                                    append((item.session?.end ?: "").convertDateWithMinutes())
+                                if (offer.session != null)
+                                    append((offer.session?.end ?: "").convertDateWithMinutes())
                                 else
                                     append(sessionEnd)
                             },
@@ -174,7 +174,7 @@ fun PublicOfferItemGrid(
                 ) {
                     Text(
                         text = buildAnnotatedString {
-                            append(item.price)
+                            append(offer.price)
                             append(" ${stringResource(strings.currencySign)}")
                         },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),

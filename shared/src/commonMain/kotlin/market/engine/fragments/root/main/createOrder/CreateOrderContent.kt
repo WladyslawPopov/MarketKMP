@@ -171,11 +171,8 @@ fun CreateOrderContent(
                                     basketItem.second.find {
                                         it.offerId == offer.id
                                     }?.selectedQuantity ?: 1,
-                                    addToFavorites = { onFinish ->
-                                        viewModel.addToFavorites(offer){
-                                            offer.isWatchedByMe = it
-                                            onFinish(it)
-                                        }
+                                    addToFavorites = {
+                                        viewModel.addToFavorites(offer)
                                     },
                                     goToOffer = {
                                         component.goToOffer(it)

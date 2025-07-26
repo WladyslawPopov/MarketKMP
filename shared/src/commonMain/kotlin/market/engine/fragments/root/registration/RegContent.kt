@@ -100,7 +100,9 @@ fun RegistrationContent(
         {
             if (!showSuccessReg){
                 item {
-                    SetUpDynamicFields(fields)
+                    SetUpDynamicFields(fields){
+                        model.setNewField(it)
+                    }
                 }
 
                 item {

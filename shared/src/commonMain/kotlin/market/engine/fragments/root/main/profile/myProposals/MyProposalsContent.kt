@@ -142,7 +142,7 @@ fun MyProposalsContent(
                     contentPadding = contentPadding,
                     content = { offer ->
                         CabinetProposalItem(
-                            state = offer,
+                            offerRepository = offer,
                             updateItem = updateItem
                         )
                     }

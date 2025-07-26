@@ -26,40 +26,40 @@ import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
+import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
+import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.ListingContentState
-import market.engine.core.data.states.OfferItemState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
+import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
+import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
-import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
+import market.engine.fragments.root.DefaultRootComponent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
 import kotlin.String
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
-
-    private val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private val _regionOptions = MutableStateFlow<List<Options>>(emptyList())
     val regionOptions : StateFlow<List<Options>> = _regionOptions.asStateFlow()
@@ -84,7 +84,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
         listingData
     }
 
-    val pagingDataFlow: Flow<PagingData<OfferItemState>> = pagingParamsFlow.flatMapLatest{ listingData ->
+    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow.flatMapLatest{ listingData ->
         pagingRepository.getListing(
             listingData,
             apiService,
@@ -114,21 +114,11 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
                     }
                 }
 
-                val item = offer.parseToOfferItem()
-
-                OfferItemState(
-                    item = item,
-                    onItemClick = {
-                        component.goToOffer(item)
-                    },
-                    addToFavorites = {
-                        addToFavorites(item) {
-                            setUpdateItem(offer.id)
-                        }
-                    },
-                    updateItemState = {
-                        updateItem(item)
-                    }
+                OfferRepository(
+                    offer,
+                    listingData,
+                    events = OfferRepositoryEventsImpl(this, component),
+                    this@ListingViewModel
                 )
             }
         }
@@ -330,32 +320,6 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
         }
     }
 
-    fun updateItem(item : OfferItem?){
-        viewModelScope.launch {
-            val offer = withContext(Dispatchers.IO) {
-                getOfferById(item?.id ?: 1L)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (offer != null) {
-                    item?.setNewParams(offer)
-                }
-                setUpdateItem(null)
-            }
-        }
-    }
-
-    suspend fun getOfferById(offerId: Long) : Offer? {
-        return try {
-            val response = offerOperations.getOffer(offerId)
-            response.success?.let {
-                return it
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     fun addNewSubscribe(
         listingData : LD,
         searchData : SD,
@@ -493,3 +457,48 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
         errorString.value = ""
     }
 }
+
+data class OfferRepositoryEventsImpl(
+    val viewModel: ListingViewModel,
+    val component: ListingComponent
+): OfferRepositoryEvents
+{
+
+    override fun goToCreateOffer(
+        type: CreateOfferType,
+        catpath: List<Long>,
+        id: Long,
+        externalImages: List<String>?
+    ) {}
+
+    override fun goToProposalPage(
+        offerId: Long,
+        type: ProposalType
+    ) {}
+
+    override fun goToDynamicSettings(type: String, id: Long) {
+        DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
+    }
+
+    override fun goToLogin() {
+        goToLogin(false)
+    }
+
+    override fun goToDialog(id: Long?) {
+    }
+
+    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
+    }
+
+    override fun goToUserPage(sellerId: Long) {
+    }
+
+    override fun openCabinetOffer(offer: OfferItem) {
+        component.goToOffer(offer)
+    }
+
+    override fun scrollToBids() {}
+    override fun refreshPage() {}
+    override fun updateBidsInfo(item: OfferItem) {}
+}
+

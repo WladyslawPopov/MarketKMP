@@ -13,18 +13,16 @@ interface OfferRepositoryEvents {
         externalImages: List<String>?
     )
 
-    fun goToProposalPage(type: ProposalType)
+    fun goToProposalPage(offerId: Long, type: ProposalType)
     fun goToDynamicSettings(type: String, id: Long)
     fun goToLogin()
     fun goToDialog(id: Long?)
     fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>)
-    fun goToUserPage()
+    fun goToUserPage(sellerId : Long)
 
-    fun openCabinetOffer()
-
-    fun isHideCabinetOffer() : Boolean
+    fun openCabinetOffer(offer: OfferItem)
 
     fun scrollToBids()
     fun refreshPage()
-    fun updateItem(item: OfferItem)
+    fun updateBidsInfo(item: OfferItem)
 }

@@ -5,10 +5,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
@@ -42,7 +42,7 @@ import kotlin.toString
 
 data class OfferViewState(
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val offer: Offer = Offer(),
+    val offerRepository: OfferRepository,
     val statusList: List<String> = emptyList(),
     val images: List<String> = emptyList(),
     val columns: StaggeredGridCells = StaggeredGridCells.Fixed(1),
@@ -63,8 +63,6 @@ class OfferViewModel(
     val isSnapshot : Boolean = false
 ) : CoreViewModel()
 {
-    private val _responseOfferView: MutableStateFlow<OfferViewState> = MutableStateFlow(OfferViewState())
-    val responseOfferView: StateFlow<OfferViewState> = _responseOfferView.asStateFlow()
 
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
     val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
@@ -93,9 +91,16 @@ class OfferViewModel(
 
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
 
-    private val _offerRepository = MutableStateFlow(OfferRepository(events = offerRepositoryEvents))
-    val offerRepository: StateFlow<OfferRepository> = _offerRepository.asStateFlow()
-
+    private val _responseOfferView: MutableStateFlow<OfferViewState> = MutableStateFlow(
+        OfferViewState(
+        offerRepository = OfferRepository(
+                Offer(),
+                ListingData(),
+                events = offerRepositoryEvents, this@OfferViewModel
+            )
+        )
+    )
+    val responseOfferView: StateFlow<OfferViewState> = _responseOfferView.asStateFlow()
 
     init {
         refreshPage()
@@ -108,7 +113,7 @@ class OfferViewModel(
 
     fun editNote(){
         viewModelScope.launch {
-            offerRepository.value.operationsList.value.find { it.id == "edit_note" }?.onClick()
+            responseOfferView.value.offerRepository.operationsList.value.find { it.id == "edit_note" }?.onClick()
         }
     }
 
@@ -166,8 +171,8 @@ class OfferViewModel(
                     val res = offerOperations.getOffer(offerId, isSnapshot)
                     val data = res.success
                     data?.let { offer ->
+                        val offerRepository = OfferRepository(offer, ListingData(), events = offerRepositoryEvents, this@OfferViewModel)
                         getCategoriesHistory(offer.catpath)
-                        _offerRepository.value = OfferRepository(offer = offer.parseToOfferItem(), events = offerRepositoryEvents, this@OfferViewModel)
                         val initTimer =
                             ((offer.session?.end?.toLongOrNull()
                                 ?: 1L) - (getCurrentDate().toLongOrNull()
@@ -227,7 +232,7 @@ class OfferViewModel(
                         }
 
                         if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
-                            startTimerUpdateBids(offer)
+                            startTimerUpdateBids(offerRepository.offerState.value)
                         }
 
                         if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
@@ -246,7 +251,7 @@ class OfferViewModel(
                         val counts = (1..offer.currentQuantity).map { it.toString() }
 
                         _responseOfferView.value = OfferViewState(
-                            offer = offer,
+                            offerRepository = offerRepository,
                             statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
                             columns = columns,
                             images = images,
@@ -382,7 +387,7 @@ class OfferViewModel(
         }
     }
 
-    private fun startTimerUpdateBids(offer: Offer) {
+    private fun startTimerUpdateBids(offer: OfferItem) {
         val initialTime =
             (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() }
                 ?: 0L) * 1000
@@ -413,13 +418,11 @@ class OfferViewModel(
             }
             withContext(Dispatchers.Main) {
                 if (user != null) {
-                    _responseOfferView.update {
-                        it.copy(
-                            offer = it.offer.copy(
-                                sellerData = user
-                            )
+                    responseOfferView.value.offerRepository.setNewOfferData(
+                        responseOfferView.value.offerRepository.offerState.value.copy(
+                            seller = user,
                         )
-                    }
+                    )
                 }
             }
         }
@@ -434,7 +437,7 @@ class OfferViewModel(
         }
     }
 
-    fun updateBidsInfo(offer: Offer) {
+    fun updateBidsInfo(offer: OfferItem) {
         viewModelScope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
@@ -443,16 +446,14 @@ class OfferViewModel(
                 withContext(Dispatchers.Main) {
                     response.success?.body?.let { body ->
                         if (body.isChanged) {
-                            _responseOfferView.update {
-                                it.copy(
-                                    offer = it.offer.copy(
-                                        bids = body.bids,
-                                        version = JsonPrimitive(body.currentVersion),
-                                        currentPricePerItem = body.currentPrice,
-                                        minimalAcceptablePrice = body.minimalAcceptablePrice,
-                                    )
+                            responseOfferView.value.offerRepository.setNewOfferData(
+                                responseOfferView.value.offerRepository.offerState.value.copy(
+                                    bids = body.bids,
+                                    version = JsonPrimitive(body.currentVersion),
+                                    price = body.currentPrice ?: "",
+                                    minimalAcceptablePrice = body.minimalAcceptablePrice ?: "",
                                 )
-                            }
+                            )
                         }
                     }
                 }
@@ -462,7 +463,7 @@ class OfferViewModel(
         }
     }
 
-    fun onAddToCartClick(offer: Offer){
+    fun onAddToCartClick(offer: OfferItem){
         if (UserData.token != "") {
             val bodyAddB = HashMap<String, JsonElement>()
             bodyAddB["offer_id"] = JsonPrimitive(offer.id)
@@ -505,17 +506,17 @@ class OfferViewModel(
         }
     }
 
-    fun addToSubscriptions(offer: Offer, errorCallback: (String) -> Unit){
+    fun addToSubscriptions(offer: OfferItem, errorCallback: (String) -> Unit){
         if (UserData.token != "") {
             addNewSubscribe(
                 LD(),
                 SD().copy(
-                    userLogin = offer.sellerData?.login,
-                    userID = offer.sellerData?.id ?: 1L,
+                    userLogin = offer.seller.login,
+                    userID = offer.seller.id,
                     userSearch = true
                 ),
                 onSuccess = {
-                    updateUserState(offer.sellerData?.id ?: 1L)
+                    updateUserState(offer.seller.id)
                 },
                 errorCallback = { es ->
                     errorCallback(es)
@@ -638,7 +639,7 @@ class OfferViewModel(
     }
 
     fun scrollToBids(){
-        if(responseOfferView.value.offer.bids?.isNotEmpty() == true) {
+        if(responseOfferView.value.offerRepository.offerState.value.bids?.isNotEmpty() == true) {
             _scrollPosition.value = goToBids
         }
     }
@@ -748,7 +749,10 @@ data class OfferRepositoryEventsImpl(
         component.goToCreateOffer(type, catpath, id, externalImages)
     }
 
-    override fun goToProposalPage(type: ProposalType) {
+    override fun goToProposalPage(
+        offerId: Long,
+        type: ProposalType
+    ) {
         component.goToProposalPage(type)
     }
 
@@ -768,13 +772,9 @@ data class OfferRepositoryEventsImpl(
         component.goToCreateOrder(item)
     }
 
-    override fun goToUserPage() {}
+    override fun goToUserPage(sellerId: Long) {}
 
-    override fun openCabinetOffer() {}
-
-    override fun isHideCabinetOffer() : Boolean {
-        return true
-    }
+    override fun openCabinetOffer(offer: OfferItem) {}
 
     override fun scrollToBids() {
         viewModel.scrollToBids()
@@ -784,7 +784,7 @@ data class OfferRepositoryEventsImpl(
         viewModel.refreshPage()
     }
 
-    override fun updateItem(item: OfferItem) {
-        viewModel.updateBidsInfo(viewModel.responseOfferView.value.offer)
+    override fun updateBidsInfo(item: OfferItem) {
+        viewModel.updateBidsInfo(viewModel.responseOfferView.value.offerRepository.offerState.value)
     }
 }

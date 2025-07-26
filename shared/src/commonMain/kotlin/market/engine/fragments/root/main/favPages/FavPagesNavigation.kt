@@ -183,7 +183,9 @@ fun FavPagesNavigation(
         ){ state ->
             Column {
                 if (state.fields.isNotEmpty()) {
-                    SetUpDynamicFields(state.fields)
+                    SetUpDynamicFields(state.fields){
+                        viewModel.setNewField(it)
+                    }
                 }
             }
         }

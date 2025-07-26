@@ -16,10 +16,12 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -45,7 +47,6 @@ fun DeliveryCardsContent(
     val fieldsState by viewModel.deliveryFieldsState.collectAsState()
     val showFieldsState by viewModel.showFieldsState.collectAsState()
     val selectedCardsState by viewModel.selectedCardState.collectAsState()
-    val selectedCountryState by viewModel.selectedCountryState.collectAsState()
     val isLoading by viewModel.isShowProgress.collectAsState()
 
     EdgeToEdgeScaffold(
@@ -110,7 +111,9 @@ fun DeliveryCardsContent(
                                     if (field.key != "country" && field.key != "other_country") {
                                         DynamicInputField(
                                             field = field,
-                                        )
+                                        ) {
+                                            viewModel.setNewField(it)
+                                        }
                                     }
                                 }
                             }
@@ -129,16 +132,21 @@ fun DeliveryCardsContent(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(vertical = 8.dp)
-                                    ) { choice ->
-                                        viewModel.selectedCountry(choice?.code?.intOrNull ?: 0)
+                                    ) {
+                                        viewModel.setNewField(it)
                                     }
                                 }
 
                                 if (otherCountryField != null) {
+                                    val selectedCountryState = remember(fieldsState) {
+                                        fieldsState.find { it.key == "country" }?.data?.jsonPrimitive?.intOrNull ?: 0
+                                    }
                                     AnimatedVisibility(visible = selectedCountryState == 1) {
                                         DynamicInputField(
                                             field = otherCountryField
-                                        )
+                                        ) {
+                                            viewModel.setNewField(it)
+                                        }
                                     }
                                 }
                             }

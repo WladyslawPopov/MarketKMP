@@ -178,6 +178,18 @@ class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
         }
     }
 
+    fun setNewField(fields : Fields){
+        _responseGetFields.update { res ->
+            res.map {
+                if (it.key == fields.key) {
+                    fields.copy()
+                } else {
+                    it.copy()
+                }
+            }
+        }
+    }
+
     private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
         try {
             val res = withContext(Dispatchers.IO) {

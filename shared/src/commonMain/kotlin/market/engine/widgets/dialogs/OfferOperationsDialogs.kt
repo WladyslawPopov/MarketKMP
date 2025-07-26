@@ -125,7 +125,9 @@ fun OfferOperationsDialogs(
             else -> {
                 Column {
                     if (state.fields.isNotEmpty()) {
-                        SetUpDynamicFields(state.fields)
+                        SetUpDynamicFields(state.fields){
+                            offerRepository.setNewField(it)
+                        }
                     }
                 }
             }

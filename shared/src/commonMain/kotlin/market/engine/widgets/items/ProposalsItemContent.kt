@@ -62,9 +62,8 @@ fun ProposalsItemContent(
     proposals: Proposals,
     type: ProposalType,
     initFields: List<Fields>,
-    selectedChoice: Int,
     isLoading: Boolean,
-    changeChoice: (Boolean, Int) -> Unit,
+    onValueChange: (Fields) -> Unit,
     confirmProposal: (List<Fields>) -> Unit,
     goToUser: (Long) -> Unit,
 ) {
@@ -79,6 +78,11 @@ fun ProposalsItemContent(
 
     val hourLabel = stringResource(strings.hourLabel)
     val minutesLabel = stringResource(strings.minutesLabel)
+
+    val selectedChoice = remember(initFields) {
+        initFields.find { it.key == "radio_group" }?.data?.jsonPrimitive?.intOrNull
+            ?: if(proposals.proposals?.isEmpty() == true) 2 else 0
+    }
 
     Card(
         shape = MaterialTheme.shapes.small,
@@ -519,7 +523,7 @@ fun ProposalsItemContent(
                             initFields,
                             selectedChoice,
                             isLoading,
-                            changeChoice,
+                            onValueChange,
                             confirmProposal
                         )
                     }
@@ -596,7 +600,7 @@ fun ProposalsItemContent(
                         initFields,
                         selectedChoice,
                         isLoading,
-                        changeChoice,
+                        onValueChange,
                         confirmProposal
                     )
                 }
@@ -611,7 +615,7 @@ fun GetBody(
     initialFields : List<Fields>,
     selectedChoice : Int,
     isLoading : Boolean,
-    changeChoice : (Boolean, Int) -> Unit,
+    onValueChange : (Fields) -> Unit,
     confirmProposal : (List<Fields>) -> Unit,
 ) {
     val fields by remember(initialFields) { mutableStateOf(initialFields) }
@@ -663,8 +667,8 @@ fun GetBody(
                 when (field.key) {
                     "type" -> {
                         if (buyerId != 0L) {
-                            DynamicRadioButtons(field) { isChecked, choice ->
-                                changeChoice(isChecked, choice)
+                            DynamicRadioButtons(field) {
+                                onValueChange(field)
                             }
                         }
                     }

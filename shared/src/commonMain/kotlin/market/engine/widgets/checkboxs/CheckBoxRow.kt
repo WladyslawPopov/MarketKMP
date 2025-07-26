@@ -21,7 +21,7 @@ fun CheckBoxRow(
     isMandatory : Boolean = false,
     onClickListener: (Long) -> Unit,
 ) {
-    val choiceCode = remember { choice.code?.longOrNull ?: 0 }
+    val choiceCode = remember(choice) { choice.code?.longOrNull ?: 0 }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

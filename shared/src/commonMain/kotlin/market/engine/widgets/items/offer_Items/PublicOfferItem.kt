@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -28,7 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.states.OfferItemState
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
@@ -40,28 +42,27 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PublicOfferItem(
-    state: OfferItemState,
+    offerRepository: OfferRepository,
     updateItem : Long?
 ) {
-    val item = state.item
-    val onItemClick = state.onItemClick
-    val addToFavorites = state.addToFavorites
+    val offer by offerRepository.offerState.collectAsState()
+    val events = offerRepository.events
 
     LaunchedEffect(updateItem) {
-        if (updateItem == item.id){
-            state.updateItemState()
+        if (updateItem == offer.id){
+            offerRepository.updateItem()
         }
     }
 
     val pagerState = rememberPagerState(
-        pageCount = { item.images.size },
+        pageCount = { offer.images.size },
     )
 
     Card(
-        colors = if (!item.isPromo) colors.cardColors else colors.cardColorsPromo,
+        colors = if (!offer.isPromo) colors.cardColors else colors.cardColorsPromo,
         shape = MaterialTheme.shapes.small,
         onClick = {
-            onItemClick()
+            events.openCabinetOffer(offer)
         }
     ) {
         Row(
@@ -79,11 +80,11 @@ fun PublicOfferItem(
                 modifier = Modifier.size(imageSize),
             ) {
                 HorizontalImageViewer(
-                    images = item.images,
+                    images = offer.images,
                     pagerState = pagerState,
                 )
 
-                if (item.videoUrls?.isNotEmpty() == true) {
+                if (offer.videoUrls.isNotEmpty()) {
                     SmallImageButton(
                         drawables.iconYouTubeSmall,
                         modifierIconSize = Modifier.size(dimens.mediumIconSize),
@@ -93,8 +94,8 @@ fun PublicOfferItem(
                     }
                 }
 
-                if (item.discount > 0) {
-                    val pd = "-" + item.discount.toString() + "%"
+                if (offer.discount > 0) {
+                    val pd = "-" + offer.discount.toString() + "%"
 
                     DiscountBadge(pd)
                 }
@@ -109,15 +110,15 @@ fun PublicOfferItem(
                     horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                     verticalAlignment = Alignment.Top
                 ) {
-                    TitleText(item.title, modifier = Modifier.weight(1f))
+                    TitleText(offer.title, modifier = Modifier.weight(1f))
                     SmallIconButton(
-                        icon = if (item.isWatchedByMe) drawables.favoritesIconSelected
+                        icon = if (offer.isWatchedByMe) drawables.favoritesIconSelected
                         else drawables.favoritesIcon,
                         color = colors.inactiveBottomNavIconColor,
                         modifierIconSize = Modifier.size(dimens.smallIconSize),
                         modifier = Modifier.align(Alignment.Top).weight(0.2f)
                     ){
-                        addToFavorites(item)
+                        offerRepository.addToFavorites()
                     }
                 }
 
@@ -132,12 +133,12 @@ fun PublicOfferItem(
                         modifier = Modifier.size(dimens.extraSmallIconSize),
                     )
                     Text(
-                        text = item.location,
+                        text = offer.location,
                         style = MaterialTheme.typography.labelSmall,
                     )
                 }
 
-                if (!item.isPrototype) {
+                if (!offer.isPrototype) {
                     val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
 
                     Row(
@@ -153,8 +154,8 @@ fun PublicOfferItem(
 
                         Text(
                             text = buildString {
-                                if (item.session != null)
-                                    append((item.session?.end ?: "").convertDateWithMinutes())
+                                if (offer.session != null)
+                                    append((offer.session?.end ?: "").convertDateWithMinutes())
                                 else
                                     append(sessionEnd)
                             },
@@ -176,7 +177,7 @@ fun PublicOfferItem(
                         horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        when (item.type) {
+                        when (offer.type) {
                             "buy_now" -> {
                                 typeString = stringResource(strings.buyNow)
                                 colorType = colors.buyNowColor
@@ -188,17 +189,17 @@ fun PublicOfferItem(
                                 )
 
                                 Text(
-                                    text = item.currentQuantity.toString(),
+                                    text = offer.currentQuantity.toString(),
                                     style = MaterialTheme.typography.labelSmall,
                                 )
 
-                                var buyer = item.buyer?.login ?: ""
+                                var buyer = offer.buyer?.login ?: ""
                                 var color = colors.grayText
 
-                                if (!item.isPrototype) {
-                                    if (item.currentQuantity < 2) {
-                                        if (item.buyer?.login != "" && item.buyer?.login != null) {
-                                            buyer = item.buyer?.login ?: ""
+                                if (!offer.isPrototype) {
+                                    if (offer.currentQuantity < 2) {
+                                        if (offer.buyer?.login != "" && offer.buyer?.login != null) {
+                                            buyer = offer.buyer?.login ?: ""
                                             color = colors.ratingBlue
                                         }
                                     }
@@ -221,15 +222,15 @@ fun PublicOfferItem(
                                 )
 
                                 Text(
-                                    text = item.numParticipants.toString(),
+                                    text = offer.numParticipants.toString(),
                                     style = MaterialTheme.typography.labelSmall,
                                 )
 
                                 var bids = stringResource(strings.noBids)
                                 var color = colors.grayText
 
-                                if (item.bids?.isNotEmpty() == true) {
-                                    bids = item.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                if (offer.bids?.isNotEmpty() == true) {
+                                    bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
                                     color = colors.ratingBlue
                                 }
 
@@ -251,14 +252,14 @@ fun PublicOfferItem(
                                 )
 
                                 Text(
-                                    text = item.numParticipants.toString(),
+                                    text = offer.numParticipants.toString(),
                                     style = MaterialTheme.typography.labelSmall,
                                 )
 
                                 var bids = stringResource(strings.noBids)
                                 var color = colors.grayText
-                                if (item.bids?.isNotEmpty() == true) {
-                                    bids = item.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                if (offer.bids?.isNotEmpty() == true) {
+                                    bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
                                     color = colors.ratingBlue
                                 }
                                 Text(
@@ -269,7 +270,7 @@ fun PublicOfferItem(
                             }
                         }
 
-                        if (item.safeDeal) {
+                        if (offer.safeDeal) {
                             Image(
                                 painter = painterResource(drawables.safeDealIcon),
                                 contentDescription = "",
@@ -284,12 +285,12 @@ fun PublicOfferItem(
                         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
                         Text(
-                            text = item.seller.login ?: "",
+                            text = offer.seller.login ?: "",
                             style = MaterialTheme.typography.titleSmall,
                             color = colors.brightBlue,
                         )
 
-                        if ((item.seller.rating ?: 0) > 0) {
+                        if ((offer.seller.rating ?: 0) > 0) {
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -299,7 +300,7 @@ fun PublicOfferItem(
                                     .padding(dimens.extraSmallPadding)
                             ) {
                                 Text(
-                                    text = item.seller.rating.toString(),
+                                    text = offer.seller.rating.toString(),
                                     color = colors.alwaysWhite,
                                     style = MaterialTheme.typography.labelSmall,
                                     textAlign = TextAlign.Center,
@@ -307,7 +308,7 @@ fun PublicOfferItem(
                             }
                         }
 
-                        if (item.seller.isVerified) {
+                        if (offer.seller.isVerified) {
                             Image(
                                 painter = painterResource(drawables.verifiedIcon),
                                 contentDescription = null,
@@ -316,7 +317,7 @@ fun PublicOfferItem(
                         }
                     }
 
-                    if (item.note != null) {
+                    if (offer.note != null) {
                         Row(
                             modifier = Modifier.background(
                                 colors.white,
@@ -333,7 +334,7 @@ fun PublicOfferItem(
                             )
 
                             Text(
-                                text = item.note ?: "",
+                                text = offer.note ?: "",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colors.black,
                                 modifier = Modifier.weight(1f, !isBigScreen.value)
@@ -357,7 +358,7 @@ fun PublicOfferItem(
                 ) {
                     Text(
                         text = buildAnnotatedString {
-                            append(item.price)
+                            append(offer.price)
                             append(" ${stringResource(strings.currencySign)}")
                         },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),

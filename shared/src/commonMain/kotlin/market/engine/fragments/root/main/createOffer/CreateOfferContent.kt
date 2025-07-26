@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.int
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -105,7 +104,7 @@ fun CreateOfferContent(
     val isEditCategory = uiState.categoryState.openCategory
 
     val selectedDate by viewModel.selectedDate.collectAsState()
-    val payloadState = uiState.dynamicPayloadState
+    val payloadState by viewModel.responseGetPage.collectAsState()
 
     val categoryState = uiState.categoryState
     val appBarState = uiState.appBarState
@@ -121,7 +120,9 @@ fun CreateOfferContent(
 
     val images by photoTempViewModel.responseImages.collectAsState()
 
-    val choiceCodeSaleType by viewModel.choiceCodeSaleType.collectAsState()
+    val choiceCodeSaleType = remember(payloadState) {
+        payloadState.find { it.key == "saletype" }?.data?.jsonPrimitive?.intOrNull
+    }
 
     val focusManager = LocalFocusManager.current
 
@@ -218,7 +219,7 @@ fun CreateOfferContent(
                 )
             }
 
-            !isEditCategory && payloadState != null && newOfferId == null ->{
+            !isEditCategory && payloadState.isNotEmpty() && newOfferId == null ->{
                 LazyColumnWithScrollBars(
                     modifierList = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
@@ -291,7 +292,7 @@ fun CreateOfferContent(
                                 first.forEach { key ->
                                     when (key) {
                                         "title" -> {
-                                            payloadState.fields.find { it.key == key }
+                                            payloadState.find { it.key == key }
                                                 ?.let { field ->
                                                     item {
                                                         Column {
@@ -302,7 +303,9 @@ fun CreateOfferContent(
 
                                                             DynamicInputField(
                                                                 field
-                                                            )
+                                                            ){
+                                                                viewModel.setNewFiles(it)
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -310,7 +313,7 @@ fun CreateOfferContent(
                                         "saletype" -> {
                                             item {
                                                 Column {
-                                                    payloadState.fields.find { it.key == key }
+                                                    payloadState.find { it.key == key }
                                                         ?.let { field ->
                                                             Column {
                                                                 SeparatorLabel(
@@ -319,14 +322,14 @@ fun CreateOfferContent(
 
                                                                 DynamicSelect(
                                                                     field,
-                                                                ) { choice ->
-                                                                    viewModel.setChoiceCodeSaleType(choice?.code?.int ?: 0)
+                                                                ) {
+                                                                    viewModel.setNewFiles(it)
                                                                 }
                                                             }
                                                         }
 
 
-                                                    payloadState.fields.find { it.key == "startingprice" }
+                                                    payloadState.find { it.key == "startingprice" }
                                                         ?.let { field ->
                                                             AnimatedVisibility(
                                                                 choiceCodeSaleType == 0 || choiceCodeSaleType == 1,
@@ -339,12 +342,14 @@ fun CreateOfferContent(
                                                                         strings.currencySign
                                                                     ),
                                                                     mandatory = true
-                                                                )
+                                                                ){
+                                                                    viewModel.setNewFiles(it)
+                                                                }
                                                             }
                                                         }
 
 
-                                                    payloadState.fields.find { it.key == "buynowprice" }
+                                                    payloadState.find { it.key == "buynowprice" }
                                                         ?.let { field ->
                                                             AnimatedVisibility(
                                                                 choiceCodeSaleType == 2 || choiceCodeSaleType == 1,
@@ -357,15 +362,19 @@ fun CreateOfferContent(
                                                                         strings.currencySign
                                                                     ),
                                                                     mandatory = true
-                                                                )
+                                                                ){
+                                                                    viewModel.setNewFiles(it)
+                                                                }
                                                             }
                                                         }
 
-                                                    payloadState.fields.find { it.key == "priceproposaltype" }
+                                                    payloadState.find { it.key == "priceproposaltype" }
                                                         ?.let { field ->
                                                             DynamicSelect(
                                                                 field,
-                                                            )
+                                                            ){
+                                                                viewModel.setNewFiles(it)
+                                                            }
                                                         }
                                                 }
                                             }
@@ -380,7 +389,7 @@ fun CreateOfferContent(
                         when (key) {
                             "params" -> {
                                 item {
-                                    val paramList = payloadState.fields.filter {
+                                    val paramList = payloadState.filter {
                                         it.key?.contains(
                                             "par_"
                                         ) == true
@@ -391,7 +400,9 @@ fun CreateOfferContent(
                                     SetUpDynamicFields(
                                         paramList,
                                         modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f)
-                                    )
+                                    ){
+                                        viewModel.setNewFiles(it)
+                                    }
                                 }
                             }
                         }
@@ -411,14 +422,16 @@ fun CreateOfferContent(
                             ),
                             content = {
                                 third.forEach { key ->
-                                    payloadState.fields.find { it.key == key }
+                                    payloadState.find { it.key == key }
                                         ?.let { field ->
                                             when (field.key) {
                                                 "length_in_days" -> {
                                                     item {
                                                         DynamicSelect(
                                                             field,
-                                                        )
+                                                        ){
+                                                            viewModel.setNewFiles(it)
+                                                        }
                                                     }
                                                 }
 
@@ -433,7 +446,9 @@ fun CreateOfferContent(
                                                                 DynamicInputField(
                                                                     field,
                                                                     mandatory = true
-                                                                )
+                                                                ){
+                                                                    viewModel.setNewFiles(it)
+                                                                }
                                                             }
                                                         }
 
@@ -449,7 +464,9 @@ fun CreateOfferContent(
                                                     item {
                                                         DynamicSelect(
                                                             field,
-                                                        )
+                                                        ){
+                                                            viewModel.setNewFiles(it)
+                                                        }
                                                     }
                                                 }
 
@@ -461,18 +478,26 @@ fun CreateOfferContent(
                                                             )
                                                             DynamicSelect(
                                                                 field,
-                                                            )
-                                                            payloadState.fields.find { it.key == "region" }
+                                                            ){
+                                                                viewModel.setNewFiles(it)
+                                                            }
+
+                                                            payloadState.find { it.key == "region" }
                                                                 ?.let { field ->
                                                                     DynamicSelect(
                                                                         field,
-                                                                    )
+                                                                    ){
+                                                                        viewModel.setNewFiles(it)
+                                                                    }
                                                                 }
-                                                            payloadState.fields.find { it.key == "freelocation" }
+
+                                                            payloadState.find { it.key == "freelocation" }
                                                                 ?.let { field ->
                                                                     DynamicInputField(
                                                                         field,
-                                                                    )
+                                                                    ){
+                                                                        viewModel.setNewFiles(it)
+                                                                    }
                                                                 }
                                                         }
                                                     }
@@ -482,7 +507,9 @@ fun CreateOfferContent(
                                                     item {
                                                         DynamicCheckboxGroup(
                                                             field,
-                                                        )
+                                                        ){
+                                                            viewModel.setNewFiles(it)
+                                                        }
                                                     }
                                                 }
 
@@ -490,7 +517,9 @@ fun CreateOfferContent(
                                                     item {
                                                         DynamicCheckboxGroup(
                                                             field,
-                                                        )
+                                                        ){
+                                                            viewModel.setNewFiles(it)
+                                                        }
                                                     }
                                                 }
 
@@ -503,7 +532,9 @@ fun CreateOfferContent(
 
                                                             DeliveryMethods(
                                                                 field,
-                                                            )
+                                                            ){
+                                                                viewModel.setNewFiles(it)
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -573,7 +604,7 @@ fun CreateOfferContent(
                                 }
                             }
                         }
-                        payloadState.fields.find { it.key == key }
+                        payloadState.find { it.key == key }
                             ?.let { field ->
                                 when (field.key) {
                                     "session_start" -> {
@@ -583,7 +614,10 @@ fun CreateOfferContent(
                                                     stringResource(strings.offersGroupStartTSTile)
                                                 )
 
-                                                SessionStartContent(selectedDate, field){
+                                                SessionStartContent(selectedDate, field, onValueChange = {
+                                                    viewModel.setNewFiles(it)
+                                                    viewModel.setSelectData()
+                                                }){
                                                     viewModel.setSelectData(it)
                                                 }
                                             }
@@ -623,14 +657,14 @@ fun CreateOfferContent(
             }
             newOfferId != null -> {
                 val title = remember {
-                    payloadState?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
+                    payloadState.find { it.key == "title" }?.data?.jsonPrimitive?.content
                         ?: ""
                 }
                 //success offer
                 SuccessContent(
                     images,
                     title,
-                    payloadState?.fields?.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
+                    payloadState.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                     modifier = Modifier.padding(contentPadding)
                         .padding(dimens.mediumPadding),
                     futureTime = selectedDate ?: getCurrentDate().toLong(),
@@ -655,6 +689,7 @@ fun SessionStartContent(
     selectedDate : Long?,
     field: Fields,
     modifier: Modifier = Modifier,
+    onValueChange : (Fields) -> Unit,
     onSetSelectedDate : (Long) -> Unit
 ){
     val saleTypeFilters = listOf(
@@ -663,14 +698,7 @@ fun SessionStartContent(
         2 to stringResource(strings.offerStartInFutureLabel)
     )
 
-    val selectedFilterKey = remember { mutableStateOf(0) }
-
-    LaunchedEffect(Unit){
-        selectedFilterKey.value = field.data?.jsonPrimitive?.intOrNull ?: 0
-        if(field.data?.jsonPrimitive?.intOrNull == null) {
-            field.data = JsonPrimitive(0)
-        }
-    }
+    val selectedFilterKey = remember(field.data) { mutableStateOf(field.data?.jsonPrimitive?.intOrNull ?: 0) }
 
     val showActivateOfferForFutureDialog = remember { mutableStateOf(false) }
 
@@ -685,13 +713,15 @@ fun SessionStartContent(
                 selectedFilterKey.value,
                 rbColor = colors.inactiveBottomNavIconColor
             ) { isChecked, choice ->
-                if(!isChecked) {
-                    selectedFilterKey.value = choice
-                    field.data = JsonPrimitive(choice)
-                }else{
-                    selectedFilterKey.value = 0
-                    field.data = null
-                }
+                onValueChange(
+                    field.copy(
+                        data = if(!isChecked) {
+                            JsonPrimitive(choice)
+                        }else{
+                            null
+                        }
+                    )
+                )
             }
         }
 
@@ -745,13 +775,14 @@ fun SessionStartContent(
 @Composable
 fun DeliveryMethods(
     field: Fields,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onValueChange: (Fields) -> Unit
 ) {
-    val isMandatory = remember {
-        mutableStateOf(field.validators?.any { it.type == "mandatory" } == true)
+    val isMandatory = remember(field.validators) {
+        field.validators?.any { it.type == "mandatory" } == true
     }
 
-    val initialSelected = remember {
+    val initialSelected = remember(field.data) {
         val selectedCodes = mutableListOf<Int>()
         field.data?.jsonArray?.forEach { item ->
             item.jsonObject["code"]?.jsonPrimitive?.intOrNull?.let { selectedCodes.add(it) }
@@ -759,23 +790,24 @@ fun DeliveryMethods(
         selectedCodes.toList()
     }
 
-    val selectedItems = remember { mutableStateOf(initialSelected) }
+    val error = remember(field.errors) { processInput(field.errors) }
 
-    val error = remember { mutableStateOf(processInput(field.errors)) }
-
-    val onClickListener : (Int) -> Unit = { choiceCode ->
-        val currentSet = selectedItems.value.toMutableList()
-        if (currentSet.contains(choiceCode)) {
-            currentSet.remove(choiceCode)
-        } else {
-            currentSet.add(choiceCode)
-        }
-
-        selectedItems.value = currentSet.toList()
-        field.data = buildJsonArray {
-            selectedItems.value.forEach {
-                add(JsonObject(mapOf("code" to JsonPrimitive(it))))
+    val onClickListener : (Int) -> Unit = remember {
+        { choiceCode ->
+            val currentSet = initialSelected.toMutableList()
+            if (currentSet.contains(choiceCode)) {
+                currentSet.remove(choiceCode)
+            } else {
+                currentSet.add(choiceCode)
             }
+
+            onValueChange(field.copy(
+                data = buildJsonArray {
+                    currentSet.forEach {
+                        add(JsonObject(mapOf("code" to JsonPrimitive(it))))
+                    }
+                }
+            ))
         }
     }
 
@@ -783,7 +815,7 @@ fun DeliveryMethods(
 
         DynamicLabel(
             text = field.longDescription ?: field.shortDescription.orEmpty(),
-            isMandatory = isMandatory.value,
+            isMandatory = isMandatory,
             modifier = Modifier.padding(dimens.smallPadding)
         )
 
@@ -803,7 +835,7 @@ fun DeliveryMethods(
                         }
                 ) {
                     ThemeCheckBox(
-                        isSelected = selectedItems.value.contains(choiceCode),
+                        isSelected = initialSelected.contains(choiceCode),
                         onSelectionChange = {
                             onClickListener(choiceCode)
                         },
@@ -818,7 +850,7 @@ fun DeliveryMethods(
                     )
                 }
 
-                AnimatedVisibility(selectedItems.value.contains(choiceCode) && choice.extendedFields != null) {
+                AnimatedVisibility(initialSelected.contains(choiceCode) && choice.extendedFields != null) {
                     Column(
                         modifier = Modifier.fillMaxWidth()
                             .padding(dimens.mediumPadding),
@@ -839,7 +871,25 @@ fun DeliveryMethods(
                                         extendField,
                                         suffix = stringResource(strings.currencyCode),
                                         label = stringResource(strings.deliveryCityParameterLabel),
-                                    )
+                                    ){ newField ->
+                                        onValueChange( field.copy(
+                                            choices = field.choices?.map { choice ->
+                                                if (choice.extendedFields?.contains(extendField) == true){
+                                                    choice.copy(
+                                                        extendedFields = choice.extendedFields.map {
+                                                            if (it.key == extendField.key){
+                                                                newField.copy()
+                                                            }else{
+                                                                it.copy()
+                                                            }
+                                                        }
+                                                    )
+                                                }else{
+                                                    choice.copy()
+                                                }
+                                            }
+                                        ))
+                                    }
                                 }
                                 "delivery_price_country" -> {
                                     if (extendField.data == null) {
@@ -853,7 +903,25 @@ fun DeliveryMethods(
                                         extendField,
                                         suffix = stringResource(strings.currencyCode),
                                         label = stringResource(strings.deliveryCountryParameterLabel),
-                                    )
+                                    ){ newField ->
+                                        onValueChange( field.copy(
+                                            choices = field.choices?.map { choice ->
+                                                if (choice.extendedFields?.contains(extendField) == true){
+                                                    choice.copy(
+                                                        extendedFields = choice.extendedFields.map {
+                                                            if (it.key == extendField.key){
+                                                                newField.copy()
+                                                            }else{
+                                                                it.copy()
+                                                            }
+                                                        }
+                                                    )
+                                                }else{
+                                                    choice.copy()
+                                                }
+                                            }
+                                        ))
+                                    }
                                 }
                                 "delivery_price_world" -> {
                                     if (extendField.data == null) {
@@ -862,11 +930,30 @@ fun DeliveryMethods(
                                                     choice.code?.intOrNull
                                         }?.jsonObject?.get("delivery_price_world")?.jsonPrimitive
                                     }
+
                                     DynamicInputField(
                                         extendField,
                                         suffix = stringResource(strings.currencyCode),
                                         label = stringResource(strings.deliveryWorldParameterLabel),
-                                    )
+                                    ){ newField ->
+                                        onValueChange( field.copy(
+                                            choices = field.choices?.map { choice ->
+                                                if (choice.extendedFields?.contains(extendField) == true){
+                                                    choice.copy(
+                                                        extendedFields = choice.extendedFields.map {
+                                                            if (it.key == extendField.key){
+                                                                newField.copy()
+                                                            }else{
+                                                                it.copy()
+                                                            }
+                                                        }
+                                                    )
+                                                }else{
+                                                    choice.copy()
+                                                }
+                                            }
+                                        ))
+                                    }
                                 }
                                 "delivery_comment" -> {
                                     if (extendField.data == null) {
@@ -880,12 +967,48 @@ fun DeliveryMethods(
                                         extendField,
                                         label = stringResource(strings.commentLabel),
                                         singleLine = false,
-                                    )
+                                    ){ newField ->
+                                        onValueChange( field.copy(
+                                            choices = field.choices?.map { choice ->
+                                                if (choice.extendedFields?.contains(extendField) == true){
+                                                    choice.copy(
+                                                        extendedFields = choice.extendedFields.map {
+                                                            if (it.key == extendField.key){
+                                                                newField.copy()
+                                                            }else{
+                                                                it.copy()
+                                                            }
+                                                        }
+                                                    )
+                                                }else{
+                                                    choice.copy()
+                                                }
+                                            }
+                                        ))
+                                    }
                                 }
                                 else -> {
                                     DynamicInputField(
                                         extendField,
-                                    )
+                                    ){ newField ->
+                                        onValueChange( field.copy(
+                                            choices = field.choices?.map { choice ->
+                                                if (choice.extendedFields?.contains(extendField) == true){
+                                                    choice.copy(
+                                                        extendedFields = choice.extendedFields.map {
+                                                            if (it.key == extendField.key){
+                                                                newField.copy()
+                                                            }else{
+                                                                it.copy()
+                                                            }
+                                                        }
+                                                    )
+                                                }else{
+                                                    choice.copy()
+                                                }
+                                            }
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -894,8 +1017,8 @@ fun DeliveryMethods(
             }
         }
 
-        if (error.value != null) {
-            ErrorText(text = error.value ?: "", modifier = Modifier.padding(dimens.smallPadding))
+        if (error != null) {
+            ErrorText(text = error, modifier = Modifier.padding(dimens.smallPadding))
         }
     }
 }

@@ -30,6 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun VacationSettingsContent(
     fields : List<Fields>,
+    onValueChange : (Fields) -> Unit,
     onConfirm : () -> Unit,
 ) {
     val from = stringResource(strings.fromAboutTimeLabel)
@@ -126,11 +127,13 @@ fun VacationSettingsContent(
 
         fields.find {
             it.key == "comment"
-        }?.let {
+        }?.let { field ->
             DynamicInputField(
-                field = it,
+                field = field,
                 singleLine = false
-            )
+            ){
+                onValueChange(it)
+            }
         }
 
         fields.find {

@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,8 +29,8 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.types.ProposalType
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.ilustrations.LoadImage
@@ -44,11 +45,10 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetProposalItem(
-    state : CabinetOfferItemState,
+    offerRepository : OfferRepository,
     updateItem : Long? = null,
 ) {
-    val offer = state.item
-    val offerRepository = state.offerRepository
+    val offer by offerRepository.offerState.collectAsState()
     val events = offerRepository.events
 
     val menuList = offerRepository.operationsList.collectAsState()
@@ -61,7 +61,7 @@ fun CabinetProposalItem(
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.update()
+            offerRepository.updateItem()
         }
     }
 
@@ -78,18 +78,17 @@ fun CabinetProposalItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimens.smallPadding),
-            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.Top),
             horizontalAlignment = Alignment.Start
         ) {
             HeaderOfferBar(
                 offer = offer,
                 defOptions = defOptions.value,
-                updateItem = updateItem,
             )
 
             Row(
                 modifier = Modifier.clickable {
-                    events.openCabinetOffer()
+                    events.openCabinetOffer(offer)
                 }.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
                 verticalAlignment = Alignment.CenterVertically
@@ -194,12 +193,14 @@ fun CabinetProposalItem(
                         )
                     }
 
-                    UserRow(
-                        offer.seller,
-                        Modifier.clip(MaterialTheme.shapes.small).clickable {
-                            events.goToUserPage()
-                        }.padding(dimens.extraSmallPadding),
-                    )
+                    if(offer.seller.id != UserData.login) {
+                        UserRow(
+                            offer.seller,
+                            Modifier.clip(MaterialTheme.shapes.small).clickable {
+                                events.goToUserPage(offer.seller.id)
+                            }.padding(dimens.extraSmallPadding),
+                        )
+                    }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -223,7 +224,7 @@ fun CabinetProposalItem(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             )
             {
@@ -240,32 +241,33 @@ fun CabinetProposalItem(
                     textStyle = MaterialTheme.typography.labelSmall,
                     backgroundColor = colors.steelBlue,
                     textColor = colors.alwaysWhite,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f, false)
                 ) {
                     events.goToProposalPage(
-                        if(offer.seller.id == UserData.login)
+                        offer.id, if(offer.seller.id == UserData.login)
                          ProposalType.ACT_ON_PROPOSAL
                         else ProposalType.MAKE_PROPOSAL
                     )
                 }
+                if(offer.seller.id == UserData.login) {
+                    SimpleTextButton(
+                        stringResource(strings.writeSellerLabel),
+                        leadIcon = {
+                            Icon(
+                                painterResource(drawables.mail),
+                                contentDescription = "",
+                                tint = colors.alwaysWhite,
+                                modifier = Modifier.size(dimens.extraSmallIconSize)
 
-                SimpleTextButton(
-                    stringResource(strings.writeSellerLabel),
-                    leadIcon = {
-                        Icon(
-                            painterResource(drawables.mail),
-                            contentDescription = "",
-                            tint = colors.alwaysWhite,
-                            modifier = Modifier.size(dimens.extraSmallIconSize)
-
-                        )
-                    },
-                    textStyle = MaterialTheme.typography.labelSmall,
-                    backgroundColor = colors.steelBlue,
-                    textColor = colors.alwaysWhite,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    offerRepository.openMesDialog()
+                            )
+                        },
+                        textStyle = MaterialTheme.typography.labelSmall,
+                        backgroundColor = colors.steelBlue,
+                        textColor = colors.alwaysWhite,
+                        modifier = Modifier.weight(1f, false)
+                    ) {
+                        offerRepository.openMesDialog()
+                    }
                 }
             }
         }

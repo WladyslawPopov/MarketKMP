@@ -10,8 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources
 import market.engine.core.data.globalData.UserData
@@ -36,8 +34,6 @@ class DeliveryCardsViewModel: CoreViewModel() {
     private val _selectedCard = MutableStateFlow<Long?>(null)
     val selectedCardState = _selectedCard.asStateFlow()
 
-    private val _selectedCountry = MutableStateFlow(0)
-    val selectedCountryState = _selectedCountry.asStateFlow()
 
     private val userOperations by lazy { KoinPlatform.getKoin().get<UserOperations>() }
 
@@ -97,7 +93,6 @@ class DeliveryCardsViewModel: CoreViewModel() {
                         "country" -> {
                             field.data =
                                 JsonPrimitive(if (card.country == getString(ThemeResources.strings.countryDefault)) 0 else 1)
-                            _selectedCountry.value = field.data?.jsonPrimitive?.intOrNull ?: 0
                         }
                     }
                     field.errors = null
@@ -231,14 +226,14 @@ class DeliveryCardsViewModel: CoreViewModel() {
         _selectedCard.value = card.id
     }
 
-    fun selectedCountry(code : Int){
-        _selectedCountry.value = code
+    fun setNewField(field: Fields){
         _deliveryFields.update {
-            it.map { field ->
-                if (field.key == "country") {
-                    field.data = JsonPrimitive(code)
+            it.map { item ->
+                if (item.key == field.key) {
+                    field
+                } else {
+                    item
                 }
-                field.copy()
             }
         }
     }

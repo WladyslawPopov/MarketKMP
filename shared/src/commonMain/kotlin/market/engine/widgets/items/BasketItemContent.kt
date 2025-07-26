@@ -48,8 +48,8 @@ fun BasketItemContent(
     state: BasketGroupUiState,
     events: BasketEvents,
 ) {
-    val user = remember(state.user) { state.user }
-    val bodes = remember(state.offersInGroup) { state.offersInGroup }
+    val user = state.user
+    val bodes = state.offersInGroup
 
     Column(
         modifier = Modifier
@@ -149,11 +149,9 @@ fun BasketItemContent(
                         OrderOfferItem(
                             offer = offer,
                             selectedQuantity = null,
-                            addToFavorites = { onFinished ->
-                                    events.onAddToFavorites(offer) {
-                                        onFinished(it)
-                                    }
-                                },
+                            addToFavorites = {
+                                events.onAddToFavorites(offer)
+                            },
                             goToOffer = {
                                 events.onGoToOffer(offer.id)
                             }
@@ -198,9 +196,7 @@ fun BasketItemContent(
                                 events.onQuantityChanged(
                                     offer.id,
                                     selectedQuantity.value
-                                ){
-                                    offer.quantity = it
-                                }
+                                )
                             }
                         }
 
@@ -222,9 +218,7 @@ fun BasketItemContent(
                                 events.onQuantityChanged(
                                     offer.id,
                                     selectedQuantity.value
-                                ){
-                                    offer.quantity = it
-                                }
+                                )
                             }
                         }
 

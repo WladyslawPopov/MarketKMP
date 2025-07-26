@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
@@ -118,6 +119,18 @@ class RegViewModel : CoreViewModel() {
                 onError(ServerErrorException(exception.message.toString(), ""))
             } finally {
                 setLoading(false)
+            }
+        }
+    }
+
+    fun setNewField(field: Fields){
+        _responseGetRegFields.update {
+            it.map { item ->
+                if (item.key == field.key){
+                    field.copy()
+                } else {
+                    item.copy()
+                }
             }
         }
     }

@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,33 +39,26 @@ fun DynamicInputField(
     suffix : String? = null,
     mandatory: Boolean? = null,
     singleLine: Boolean = true,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onValueChange: (Fields) -> Unit
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
-    val isPassword = field.widgetType == "password"
+    val isPassword = remember(field) { field.widgetType == "password" }
 
-    LaunchedEffect(Unit) {
-        if (field.data != null) {
-            field.data = checkValidation(field, field.data?.jsonPrimitive?.content ?: "")
-        }
-    }
-
-    val textState = remember {
+    val textState = remember(field) {
         mutableStateOf(field.data?.jsonPrimitive?.content ?: "")
     }
 
     val errorState = rememberUpdatedState(field.errors)
 
-    val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
+    val maxSymbols = remember(field.validators) { field.validators?.firstOrNull()?.parameters?.max }
 
-    val maxNumber = field.validators?.find { it.type == "between" }?.parameters?.max
+    val maxNumber = remember(field.validators) { field.validators?.find { it.type == "between" }?.parameters?.max }
 
     val counter = remember { mutableStateOf(maxSymbols) }
 
-    val isMandatory = remember {
-      mutableStateOf(
-          (mandatory ?: field.validators?.find { it.type == "mandatory" }) != null
-        )
+    val isMandatory = remember(field.validators, mandatory) {
+        mandatory ?: (field.validators?.find { it.type == "mandatory" } != null)
     }
 
     Column {
@@ -82,8 +74,10 @@ fun DynamicInputField(
             value = textState.value,
             onValueChange = {
                 val addNewValue : (String) -> Unit = { newValue ->
-                    field.data = checkValidation(field, newValue.trim())
-                    textState.value = newValue
+                    val updatedField = field.copy(
+                        data = checkValidation(field, newValue)
+                    )
+                    onValueChange(updatedField)
                 }
 
                 if (maxNumber == null) {
@@ -123,7 +117,7 @@ fun DynamicInputField(
 
                     DynamicLabel(
                         text = labelString,
-                        isMandatory = isMandatory.value
+                        isMandatory = isMandatory
                     )
                 }
             },

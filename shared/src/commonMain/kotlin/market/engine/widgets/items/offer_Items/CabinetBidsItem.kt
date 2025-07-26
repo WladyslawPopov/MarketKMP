@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,7 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.states.CabinetOfferItemState
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.SimpleTextButton
@@ -45,11 +46,10 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetBidsItem(
-    state : CabinetOfferItemState,
+    offerRepository : OfferRepository,
     updateItem : Long? = null,
 ) {
-    val offer = state.item
-    val offerRepository = state.offerRepository
+    val offer by offerRepository.offerState.collectAsState()
 
     val events = offerRepository.events
     val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
@@ -63,7 +63,7 @@ fun CabinetBidsItem(
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.update()
+            offerRepository.updateItem()
         }
     }
 
@@ -87,12 +87,11 @@ fun CabinetBidsItem(
                 HeaderOfferBar(
                     offer = offer,
                     defOptions = defOptions.value,
-                    updateItem
                 )
 
                 Row(
                     modifier = Modifier.clickable {
-                        events.openCabinetOffer()
+                        events.openCabinetOffer(offer)
                     }.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
@@ -219,7 +218,7 @@ fun CabinetBidsItem(
                         UserRow(
                             offer.seller,
                             Modifier.clip(MaterialTheme.shapes.small).clickable {
-                                events.goToUserPage()
+                                events.goToUserPage(offer.seller.id)
                             }.padding(dimens.extraSmallPadding),
                         )
                     }

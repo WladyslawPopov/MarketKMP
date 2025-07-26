@@ -76,13 +76,14 @@ fun FavoritesContent(
                                 textButton = stringResource(strings.resetLabel)
                             ) {
                                 listingBaseViewModel.clearListingData()
+                                viewModel.refresh()
                             }
                         } else {
                             NoItemsFoundLayout(
                                 title = stringResource(strings.emptyFavoritesLabel),
                                 image = drawables.emptyFavoritesImage
                             ) {
-                                listingBaseViewModel.refresh()
+                                viewModel.refresh()
                             }
                         }
                     }
@@ -171,16 +172,16 @@ fun FavoritesContent(
                     viewModel = listingBaseViewModel,
                     state = listingState.scrollState,
                     contentPadding = contentPadding,
-                    content = { offer ->
+                    content = { offerRepos ->
                         CabinetOfferItem(
-                            offer,
+                            offerRepos,
                             updateItem,
-                            selectedItems.contains(offer.item.id),
+                            selectedItems.contains(offerRepos.offerState.value.id),
                             onSelected = {
-                                if (selectedItems.contains(offer.item.id)) {
-                                    listingBaseViewModel.removeSelectItem(offer.item.id)
+                                if (selectedItems.contains(offerRepos.offerState.value.id)) {
+                                    listingBaseViewModel.removeSelectItem(offerRepos.offerState.value.id)
                                 } else {
-                                    listingBaseViewModel.addSelectItem(offer.item.id)
+                                    listingBaseViewModel.addSelectItem(offerRepos.offerState.value.id)
                                 }
                             }
                         )

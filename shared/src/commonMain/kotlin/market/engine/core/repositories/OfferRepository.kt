@@ -22,6 +22,7 @@ import market.engine.common.Platform
 import market.engine.common.clipBoardEvent
 import market.engine.common.openCalendarEvent
 import market.engine.common.openShare
+import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.OfferRepositoryEvents
@@ -36,25 +37,37 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
+import market.engine.core.network.ServerErrorException
+import market.engine.core.network.UrlBuilder
 import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
+import market.engine.core.network.networkObjects.Payload
+import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.parseToOfferItem
+import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
 
 class OfferRepository(
-    val offer: OfferItem = OfferItem(),
+    offer: Offer,
+    val listingData: ListingData,
     val events: OfferRepositoryEvents,
     val viewModel: CoreViewModel = CoreViewModel(),
 )
 {
     val offerOperations : OfferOperations by lazy { getKoin().get() }
+
+    private val _offerState = MutableStateFlow(offer.parseToOfferItem())
+    val offerState: StateFlow<OfferItem> = _offerState.asStateFlow()
 
     private val _operationsList = MutableStateFlow<List<MenuItem>>(emptyList())
     val operationsList: StateFlow<List<MenuItem>> = _operationsList.asStateFlow()
@@ -91,20 +104,144 @@ class OfferRepository(
     }
 
     fun refreshOffer(){
-        update()
+        updateItem()
         events.refreshPage()
     }
 
-    fun update(){
+    fun setNewOfferData(offer: OfferItem){
+        _offerState.value = offer
+    }
+
+    private suspend fun getItem(): Offer? {
+        return try {
+            val filters = listingData.data.filters.map{
+                if(it.key == "id"){
+                    it.copy(
+                        value = offerState.value.id.toString(),
+                        interpretation = ""
+                    )
+                }else{
+                    it.copy()
+                }
+            }
+            val url = UrlBuilder()
+                .addPathSegment(listingData.data.objServer)
+                .addPathSegment(listingData.data.methodServer)
+                .addFilters(listingData.data.copy(
+                    filters = filters
+                ), listingData.searchData)
+                .build()
+
+            val res = withContext(Dispatchers.IO) {
+                viewModel.apiService.getPage(url)
+            }
+            return withContext(Dispatchers.Main) {
+                if (res.success) {
+                    val serializer = Payload.serializer(Offer.serializer())
+                    val payload = deserializePayload(res.payload, serializer)
+                    return@withContext payload.objects.firstOrNull()
+                }else{
+                    return@withContext null
+                }
+            }
+        } catch (exception: ServerErrorException) {
+            viewModel.onError(exception)
+            null
+        } catch (exception: Exception) {
+            viewModel.onError(
+                ServerErrorException(
+                    errorCode = exception.message.toString(),
+                    humanMessage = exception.message.toString()
+                )
+            )
+            null
+        }
+    }
+
+    fun addToFavorites()
+    {
+        val offer = offerState.value
+
+        if(UserData.token != "") {
+            viewModel.viewModelScope.launch {
+                val buf = withContext(Dispatchers.IO) {
+                    viewModel.operationsMethods.postOperationFields(
+                        offer.id,
+                        if (offer.isWatchedByMe) "unwatch" else "watch",
+                        "offers"
+                    )
+                }
+
+                val res = buf.success
+                withContext(Dispatchers.Main) {
+                    if (res != null && res.operationResult?.result == "ok") {
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.location,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category" to offer.catPath.firstOrNull(),
+                            "seller_id" to offer.seller.id,
+                            "lot_price_start" to offer.price,
+                        )
+                        if (!offer.isWatchedByMe) {
+                            viewModel.analyticsHelper.reportEvent("offer_watch", eventParameters)
+                        } else {
+                            viewModel. analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                        }
+
+                        viewModel.updateUserInfo()
+
+                        viewModel.showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+
+                        _offerState.update {
+                            it.copy(
+                                isWatchedByMe = !offer.isWatchedByMe
+                            )
+                        }
+                    } else {
+                        if (buf.error != null)
+                            viewModel.onError(buf.error!!)
+                    }
+                }
+            }
+        }else{
+            goToLogin(false)
+        }
+    }
+
+    fun updateItem() {
         updateOperations()
-        events.updateItem(item = offer)
+        if(listingData.data.methodServer.isNotBlank()) {
+            viewModel.viewModelScope.launch {
+                val buf = withContext(Dispatchers.IO) {
+                    getItem()
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (buf != null) {
+                        _offerState.update {
+                            it.copy().setNewParams(buf)
+                        }
+                    } else {
+                        _offerState.update {
+                            it.copy()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun updateOperations(){
         viewModel.viewModelScope.launch {
             val currency = getString(strings.currencyCode)
             getOfferOperations(
-                offer.id
+                offerState.value.id
             ) { list ->
                 _operationsList.value = buildList {
                     addAll(list.map { operation ->
@@ -117,53 +254,53 @@ class OfferRepository(
                                         id == "copy_offer_without_old_photo" -> {
                                             events.goToCreateOffer(
                                                 CreateOfferType.COPY_WITHOUT_IMAGE,
-                                                offer.catPath, offer.id, offer.externalImages
+                                                offerState.value.catPath, offerState.value.id, offerState.value.externalImages
                                             )
                                         }
 
                                         id == "edit_offer" -> {
                                             events.goToCreateOffer(
                                                 CreateOfferType.EDIT,
-                                                offer.catPath, offer.id, offer.externalImages
+                                                offerState.value.catPath, offerState.value.id, offerState.value.externalImages
                                             )
                                         }
 
                                         id == "copy_offer" -> {
                                             events.goToCreateOffer(
                                                 CreateOfferType.COPY,
-                                                offer.catPath, offer.id, offer.externalImages
+                                                offerState.value.catPath, offerState.value.id, offerState.value.externalImages
                                             )
                                         }
 
                                         id == "act_on_proposal" -> {
                                             events.goToProposalPage(
-                                                ProposalType.ACT_ON_PROPOSAL
+                                                offerState.value.id, ProposalType.ACT_ON_PROPOSAL
                                             )
                                         }
 
                                         id == "make_proposal" -> {
                                             events.goToProposalPage(
-                                                ProposalType.MAKE_PROPOSAL
+                                                offerState.value.id, ProposalType.MAKE_PROPOSAL
                                             )
                                         }
 
                                         id == "cancel_all_bids" -> {
                                             events.goToDynamicSettings(
                                                 "cancel_all_bids",
-                                                offer.id
+                                                offerState.value.id
                                             )
                                         }
 
                                         id == "remove_bids_of_users" -> {
                                             events.goToDynamicSettings(
                                                 "remove_bids_of_users",
-                                                offer.id
+                                                offerState.value.id
                                             )
                                         }
 
                                         !isDataless -> {
                                             viewModel.getOperationFields(
-                                                offer.id,
+                                                offerState.value.id,
                                                 id ?: "",
                                                 "offers",
                                             )
@@ -175,7 +312,7 @@ class OfferRepository(
                                                             when (id) {
                                                                 "add_to_list" -> {
                                                                     fields.firstOrNull()?.choices = buildList {
-                                                                        list.filter { !it.offers.contains(offer.id) }.fastForEach { item ->
+                                                                        list.filter { !it.offers.contains(offerState.value.id) }.fastForEach { item ->
                                                                             add(
                                                                                 Choices(
                                                                                     code = JsonPrimitive(
@@ -190,7 +327,7 @@ class OfferRepository(
 
                                                                 "remove_from_list" -> {
                                                                     fields.firstOrNull()?.choices = buildList {
-                                                                        list.filter { it.offers.contains(offer.id) }.fastForEach { item ->
+                                                                        list.filter { it.offers.contains(offerState.value.id) }.fastForEach { item ->
                                                                             add(
                                                                                 Choices(
                                                                                     code = JsonPrimitive(item.id),
@@ -241,13 +378,13 @@ class OfferRepository(
                                                                 },
                                                                 onSuccessful = {
                                                                     var method = "offers"
-                                                                    var idMethod = offer.id
+                                                                    var idMethod = offerState.value.id
 
                                                                     val body = HashMap<String, JsonElement>()
                                                                     when (id) {
                                                                         "edit_offer_in_list" -> {
                                                                             val addList =
-                                                                                fields.find { it.widgetType == "checkbox_group" }?.data
+                                                                                _customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
                                                                             val removeList = buildJsonArray {
                                                                                 fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
                                                                                     !addList.toString().contains(it.code.toString())
@@ -257,7 +394,7 @@ class OfferRepository(
                                                                                     }
                                                                                 }
                                                                             }
-                                                                            fields.forEach { field ->
+                                                                            _customDialogState.value.fields.forEach { field ->
                                                                                 if (field.widgetType == "hidden") {
                                                                                     when (field.key) {
                                                                                         "offers_list_ids_add" -> {
@@ -270,7 +407,7 @@ class OfferRepository(
                                                                                     }
                                                                                 }
                                                                             }
-                                                                            fields = buildList {
+                                                                            _customDialogState.value.fields = buildList {
                                                                                 addAll(fields)
                                                                                 remove(fields.find { it.widgetType == "checkbox_group" })
                                                                             }
@@ -281,7 +418,7 @@ class OfferRepository(
                                                                         }
                                                                     }
 
-                                                                    fields.forEach {
+                                                                    _customDialogState.value.fields.forEach {
                                                                         if (it.data != null) {
                                                                             body[it.key ?: ""] = it.data!!
                                                                         }
@@ -328,12 +465,11 @@ class OfferRepository(
                                                                                 futureTimeInSeconds.value
                                                                             )
                                                                         viewModel.postOperationFields(
-                                                                            offer.id,
+                                                                            offerState.value.id,
                                                                             id,
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
-                                                                                viewModel.setUpdateItem(offer.id)
                                                                                 refreshOffer()
                                                                                 clearDialogFields()
                                                                             },
@@ -344,19 +480,18 @@ class OfferRepository(
                                                                     }
                                                                     else -> {
                                                                         val body = HashMap<String, JsonElement>()
-                                                                        fields.forEach {
+                                                                        _customDialogState.value.fields.forEach {
                                                                             if (it.data != null) {
                                                                                 body[it.key ?: ""] = it.data!!
                                                                             }
                                                                         }
 
                                                                         viewModel.postOperationFields(
-                                                                            offer.id,
+                                                                            offerState.value.id,
                                                                             id ?: "",
                                                                             "offers",
                                                                             body = body,
                                                                             onSuccess = {
-                                                                                viewModel.setUpdateItem(offer.id)
                                                                                 refreshOffer()
                                                                                 clearDialogFields()
                                                                             },
@@ -380,34 +515,30 @@ class OfferRepository(
                                         }
                                         else -> {
                                             viewModel.postOperationFields(
-                                                offer.id,
+                                                offerState.value.id,
                                                 id ?: "",
                                                 "offers",
                                                 onSuccess = {
                                                     val eventParameters = mapOf(
-                                                        "lot_id" to offer.id,
-                                                        "lot_name" to offer.title,
-                                                        "lot_city" to offer.location,
-                                                        "auc_delivery" to offer.safeDeal,
-                                                        "lot_category" to offer.catPath.firstOrNull(),
-                                                        "seller_id" to offer.seller.id,
-                                                        "lot_price_start" to offer.price,
+                                                        "lot_id" to offerState.value.id,
+                                                        "lot_name" to offerState.value.title,
+                                                        "lot_city" to offerState.value.location,
+                                                        "auc_delivery" to offerState.value.safeDeal,
+                                                        "lot_category" to offerState.value.catPath.firstOrNull(),
+                                                        "seller_id" to offerState.value.seller.id,
+                                                        "lot_price_start" to offerState.value.price,
                                                     )
                                                     viewModel.analyticsHelper.reportEvent(
                                                         "${id}_success",
                                                         eventParameters
                                                     )
                                                     when (operation.id) {
-                                                        "watch", "unwatch", "create_blank_offer_list" -> {
-                                                            viewModel.setUpdateItem(offer.id)
-                                                            updateOperations()
-                                                        }
-
+                                                        "watch", "unwatch", "create_blank_offer_list" -> {}
                                                         else -> {
-                                                            viewModel.setUpdateItem(offer.id)
                                                             refreshOffer()
                                                         }
                                                     }
+                                                    updateItem()
                                                     viewModel.updateUserInfo()
                                                 },
                                                 errorCallback = {}
@@ -423,7 +554,7 @@ class OfferRepository(
             }
 
             getOfferOperations(
-                offer.id,
+                offerState.value.id,
                 "promo"
             ) { listOperations ->
                 _promoList.value = buildList {
@@ -433,7 +564,7 @@ class OfferRepository(
                             title = "${(operation.name ?: "")} (${operation.price * -1}$currency)",
                             onClick = {
                                 viewModel.getOperationFields(
-                                    offer.id,
+                                    offerState.value.id,
                                     operation.id ?: "",
                                     "offers"
                                 ) { t, f ->
@@ -456,19 +587,18 @@ class OfferRepository(
                                         onSuccessful = {
                                             val body = HashMap<String, JsonElement>()
 
-                                            f.forEach {
+                                            _customDialogState.value.fields.forEach {
                                                 if (it.data != null) {
                                                     body[it.key ?: ""] = it.data!!
                                                 }
                                             }
 
                                             viewModel.postOperationFields(
-                                                offer.id,
+                                                offerState.value.id,
                                                 operation.id ?: "",
                                                 "offers",
                                                 body = body,
                                                 onSuccess = {
-                                                    viewModel.setUpdateItem(offer.id)
                                                     refreshOffer()
                                                 },
                                                 errorCallback = { errFields ->
@@ -574,7 +704,7 @@ class OfferRepository(
                 val conversationTitle = getString(strings.createConversationLabel)
                 val aboutOrder = getString(strings.aboutOfferLabel)
                 viewModel.postOperationAdditionalData(
-                    offer.id,
+                    offerState.value.id,
                     "checking_conversation_existence",
                     "offers",
                     onSuccess = { body ->
@@ -582,7 +712,7 @@ class OfferRepository(
                         if (dialogId != null) {
                             events.goToDialog(dialogId)
                         } else {
-                            val userName = offer.seller.login ?: sellerLabel
+                            val userName = offerState.value.seller.login ?: sellerLabel
                             _customDialogState.value = CustomDialogState(
                                 title = buildAnnotatedString {
                                     withStyle(
@@ -619,7 +749,7 @@ class OfferRepository(
                                             color = colors.titleTextColor,
                                         )
                                     ) {
-                                        append(" #${offer.id}")
+                                        append(" #${offerState.value.id}")
                                     }
                                 },
                                 fields = emptyList(),
@@ -629,7 +759,7 @@ class OfferRepository(
                                 },
                                 onSuccessful = {
                                     writeToSeller(
-                                        offer.id, messageText.value.text,
+                                        offerState.value.id, messageText.value.text,
                                     ) {
                                         events.goToDialog(it)
                                         clearDialogFields()
@@ -674,7 +804,6 @@ class OfferRepository(
             }
         }
     }
-
 
     fun getOfferOperations(
         offerId: Long,
@@ -722,9 +851,9 @@ class OfferRepository(
                     onSuccessful = {
                         addBid(
                             myMaximalBid.value,
-                            offer,
+                            offerState.value,
                             onSuccess = {
-                                update()
+                                events.updateBidsInfo(offerState.value)
                                 events.scrollToBids()
                                 clearDialogFields()
                             },
@@ -741,10 +870,10 @@ class OfferRepository(
     }
     fun buyNowSuccessDialog(valuesPicker: Int){
         val item = Pair(
-            offer.seller.id, listOf(
+            offerState.value.seller.id, listOf(
                 SelectedBasketItem(
-                    offerId = offer.id,
-                    pricePerItem = offer.price.toDouble(),
+                    offerId = offerState.value.id,
+                    pricePerItem = offerState.value.price.toDouble(),
                     selectedQuantity = valuesPicker
                 )
             )
@@ -755,7 +884,7 @@ class OfferRepository(
 
     fun buyNowClick(){
         if (UserData.token != "") {
-            if (offer.quantity > 1) {
+            if (offerState.value.quantity > 1) {
                 _customDialogState.value = CustomDialogState(
                     typeDialog = "buy_now",
                     onDismiss = {
@@ -767,10 +896,10 @@ class OfferRepository(
                 )
             } else {
                 val item = Pair(
-                    offer.seller.id, listOf(
+                    offerState.value.seller.id, listOf(
                         SelectedBasketItem(
-                            offerId = offer.id,
-                            pricePerItem = offer.price.toDouble(),
+                            offerId = offerState.value.id,
+                            pricePerItem = offerState.value.price.toDouble(),
                             selectedQuantity = 1
                         )
                     )
@@ -791,7 +920,7 @@ class OfferRepository(
                     title = getString(strings.copyOfferId),
                     icon = drawables.copyIcon,
                     onClick = {
-                        clipBoardEvent(offer.id.toString())
+                        clipBoardEvent(offerState.value.id.toString())
                         viewModel.showToast(
                             successToastItem.copy(
                                 message = copiedString
@@ -807,7 +936,7 @@ class OfferRepository(
                     title = getString(strings.shareOffer),
                     icon = drawables.shareIcon,
                     onClick = {
-                        offer.publicUrl?.let { openShare(it) }
+                        offerState.value.publicUrl?.let { openShare(it) }
                     }
                 ))
 
@@ -817,7 +946,7 @@ class OfferRepository(
                     title = getString(strings.addToCalendar),
                     icon = drawables.calendarIcon,
                     onClick = {
-                        offer.publicUrl?.let { openCalendarEvent(it) }
+                        offerState.value.publicUrl?.let { openCalendarEvent(it) }
                     }
                 ))
 
@@ -891,7 +1020,6 @@ class OfferRepository(
             }
         }
     }
-
 
     suspend fun getAppBarOfferList(): List<NavigationItem> {
         val operations = operationsList.value
@@ -967,5 +1095,19 @@ class OfferRepository(
 
     fun setFutureTimeInSeconds(text: String) {
         _futureTimeInSeconds.value = text
+    }
+
+    fun setNewField(field: Fields){
+        _customDialogState.update {
+            it.copy(
+                fields = it.fields.map { oldField ->
+                    if (oldField.key == field.key){
+                        field.copy()
+                    }else{
+                        oldField.copy()
+                    }
+                }
+            )
+        }
     }
 }

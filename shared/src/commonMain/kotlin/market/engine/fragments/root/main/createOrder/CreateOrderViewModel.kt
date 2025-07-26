@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
@@ -14,6 +15,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import market.engine.common.Platform
+import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -35,6 +37,7 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
@@ -337,6 +340,64 @@ class CreateOrderViewModel(
             )
         }else{
             postPage(fields, basketItem)
+        }
+    }
+
+    fun addToFavorites(offer : OfferItem)
+    {
+        if(UserData.token != "") {
+            viewModelScope.launch {
+                val buf = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperationFields(
+                        offer.id,
+                        if (offer.isWatchedByMe) "unwatch" else "watch",
+                        "offers"
+                    )
+                }
+
+                val res = buf.success
+                withContext(Dispatchers.Main) {
+                    if (res != null && res.operationResult?.result == "ok") {
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.location,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category" to offer.catPath.firstOrNull(),
+                            "seller_id" to offer.seller.id,
+                            "lot_price_start" to offer.price,
+                        )
+                        if (!offer.isWatchedByMe) {
+                            analyticsHelper.reportEvent("offer_watch", eventParameters)
+                        } else {
+                            analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                        }
+
+                        updateUserInfo()
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        _responseGetOffers.update {
+                            it.map { item ->
+                                if (item.id == offer.id) {
+                                    item.copy(isWatchedByMe = !offer.isWatchedByMe)
+                                } else {
+                                    item
+                                }
+                            }
+                        }
+
+                    } else {
+                        if (buf.error != null)
+                            onError(buf.error!!)
+                    }
+                }
+            }
+        }else{
+            goToLogin(false)
         }
     }
 }

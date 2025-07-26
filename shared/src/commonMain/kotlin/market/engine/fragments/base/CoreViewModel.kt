@@ -20,8 +20,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.ScrollDataState
 import market.engine.core.data.types.ToastType
@@ -37,7 +35,6 @@ import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deserializePayload
-import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.shared.marketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
@@ -218,56 +215,6 @@ open class CoreViewModel : ViewModel() {
         updateUserInfo()
         onError(ServerErrorException())
         resetScroll()
-    }
-
-    fun addToFavorites(offer : OfferItem, onSuccess: (Boolean) -> Unit)
-    {
-        if(UserData.token != "") {
-            viewModelScope.launch {
-                val buf = withContext(Dispatchers.IO) {
-                    operationsMethods.postOperationFields(
-                        offer.id,
-                        if (offer.isWatchedByMe) "unwatch" else "watch",
-                        "offers"
-                    )
-                }
-
-                val res = buf.success
-                withContext(Dispatchers.Main) {
-                    if (res != null && res.operationResult?.result == "ok") {
-                        val eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.title,
-                            "lot_city" to offer.location,
-                            "auc_delivery" to offer.safeDeal,
-                            "lot_category" to offer.catPath.firstOrNull(),
-                            "seller_id" to offer.seller.id,
-                            "lot_price_start" to offer.price,
-                        )
-                        if (!offer.isWatchedByMe) {
-                            analyticsHelper.reportEvent("offer_watch", eventParameters)
-                        } else {
-                            analyticsHelper.reportEvent("offer_unwatch", eventParameters)
-                        }
-
-                        updateUserInfo()
-
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-
-                        onSuccess(!offer.isWatchedByMe)
-                    } else {
-                        if (buf.error != null)
-                            onError(buf.error!!)
-                    }
-                }
-            }
-        }else{
-            goToLogin(false)
-        }
     }
 
     fun getCategories(

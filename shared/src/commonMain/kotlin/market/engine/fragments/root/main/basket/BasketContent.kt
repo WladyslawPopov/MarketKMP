@@ -126,7 +126,7 @@ fun BasketContent(
             state = scrollState.scrollState,
             contentPadding = contentPadding,
         ) {
-            items(basketItemsState, key = { item -> item.user.id }) { itemState ->
+            items(basketItemsState) { itemState ->
                 BasketItemContent(
                     state = itemState,
                     events = basketState.basketEvents

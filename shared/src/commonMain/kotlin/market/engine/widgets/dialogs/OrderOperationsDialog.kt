@@ -128,7 +128,9 @@ fun OrderOperationsDialog(
             }
             else -> {
                 if (state.fields.isNotEmpty()) {
-                    SetUpDynamicFields(state.fields)
+                    SetUpDynamicFields(state.fields){
+                        orderRepository.setNewField(it)
+                    }
                 }
             }
         }

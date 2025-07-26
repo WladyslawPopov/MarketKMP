@@ -28,6 +28,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun AutoFeedbackSettingsContent(
     fields: List<Fields>,
+    onValueChange: (Fields) -> Unit,
     onConfirm: () -> Unit
 ) {
     Column(
@@ -66,12 +67,13 @@ fun AutoFeedbackSettingsContent(
                             AnimatedVisibility(
                                 visible = isEnabled.value
                             ) {
-                                fields.find { it.key == "comment" }?.let {
-                                    DynamicInputField(it, singleLine = false)
+                                fields.find { it.key == "comment" }?.let { field ->
+                                    DynamicInputField(field, singleLine = false){
+                                        onValueChange(it)
+                                    }
                                 }
                             }
                         }
-
 
                         Switch(
                             checked = isEnabled.value,

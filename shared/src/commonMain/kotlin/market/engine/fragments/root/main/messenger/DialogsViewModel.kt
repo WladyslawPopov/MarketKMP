@@ -427,11 +427,11 @@ class DialogsViewModel(
 
     init {
         update()
-        markReadConversation(dialogId)
     }
 
     fun update(){
         setLoading(true)
+        markReadConversation(dialogId)
         listingBaseViewModel.setReversingPaging(true)
         listingBaseViewModel.setListingData(
             ListingData(

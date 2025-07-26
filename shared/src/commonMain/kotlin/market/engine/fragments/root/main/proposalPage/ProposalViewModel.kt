@@ -53,8 +53,7 @@ class ProposalViewModel(
     private val _responseFields = MutableStateFlow(emptyList<Pair<Long, List<Fields>>>())
     val responseFields = _responseFields.asStateFlow()
 
-    private val _selectedChoice = MutableStateFlow(emptyList<Pair<Long, Int>>())
-    val selectedChoice = _selectedChoice.asStateFlow()
+
 
     private val _subtitle  = MutableStateFlow(AnnotatedString(""))
     val subtitle = _subtitle.asStateFlow()
@@ -75,7 +74,6 @@ class ProposalViewModel(
 
     fun update(){
         viewModelScope.launch {
-            _selectedChoice.value = emptyList()
             _responseFields.value = emptyList()
             _responseGetOffer.value = getOfferById(offerId) ?: Offer()
             refresh()
@@ -177,7 +175,7 @@ class ProposalViewModel(
                 _body.value = payload
 
                 payload.bodyList.forEach {
-                    getFieldsProposal(it.buyerInfo?.id, it.proposals?.size ?: 0)
+                    getFieldsProposal(it.buyerInfo?.id)
                 }
 
             } catch (exception: ServerErrorException) {
@@ -190,7 +188,7 @@ class ProposalViewModel(
         }
     }
 
-    fun getFieldsProposal(buyerId : Long?, count : Int) {
+    fun getFieldsProposal(buyerId : Long?) {
         viewModelScope.launch {
             val buffer = withContext(Dispatchers.IO) {
                 operationsMethods.getOperationFields(
@@ -204,7 +202,6 @@ class ProposalViewModel(
             val error = buffer.error
             withContext(Dispatchers.Main) {
                 if (payload != null) {
-                    _selectedChoice.value += (buyerId ?: 0L) to if(count > 0) 0 else 2
                     _responseFields.value += (buyerId ?: 0L) to payload.fields
                 } else {
                     if (error != null) {
@@ -314,44 +311,21 @@ class ProposalViewModel(
         }
     }
 
-    fun changeChoice(isChoice: Boolean, choice: Int, id: Long) {
-        if (isChoice) {
-            _selectedChoice.update { fields ->
-                fields.map {
-                    if (it.first == id) {
-                        it.copy(second = choice)
-                    } else {
-                        it.copy()
-                    }
-                }
-            }
-        } else {
-            _selectedChoice.update { fields ->
-                fields.map {
-                    if (it.first == id) {
-                        it.copy(second = 0)
-                    } else {
-                        it.copy()
-                    }
-                }
-            }
-        }
-
-        if (choice != 2) {
-            _responseFields.update { field ->
-                field.map {
-                    if (it.first == id) {
-                        it.copy(second = it.second.map { field ->
-                            when(field.key){
-                                "comment" -> field.copy(data = null)
-                                "price" -> field.copy(data = null)
-                                "quantity" -> field.copy(data = null)
-                                else -> field.copy()
+    fun onValueChange(newField: Fields, id: Long) {
+        _responseFields.update { list ->
+            list.map { oldField ->
+                if (oldField.first == id) {
+                    oldField.copy(
+                        second = oldField.second.map {
+                            if (it.key == newField.key) {
+                                newField.copy()
+                            }else {
+                                it.copy()
                             }
-                        })
-                    } else {
-                        it.copy()
-                    }
+                        }
+                    )
+                }else{
+                    oldField.copy()
                 }
             }
         }

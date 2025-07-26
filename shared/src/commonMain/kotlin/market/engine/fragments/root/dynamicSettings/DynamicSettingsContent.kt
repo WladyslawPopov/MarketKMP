@@ -154,7 +154,9 @@ fun DynamicSettingsContent(
 
                 "set_vacation" -> {
                     item {
-                        VacationSettingsContent(pageState.fields) {
+                        VacationSettingsContent(pageState.fields, onValueChange = {
+                            viewModel.setNewFields(it)
+                        }) {
                             viewModel.postSubmit()
                         }
                     }
@@ -170,7 +172,12 @@ fun DynamicSettingsContent(
 
                 "set_auto_feedback" -> {
                     item {
-                        AutoFeedbackSettingsContent(pageState.fields) {
+                        AutoFeedbackSettingsContent(
+                            pageState.fields,
+                            onValueChange = {
+                                viewModel.setNewFields(it)
+                            }
+                        ) {
                             viewModel.postSubmit()
                         }
                     }
@@ -217,7 +224,9 @@ fun DynamicSettingsContent(
                                 ).annotatedString
                             )
 
-                            SetUpDynamicFields(pageState.fields, showRating = true)
+                            SetUpDynamicFields(pageState.fields, showRating = true){
+                                viewModel.setNewFields(it)
+                            }
 
                             AcceptedPageButton(
                                 stringResource(strings.actionAddEnterLabel),
@@ -267,7 +276,9 @@ fun DynamicSettingsContent(
                                 DynamicCheckboxGroup(
                                     field,
                                     showRating = true
-                                )
+                                ){
+                                    viewModel.setNewFields(it)
+                                }
 
                                 AcceptedPageButton(
                                     stringResource(strings.actionDelete)
@@ -307,7 +318,9 @@ fun DynamicSettingsContent(
                                     richTextState.setHtml(pageState.titleText).annotatedString
                                 )
 
-                                SetUpDynamicFields(pageState.fields, code)
+                                SetUpDynamicFields(pageState.fields, code){
+                                    viewModel.setNewFields(it)
+                                }
 
                                 AcceptedPageButton(
                                     stringResource(strings.actionChangeLabel)

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
@@ -23,14 +22,16 @@ import market.engine.widgets.texts.ErrorText
 fun DynamicCheckboxGroup(
     field: Fields,
     showRating : Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onValueChange: (Fields) -> Unit,
 ) {
-    val isMandatory = remember {
-        mutableStateOf(field.validators?.any { it.type == "mandatory" } == true)
+    val isMandatory = remember(field.validators) {
+        field.validators?.any { it.type == "mandatory" } == true
     }
 
-    val initialSelected = remember {
+    val initialSelected = remember(field.data) {
         val selectedCodes = mutableListOf<Long>()
+
         try {
             field.data?.jsonArray?.forEach { item ->
                 item.jsonPrimitive.longOrNull?.let { selectedCodes.add(it) }
@@ -42,31 +43,30 @@ fun DynamicCheckboxGroup(
         selectedCodes.toList()
     }
 
-    val selectedItems = remember { mutableStateOf(initialSelected) }
-
-    val error = remember { mutableStateOf(processInput(field.errors)) }
+    val error = remember(field) { processInput(field.errors) }
 
     val onClickListener : (Long) -> Unit = { choiceCode ->
-        val currentSet = selectedItems.value.toMutableList()
+        val currentSet = initialSelected.toMutableList()
         if (currentSet.contains(choiceCode)) {
             currentSet.remove(choiceCode)
         } else {
             currentSet.add(choiceCode)
         }
 
-        selectedItems.value = currentSet.toList()
-        field.data = buildJsonArray {
-            selectedItems.value.forEach {
-                add(JsonPrimitive(it))
+        onValueChange(field.copy(
+            data = buildJsonArray {
+                currentSet.forEach {
+                    add(JsonPrimitive(it))
+                }
             }
-        }
+        ))
     }
 
     Column(modifier = modifier) {
 
         DynamicLabel(
             text = field.longDescription ?: field.shortDescription.orEmpty(),
-            isMandatory = isMandatory.value,
+            isMandatory = isMandatory,
             modifier = Modifier.padding(dimens.smallPadding)
         )
 
@@ -75,18 +75,22 @@ fun DynamicCheckboxGroup(
         ) {
             field.choices?.forEach { choice ->
                 CheckBoxRow(
-                    isSelected = selectedItems.value.contains(choice.code?.longOrNull),
+                    isSelected = initialSelected.contains(choice.code?.longOrNull),
                     choice = choice,
                     showRating = showRating,
                     onClickListener = onClickListener
                 )
 
-                choice.extendedFields?.let { SetUpDynamicFields(it) }
+                choice.extendedFields?.let { extendedField ->
+                    SetUpDynamicFields(fields = extendedField){
+                        onValueChange(it)
+                    }
+                }
             }
         }
 
-        if (error.value != null) {
-            ErrorText(text = error.value ?: "", modifier = Modifier.padding(dimens.smallPadding))
+        if (error != null) {
+            ErrorText(text = error, modifier = Modifier.padding(dimens.smallPadding))
         }
     }
 }

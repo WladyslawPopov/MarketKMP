@@ -22,6 +22,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.network.networkObjects.Bids
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
@@ -32,7 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 fun BidsListItem(
     i: Int,
     bid: Bids,
-    offer: Offer,
+    offer: OfferItem,
     onRebidClick: (String) -> Unit,
     goToUser: (Long) -> Unit
 ) {
@@ -85,7 +86,7 @@ fun BidsListItem(
             )
 
             // Rebid Button logic
-            if (offer.sellerData?.id != UserData.login) {
+            if (offer.seller.id != UserData.login) {
                 if (!isRebidShown && i == 0 && bid.moverId != UserData.login) {
                     isRebidShown = true
                     SimpleTextButton(
@@ -97,7 +98,7 @@ fun BidsListItem(
                         ),
                         modifier = Modifier.heightIn(max = 35.dp),
                     ) {
-                        onRebidClick(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "0")
+                        onRebidClick(offer.minimalAcceptablePrice)
                     }
                 }
             }

@@ -3,7 +3,6 @@ package market.engine.widgets.checkboxs
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
@@ -18,38 +17,45 @@ import market.engine.widgets.texts.ErrorText
 @Composable
 fun DynamicCheckbox(
     field: Fields,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onValueChange: (Fields) -> Unit
 ) {
-    val isMandatory = remember {
-        mutableStateOf(field.validators?.any { it.type == "mandatory" } == true)
+    val isMandatory = remember(field.validators) {
+        field.validators?.any { it.type == "mandatory" } == true
     }
 
-    val initialSelected = remember {
-        mutableStateOf(field.data?.jsonPrimitive?.booleanOrNull ?: false) }
+    val initialSelected = remember(field.data) {
+        field.data?.jsonPrimitive?.booleanOrNull ?: false
+    }
 
-    val error = remember { mutableStateOf(processInput(field.errors)) }
+    val error = remember(field) { processInput(field.errors) }
 
-    val onClickListener : (Long) -> Unit = {
-        initialSelected.value = field.data?.jsonPrimitive?.booleanOrNull != true
-        field.data = JsonPrimitive(initialSelected.value)
+    val onClickListener : (Long) -> Unit = remember {
+        { select ->
+            onValueChange(field.copy(
+                data = JsonPrimitive(select)
+            ))
+        }
+    }
+
+    val choices = remember(field) {
+        Choices(
+            name = field.shortDescription ?: field.longDescription ?: "",
+            code = field.data?.jsonPrimitive ?: JsonPrimitive(0)
+        )
     }
 
 
     Column(modifier = modifier) {
-        val choices = Choices(
-            name = field.shortDescription ?: field.longDescription ?: "",
-            code = JsonPrimitive(0)
-        )
-
         CheckBoxRow(
-            isSelected = initialSelected.value,
+            isSelected = initialSelected,
             choice = choices,
-            isMandatory = isMandatory.value,
+            isMandatory = isMandatory,
             onClickListener = onClickListener
         )
 
-        if (error.value != null) {
-            ErrorText(text = error.value ?: "", modifier = Modifier.padding(dimens.smallPadding))
+        if (error != null) {
+            ErrorText(text = error, modifier = Modifier.padding(dimens.smallPadding))
         }
     }
 }

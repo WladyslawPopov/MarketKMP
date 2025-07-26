@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,18 +19,18 @@ import market.engine.core.network.networkObjects.Fields
 @Composable
 fun DynamicRadioButtons(
     field: Fields,
-    selectedChoice : (Boolean, Int) -> Unit = { _, _ -> },
+    onValueChange: (Fields) -> Unit,
 ){
-    val list = buildMap {
-        field.choices?.sortedBy{ it.weight?.jsonPrimitive?.intOrNull }?.forEach {
-            put(it.code?.jsonPrimitive?.intOrNull ?: 0, it.name ?: "")
+    val list = remember(field) {
+        buildMap {
+            field.choices?.sortedBy { it.weight?.jsonPrimitive?.intOrNull }?.forEach {
+                put(it.code?.jsonPrimitive?.intOrNull ?: 0, it.name ?: "")
+            }
         }
     }
 
-    val selectedFilterKey = remember {
-        mutableStateOf(
-            field.data?.jsonPrimitive?.intOrNull ?: if(field.key == "feedback_type") 1 else 0
-        )
+    val selectedFilterKey = remember(field.data) {
+        field.data?.jsonPrimitive?.intOrNull ?: if(field.key == "feedback_type") 1 else 0
     }
 
     Column(
@@ -44,26 +43,26 @@ fun DynamicRadioButtons(
                 when (it.key) {
                     1 -> colors.positiveGreen
                     0-> colors.inactiveBottomNavIconColor
-                    else -> colors.grayText
+                    else -> colors.black
                 }
             }else{
-                colors.grayText
+                colors.black
             }
 
             RadioOptionRow(
                 it.toPair(),
-                selectedFilterKey.value,
+                selectedFilterKey,
                 rbColor = moodColor,
                 textColor = moodColor
             ){ isChecked, choice ->
-                if(!isChecked) {
-                    selectedFilterKey.value = choice
-                    field.data = JsonPrimitive(choice)
-                }else{
-                    selectedFilterKey.value = 0
-                    field.data = null
-                }
-                selectedChoice(!isChecked, choice)
+                val newField = field.copy(
+                    data = if(!isChecked) {
+                        JsonPrimitive(choice)
+                    }else{
+                        null
+                    }
+                )
+                onValueChange(newField)
             }
         }
     }

@@ -255,36 +255,73 @@ fun deleteReadNotifications() {
     }
 }
 
-fun OfferItem.setNewParams(offer: Offer) {
-    images = buildList {
-        when {
-            offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "" }?.toList() ?: emptyList())
-            offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
-            offer.externalUrl != null -> add(offer.externalUrl)
-            offer.image?.small?.content != null -> add(offer.image.small.content)
+fun OfferItem.setNewParams(offer: Offer) : OfferItem {
+    var isPromo = false
+    if (offer.promoOptions != null && offer.sellerData?.id != UserData.login) {
+        val isBackLight = offer.promoOptions.find { it.id == "backlignt_in_listing" }
+        if (isBackLight != null) {
+            isPromo = true
         }
     }
-    price = offer.currentPricePerItem ?: ""
-    title = offer.title ?: ""
-    note = offer.note
-    relistingMode = offer.relistingMode
-    isWatchedByMe = offer.isWatchedByMe
-    viewsCount = offer.viewsCount
-    promoOptions = offer.promoOptions
-    bids = offer.bids
-    state = offer.state
-    session = offer.session
-    watchersCount = offer.watchersCount
-    myMaximalBid = offer.myMaximalBid
-    currentQuantity = offer.currentQuantity
-    quantity = offer.originalQuantity
-    videoUrls = offer.videoUrls
-    isPrototype = offer.isPrototype
-    safeDeal = offer.safeDeal
-    myMaximalBid = offer.myMaximalBid
-    catPath = offer.catpath
-    publicUrl = offer.publicUrl
-    externalImages = offer.externalImages
+
+    return this.copy(
+        id = offer.id,
+        title = offer.title ?: "",
+        images = buildList {
+            when {
+                offer.images?.isNotEmpty() == true -> addAll(offer.images?.map { it.urls?.small?.content ?: "empty" } ?: emptyList())
+                offer.externalImages?.isNotEmpty() == true -> addAll(offer.externalImages)
+                offer.externalUrl != null -> add(offer.externalUrl)
+                offer.image?.small?.content != null -> add(offer.image.small.content)
+                else -> listOf("empty")
+            }
+        },
+        note = offer.note,
+        isWatchedByMe = offer.isWatchedByMe,
+        videoUrls = offer.videoUrls ?: emptyList(),
+        isPrototype = offer.isPrototype,
+        quantity = offer.originalQuantity,
+        currentQuantity = offer.currentQuantity,
+        price = offer.currentPricePerItem ?: offer.buyNowPrice  ?: offer.pricePerItem ?: "",
+        seller = offer.sellerData ?: User(),
+        buyer = offer.buyerData,
+        numParticipants = offer.numParticipants,
+        watchersCount = offer.watchersCount,
+        viewsCount = offer.viewsCount,
+        publicUrl = offer.publicUrl,
+        relistingMode = offer.relistingMode,
+        bids = offer.bids,
+        location = buildString {
+            offer.freeLocation?.let { append(it) }
+            offer.region?.name?.let {
+                if (isNotEmpty()) append(", ")
+                append(it)
+            }
+        },
+        safeDeal = offer.safeDeal,
+        promoOptions = offer.promoOptions ?: emptyList(),
+        myMaximalBid = offer.myMaximalBid,
+        catPath = offer.catpath,
+        discount = offer.discountPercentage,
+        type = offer.saleType ?: "",
+        isPromo = isPromo,
+        createdTs = offer.createdTs,
+        state = offer.state,
+        session = offer.session,
+        externalImages = offer.externalImages,
+        version = offer.version,
+        standardDescriptions = offer.standardDescriptions,
+        addedDescriptions = offer.addedDescriptions,
+        description = offer.description,
+        params = offer.params,
+        region = offer.region,
+        hasTempImages = offer.hasTempImages,
+        minimalAcceptablePrice = offer.minimalAcceptablePrice ?: "0",
+        deliveryMethods = offer.deliveryMethods,
+        removedBids = offer.removedBids,
+        whoPaysForDelivery = offer.whoPaysForDelivery,
+        antisniper = offer.antisniper
+    )
 }
 
 fun Offer.parseToOfferItem() : OfferItem {
@@ -311,14 +348,19 @@ fun Offer.parseToOfferItem() : OfferItem {
         },
         note = note,
         isWatchedByMe = isWatchedByMe,
-        videoUrls = videoUrls,
+        videoUrls = videoUrls ?: emptyList(),
         isPrototype = isPrototype,
         quantity = originalQuantity,
+        currentQuantity = currentQuantity,
         price = currentPricePerItem ?: pricePerItem ?: buyNowPrice ?: "",
         type = saleType ?: "",
         seller = sellerData ?: User(),
         buyer = buyerData,
         numParticipants = numParticipants,
+        watchersCount = watchersCount,
+        viewsCount = viewsCount,
+        publicUrl = publicUrl,
+        relistingMode = relistingMode,
         bids = bids,
         location = buildString {
             freeLocation?.let { append(it) }
@@ -327,20 +369,27 @@ fun Offer.parseToOfferItem() : OfferItem {
                 append(it)
             }
         },
-        discount = discountPercentage,
         safeDeal = safeDeal,
-        promoOptions = promoOptions,
+        promoOptions = promoOptions ?: emptyList(),
         myMaximalBid = myMaximalBid,
+        catPath = catpath,
+        discount = discountPercentage,
         isPromo = isPromo,
         createdTs = createdTs,
-        catPath = catpath,
-        publicUrl = publicUrl,
-        watchersCount = watchersCount,
-        viewsCount = viewsCount,
-        relistingMode = relistingMode,
-        session = session,
         state = state,
-        currentQuantity = currentQuantity,
+        session = session,
         externalImages = externalImages,
+        version = version,
+        standardDescriptions = standardDescriptions,
+        addedDescriptions = addedDescriptions,
+        description = description,
+        params = params,
+        region = region,
+        hasTempImages = hasTempImages,
+        minimalAcceptablePrice = minimalAcceptablePrice ?: "0",
+        deliveryMethods = deliveryMethods,
+        removedBids = removedBids,
+        whoPaysForDelivery = whoPaysForDelivery,
+        antisniper = antisniper
     )
 }

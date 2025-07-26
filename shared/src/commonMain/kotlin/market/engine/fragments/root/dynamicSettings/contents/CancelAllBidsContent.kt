@@ -46,7 +46,9 @@ fun CancelAllBidsContent(
         DynamicInputField(
             field = field,
             singleLine = false
-        )
+        ){
+            field.data = it.data
+        }
 
         AcceptedPageButton(
             stringResource(strings.actionConfirm),

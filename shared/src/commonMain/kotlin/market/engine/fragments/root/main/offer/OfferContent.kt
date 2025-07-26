@@ -62,10 +62,10 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.BtnTypeSize
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Param
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.OfferStates
@@ -125,7 +125,7 @@ fun OfferContent(
 
     val scrollPos by viewModel.scrollPosition.collectAsState()
 
-    val offerRepository by viewModel.offerRepository.collectAsState()
+    val offerRepository = uiState.offerRepository
 
     val remainingTime = viewModel.remainingTime.collectAsState()
 
@@ -143,7 +143,7 @@ fun OfferContent(
 
     val toastItem by viewModel.toastItem.collectAsState()
 
-    val offer = uiState.offer
+    val offer by offerRepository.offerState.collectAsState()
     val offerState = uiState.offerState
     val isMyOffer = uiState.isMyOffer
 
@@ -364,7 +364,7 @@ fun OfferContent(
                             pagerState = pagerState,
                         )
 
-                        if (offer.videoUrls?.isNotEmpty() == true) {
+                        if (offer.videoUrls.isNotEmpty()) {
                             SmallImageButton(
                                 drawables.iconYouTubeSmall,
                                 modifierIconSize = Modifier.size(dimens.largeIconSize),
@@ -455,7 +455,7 @@ fun OfferContent(
                 //title
                 item {
                     TitleText(
-                        offer.title ?: "",
+                        offer.title,
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding)
                     )
@@ -520,7 +520,7 @@ fun OfferContent(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = (offer.currentPricePerItem ?: "") +
+                                            text = offer.price +
                                                     " " + stringResource(strings.currencySign),
                                             style = MaterialTheme.typography.titleLarge.copy(
                                                 fontWeight = FontWeight.Bold
@@ -598,7 +598,7 @@ fun OfferContent(
                                             }
                                         }
 
-                                        if (offer.promoOptions != null && isMyOffer) {
+                                        if (offer.promoOptions.isNotEmpty() && isMyOffer) {
                                             PromoRow(
                                                 offer.promoOptions,
                                                 showName = true,
@@ -613,7 +613,7 @@ fun OfferContent(
 
                             item {
                                 //bids price
-                                if (offer.saleType != "buy_now" && !isMyOffer && offerState == OfferStates.ACTIVE) {
+                                if (offer.type != "buy_now" && !isMyOffer && offerState == OfferStates.ACTIVE) {
                                     AuctionPriceLayout(
                                         offer = offer,
                                         onAddBidClick = { bid ->
@@ -628,7 +628,7 @@ fun OfferContent(
 
                             item {
                                 //buy now price
-                                if ((offer.saleType == "buy_now" || offer.saleType == "auction_with_buy_now") && !isMyOffer) {
+                                if ((offer.type == "buy_now" || offer.type == "auction_with_buy_now") && !isMyOffer) {
                                     BuyNowPriceLayout(
                                         offer = offer,
                                         offerState,
@@ -641,7 +641,7 @@ fun OfferContent(
                                         onSaleClick = {
                                             component.goToCreateOffer(
                                                 CreateOfferType.COPY_PROTOTYPE,
-                                                offer.catpath,
+                                                offer.catPath,
                                                 offer.id,
                                                 images
                                             )
@@ -727,24 +727,24 @@ fun OfferContent(
 
                             item {
                                 // seller panel
-                                if (offer.sellerData != null && !isMyOffer) {
+                                if (!isMyOffer) {
                                     UserPanel(
                                         modifier = Modifier.background(
                                             colors.white,
                                             MaterialTheme.shapes.small
                                         ),
-                                        user = offer.sellerData,
+                                        user = offer.seller,
                                         goToUser = {
                                             component.goToUser(
-                                                offer.sellerData?.id ?: 1L,
+                                                offer.seller.id,
                                                 false
                                             )
                                         },
                                         goToAllLots = {
-                                            component.goToUsersListing(offer.sellerData)
+                                            component.goToUsersListing(offer.seller)
                                         },
                                         goToAboutMe = {
-                                            component.goToUser(offer.sellerData?.id ?: 1L, true)
+                                            component.goToUser(offer.seller.id, true)
                                         },
                                         addToSubscriptions = { callBack ->
                                             viewModel.addToSubscriptions(offer) { es ->
@@ -780,7 +780,7 @@ fun OfferContent(
                                 )
                                 {
                                     //mail to seller
-                                    if (offer.sellerData != null && !isMyOffer && offerState == OfferStates.ACTIVE) {
+                                    if (!isMyOffer && offerState == OfferStates.ACTIVE) {
                                         MessageToSeller(
                                             offer,
                                             onClick = {
@@ -795,7 +795,7 @@ fun OfferContent(
                                             isMyOffer,
                                         ) {
                                             if (UserData.token.isNotBlank()) {
-                                                if (UserData.login == offer.sellerData?.id) {
+                                                if (UserData.login == offer.seller.id) {
                                                     component.goToProposalPage(
                                                         ProposalType.ACT_ON_PROPOSAL
                                                     )
@@ -809,7 +809,7 @@ fun OfferContent(
                                             }
                                         }
                                     }
-                                    // who pays for delivery
+                                    // who pays for deliver
                                     Row(
                                         modifier = Modifier
                                             .padding(dimens.smallPadding),
@@ -1004,13 +1004,13 @@ fun DescriptionHtmlOffer(
 
 @Composable
 fun AuctionPriceLayout(
-    offer: Offer,
+    offer: OfferItem,
     onAddBidClick: (String) -> Unit,
     modifier: Modifier
 ) {
     val myMaximalBid = remember(offer) {
         mutableStateOf(
-            TextFieldValue(offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "")
+            TextFieldValue(offer.minimalAcceptablePrice)
         )
     }
 
@@ -1035,7 +1035,7 @@ fun AuctionPriceLayout(
             )
 
             Text(
-                text = offer.currentPricePerItem.toString() + " " + stringResource(strings.currencySign),
+                text = offer.price + " " + stringResource(strings.currencySign),
                 style = MaterialTheme.typography.titleLarge,
                 color = colors.priceTextColor,
                 fontWeight = FontWeight.Bold,
@@ -1056,7 +1056,7 @@ fun AuctionPriceLayout(
                 label = stringResource(strings.yourBidLabel),
                 suffix = stringResource(strings.currencySign),
                 keyboardType = KeyboardType.Number,
-                placeholder = offer.minimalAcceptablePrice ?: offer.currentPricePerItem ?: "",
+                placeholder = offer.minimalAcceptablePrice,
                 modifier = Modifier.widthIn(max = 200.dp)
             )
 
@@ -1074,7 +1074,7 @@ fun AuctionPriceLayout(
 
 @Composable
 fun BuyNowPriceLayout(
-    offer: Offer,
+    offer: OfferItem,
     offerState: OfferStates,
     onBuyNowClick: () -> Unit,
     onSaleClick: () -> Unit = {},
@@ -1102,16 +1102,16 @@ fun BuyNowPriceLayout(
             }
 
             // Current price row with discount
-            if (offer.discountPercentage > 0 && offer.buyNowPrice != offer.currentPricePerItem) {
+            if (offer.discount > 0) {
                 Row(
                     modifier = Modifier.padding(dimens.smallPadding),
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DiscountText(price = offer.currentPricePerItem.toString())
+                    DiscountText(price = offer.price)
 
                     // Discount badge
-                    val discountText = "-${offer.discountPercentage}%"
+                    val discountText = "-${offer.discount}%"
                     DiscountBadge(
                         text = discountText
                     )
@@ -1123,7 +1123,7 @@ fun BuyNowPriceLayout(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = (offer.buyNowPrice ?: "") + " "
+                    text = offer.price + " "
                             + stringResource(strings.currencySign),
                     style = MaterialTheme.typography.titleLarge,
                     color = colors.priceTextColor,
@@ -1182,7 +1182,7 @@ fun BuyNowPriceLayout(
 
 @Composable
 fun MessageToSeller(
-    offer: Offer,
+    offer: OfferItem,
     onClick: () -> Unit
 ){
     Row(
@@ -1209,7 +1209,7 @@ fun MessageToSeller(
                 color = colors.actionTextColor
             )
 
-            offer.sellerData?.averageResponseTime?.let {
+            offer.seller.averageResponseTime?.let {
                 if (it != "") {
                     Text(
                         text = it,
@@ -1254,7 +1254,7 @@ fun ProposalToSeller(
 
 @Composable
 fun BidsWinnerOrLastBid(
-    offer: Offer,
+    offer: OfferItem,
     offerState: OfferStates,
     onClick: () -> Unit
 ){
@@ -1282,13 +1282,13 @@ fun BidsWinnerOrLastBid(
             }
         }
     } else {
-        if (offer.saleType == "buy_now") {
-            if (offer.buyerData?.login != null){
+        if (offer.type == "buy_now") {
+            if (offer.buyer?.login != null){
                 buildAnnotatedString {
                     append("${stringResource(strings.buyerParameterName)} ")
 
                     withStyle(style = SpanStyle(color = colors.actionTextColor)) {
-                        append(offer.buyerData?.login)
+                        append(offer.buyer?.login)
                     }
                 }
             }else{
@@ -1342,7 +1342,7 @@ fun BidsWinnerOrLastBid(
 
 @Composable
 fun LocationOffer(
-    offer: Offer,
+    offer: OfferItem,
     goToLocation: () -> Unit
 ){
     Row(
@@ -1363,10 +1363,8 @@ fun LocationOffer(
 
         Text(
             text = buildAnnotatedString {
-                if (offer.freeLocation != null) {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(offer.freeLocation)
-                    }
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append(offer.location)
                 }
 
                 if (offer.region?.name  != null){
@@ -1384,7 +1382,7 @@ fun LocationOffer(
 
 @Composable
 fun TimeOfferSession(
-    offer: Offer,
+    offer: OfferItem,
     updatedTime: Long,
     state: OfferStates
 ) {
@@ -1560,7 +1558,7 @@ fun ParametersSection(
 
 @Composable
 fun AuctionBidsSection(
-    offer: Offer,
+    offer: OfferItem,
     isDeletesBids : Boolean,
     onRebidClick: (id: String) -> Unit,
     goToUser: (id: Long) -> Unit = {}

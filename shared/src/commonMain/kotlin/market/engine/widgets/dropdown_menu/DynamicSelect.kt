@@ -3,13 +3,10 @@ package market.engine.widgets.dropdown_menu
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.network.networkObjects.Choices
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.processInput
 import market.engine.widgets.texts.DynamicLabel
@@ -20,33 +17,19 @@ import org.jetbrains.compose.resources.stringResource
 fun DynamicSelect(
     field: Fields,
     modifier: Modifier = Modifier,
-    itemClick: ((Choices?) -> Unit)? = null
+    onValueChange: (Fields) -> Unit,
 ) {
     val selectDef = stringResource(strings.chooseAction)
 
-    val isMandatory = remember {
-        mutableStateOf(
-            field.validators?.find { it.type == "mandatory" } != null
-        )
+    val isMandatory = remember(field.validators) {
+        field.validators?.find { it.type == "mandatory" } != null
     }
 
-    val textSelect = remember {
-        mutableStateOf("")
-    }
-
-    LaunchedEffect(Unit){
+    val textSelect = remember(field.data) {
         val data = field.data
-        if (data != null){
-            if (itemClick != null) {
-                itemClick(field.choices?.find { it.code == data })
-            }
-        }
-
-        val name = field.choices?.find { choice->
+        field.choices?.find { choice->
             choice.code == data
         }?.name ?: selectDef
-
-        textSelect.value = name
     }
 
     val error = processInput(field.errors)
@@ -56,23 +39,24 @@ fun DynamicSelect(
     ){
         DynamicLabel(
             text = field.shortDescription ?: field.longDescription ?: "" ,
-            isMandatory = isMandatory.value,
+            isMandatory = isMandatory,
             modifier = Modifier.padding(dimens.smallPadding)
         )
 
         getDropdownMenu(
-            selectedText = textSelect.value,
+            selectedText = textSelect,
             selects = field.choices?.map { it.name ?: "" } ?: emptyList(),
             onItemClick = { item ->
-                val choice = field.choices?.find { it.name == item }
-                field.data = choice?.code
-                textSelect.value = item
-                itemClick?.invoke(choice)
+                val newField = field.copy(
+                    data = field.choices?.find { it.name == item }?.code
+                )
+                onValueChange(newField)
             },
             onClearItem = {
-                field.data = null
-                textSelect.value = selectDef
-                itemClick?.invoke(null)
+                val newField = field.copy(
+                    data = null
+                )
+                onValueChange(newField)
             }
         )
 

@@ -55,7 +55,7 @@ fun CreateSubscriptionContent(
     val toastItem by viewModel.toastItem.collectAsState()
 
     val appBar = uiState.appBar
-    val page = uiState.page
+    val fields = uiState.fields
     val categoryState = uiState.categoryState
     val title = uiState.title
 
@@ -139,58 +139,63 @@ fun CreateSubscriptionContent(
                 verticalItemSpacing = dimens.smallPadding,
                 contentPadding = contentPadding,
                 content = {
-                    val items = page?.fields
-                    if (items != null) {
-                        items(
-                            items.size,
-                            key = { items[it].key ?: it }
-                        ) { index ->
-                            val field = items[index]
-                            when (field.widgetType) {
-                                "input" -> {
-                                    if (field.key == "category_id") {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Start,
-                                            modifier = Modifier.fillMaxWidth(0.8f)
-                                                .padding(dimens.mediumPadding)
-                                        ) {
-                                            FilterButton(
-                                                searchData.value.searchCategoryName,
-                                                color = if (searchData.value.searchCategoryID == 1L)
-                                                    colors.simpleButtonColors else colors.themeButtonColors,
-                                                onClick = {
-                                                    viewModel.openCategory()
-                                                },
-                                                onCancelClick = if (searchData.value.searchCategoryID != 1L) {
-                                                    {
-                                                        viewModel.clearCategory()
-                                                    }
-                                                } else {
-                                                    null
+                    items(
+                        fields.size,
+                        key = { fields[it].key ?: it }
+                    ) { index ->
+                        val field = fields[index]
+                        when (field.widgetType) {
+                            "input" -> {
+                                if (field.key == "category_id") {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Start,
+                                        modifier = Modifier.fillMaxWidth(0.8f)
+                                            .padding(dimens.mediumPadding)
+                                    ) {
+                                        FilterButton(
+                                            searchData.value.searchCategoryName,
+                                            color = if (searchData.value.searchCategoryID == 1L)
+                                                colors.simpleButtonColors else colors.themeButtonColors,
+                                            onClick = {
+                                                viewModel.openCategory()
+                                            },
+                                            onCancelClick = if (searchData.value.searchCategoryID != 1L) {
+                                                {
+                                                    viewModel.clearCategory()
                                                 }
-                                            )
-                                        }
-                                    } else {
-                                        DynamicInputField(field)
+                                            } else {
+                                                null
+                                            }
+                                        )
+                                    }
+                                } else {
+                                    DynamicInputField(field){
+                                        viewModel.setNewField(it)
                                     }
                                 }
+                            }
 
-                                "checkbox" -> {
-                                    DynamicCheckbox(field)
+                            "checkbox" -> {
+                                DynamicCheckbox(field){
+                                    viewModel.setNewField(it)
                                 }
+                            }
 
-                                "select" -> {
-                                    DynamicSelect(field)
+                            "select" -> {
+                                DynamicSelect(field){
+                                    viewModel.setNewField(it)
                                 }
+                            }
 
-                                "checkbox_group" -> {
-                                    DynamicCheckboxGroup(field)
+                            "checkbox_group" -> {
+                                DynamicCheckboxGroup(field){
+                                    viewModel.setNewField(it)
                                 }
+                            }
 
-                                else -> {
+                            else -> {
 
-                                }
                             }
                         }
                     }

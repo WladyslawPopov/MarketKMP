@@ -3,9 +3,7 @@ package market.engine.fragments.root.main.favPages.favorites
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -13,7 +11,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.Filter
@@ -27,28 +24,21 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.core.data.states.CabinetOfferItemState
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.functions.OfferOperations
-import market.engine.core.network.functions.OffersListOperations
-import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.parseToOfferItem
-import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
 
 
 class FavViewModel(
@@ -57,8 +47,6 @@ class FavViewModel(
     component: FavoritesComponent
 ) : CoreViewModel() {
 
-    private val offersListOperations = OffersListOperations(apiService)
-
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
     val listingBaseViewModel = ListingBaseViewModel(
@@ -66,8 +54,6 @@ class FavViewModel(
             deleteSelectsItems()
         }
     )
-
-    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     val listingData = listingBaseViewModel.listingData
 
@@ -98,7 +84,7 @@ class FavViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<CabinetOfferItemState>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -108,14 +94,11 @@ class FavViewModel(
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
-                    val item = offer.parseToOfferItem()
-                    CabinetOfferItemState(
-                        item = item,
-                        offerRepository = OfferRepository(
-                            item,
-                            OfferRepositoryEventsImpl(this, item, component),
-                            this
-                        )
+                    OfferRepository(
+                        offer,
+                        listingParams,
+                        OfferRepositoryEventsImpl(this, component),
+                        this
                     )
                 }
             }
@@ -218,53 +201,6 @@ class FavViewModel(
         }
     }
 
-    fun getList(id: Long, onSuccess: (FavoriteListItem) -> Unit) {
-        viewModelScope.launch {
-            val data = withContext(Dispatchers.IO) { offersListOperations.getOffersListItem(id) }
-
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                if (res != null) {
-                    onSuccess(res)
-                }
-            }
-        }
-    }
-
-    fun updateItem(oldItem : OfferItem){
-        viewModelScope.launch {
-            idList?.let { id ->
-                getList(id) { item ->
-                    if (!item.offers.contains(id)) {
-                        oldItem.session = null
-                    }
-                }
-            }
-
-            val offer = withContext(Dispatchers.IO) {
-                getOfferById(oldItem.id)
-            }
-
-            withContext(Dispatchers.Main) {
-                if (offer != null) {
-                    oldItem.setNewParams(offer)
-                }
-                setUpdateItem(null)
-            }
-        }
-    }
-
-    suspend fun getOfferById(offerId: Long) : Offer? {
-        return try {
-            val response = offerOperations.getOffer(offerId)
-            response.success?.let {
-                return it
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     fun deleteSelectsItems() {
         viewModelScope.launch {
             selectItems.value.forEach { item ->
@@ -305,27 +241,10 @@ class FavViewModel(
             }
         }
     }
-
-    fun isHideItem(offer: OfferItem): Boolean {
-        return when (favType) {
-            FavScreenType.NOTES -> {
-                offer.note == null && offer.note == ""
-            }
-
-            FavScreenType.FAVORITES -> {
-                !offer.isWatchedByMe
-            }
-
-            else -> {
-                offer.session == null
-            }
-        }
-    }
 }
 
 data class OfferRepositoryEventsImpl(
     val viewModel: FavViewModel,
-    val offer: OfferItem,
     val component: FavoritesComponent
 ): OfferRepositoryEvents {
     override fun goToCreateOffer(
@@ -337,24 +256,14 @@ data class OfferRepositoryEventsImpl(
         component.goToCreateOffer(type, id)
     }
 
-    override fun goToProposalPage(type: ProposalType) {
-        component.goToProposal(type, offer.id)
+    override fun goToProposalPage(
+        offerId: Long,
+        type: ProposalType
+    ) {
+        component.goToProposal(type, offerId)
     }
 
-    override fun goToDynamicSettings(type: String, id: Long) {
-        goToDynamicSettings(type, id, null)
-    }
-
-    override fun goToLogin() {
-        goToLogin(false)
-    }
-
-    override fun goToDialog(id: Long?) {}
-
-    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
-    override fun goToUserPage() {}
-
-    override fun openCabinetOffer() {
+    override fun openCabinetOffer(offer: OfferItem) {
         if (viewModel.selectItems.value.isNotEmpty()) {
             if (viewModel.selectItems.value.contains(offer.id)) {
                 viewModel.listingBaseViewModel.removeSelectItem(offer.id)
@@ -366,16 +275,17 @@ data class OfferRepositoryEventsImpl(
         }
     }
 
-    override fun isHideCabinetOffer() : Boolean {
-        return viewModel.isHideItem(offer)
+    override fun goToDynamicSettings(type: String, id: Long) {
+        goToDynamicSettings(type, id, null)
     }
 
+    override fun goToLogin() {
+        goToLogin(false)
+    }
     override fun scrollToBids() {}
-    override fun refreshPage() {
-
-    }
-
-    override fun updateItem(item: OfferItem) {
-        viewModel.updateItem(item)
-    }
+    override fun refreshPage() {}
+    override fun updateBidsInfo(item: OfferItem) { }
+    override fun goToDialog(id: Long?) {}
+    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
+    override fun goToUserPage(sellerId: Long) { }
 }

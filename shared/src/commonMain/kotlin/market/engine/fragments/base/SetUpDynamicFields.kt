@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
 import market.engine.widgets.checkboxs.DynamicCheckbox
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
@@ -17,7 +16,6 @@ import market.engine.widgets.checkboxs.DynamicRadioButtons
 import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.widgets.ilustrations.CaptchaImage
 import market.engine.widgets.textFields.DynamicInputField
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SetUpDynamicFields(
@@ -25,6 +23,7 @@ fun SetUpDynamicFields(
     code: String? = null,
     showRating: Boolean = false,
     modifier: Modifier = Modifier.fillMaxWidth(),
+    onValueChange: (Fields) -> Unit
 ){
     Column(
         modifier = modifier,
@@ -35,26 +34,25 @@ fun SetUpDynamicFields(
             when(field.widgetType) {
                 "input" -> {
                     if(field.choices.isNullOrEmpty()) {
-                        if(fields.find { it.key == "feedback_type" } != null){
-                            field.data = JsonPrimitive(stringResource(strings.defaultCommentReport))
-                            DynamicInputField(
-                                field = field,
-                                singleLine = false
-                            )
-                        }else{
-                            DynamicInputField(
-                                field = field,
-                            )
+                        DynamicInputField(
+                            field = field,
+                            singleLine = false
+                        ){
+                            onValueChange(it)
                         }
                     }else{
-                        DynamicSelect(field)
+                        DynamicSelect(field){
+                            onValueChange(it)
+                        }
                     }
                 }
 
                 "password" -> {
                     DynamicInputField(
                         field = field
-                    )
+                    ){
+                        onValueChange(it)
+                    }
                 }
 
                 "hidden" -> {
@@ -65,35 +63,46 @@ fun SetUpDynamicFields(
 
                     if (field.key == "resetcode" && code != null){
                         field.data = JsonPrimitive(code)
+                        onValueChange(field)
                     }
                 }
 
                 "checkbox" -> {
                     DynamicCheckbox(
                         field = field,
-                    )
+                    ){
+                        onValueChange(it)
+                    }
                 }
 
                 "text_area" -> {
                     DynamicInputField(
                         field = field,
                         singleLine = false
-                    )
+                    ){
+                        onValueChange(it)
+                    }
                 }
 
                 "checkbox_group" -> {
                     DynamicCheckboxGroup(
                         field,
                         showRating = showRating
-                    )
+                    ){
+                        onValueChange(it)
+                    }
                 }
                 "select" -> {
                     DynamicSelect(
                         field
-                    )
+                    ){
+                        onValueChange(it)
+                    }
                 }
                 "radio_group" -> {
-                    DynamicRadioButtons(field)
+                    DynamicRadioButtons(field){
+                        onValueChange(it)
+                    }
                 }
             }
         }

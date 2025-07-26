@@ -20,7 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 data class CustomDialogState(
     val typeDialog: String = "",
     val title: AnnotatedString = AnnotatedString(""),
-    val fields : List<Fields> = emptyList(),
+    var fields : List<Fields> = emptyList(),
     val onDismiss: () -> Unit = {},
     val onSuccessful: (() -> Unit) ?= null,
 )

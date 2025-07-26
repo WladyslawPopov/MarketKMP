@@ -433,4 +433,18 @@ class FavPagesViewModel() : CoreViewModel() {
     fun selectPage(page: Int){
         _initPosition.value = page
     }
+
+    fun setNewField(field: Fields){
+        _customDialogState.update { dialog->
+            dialog.copy(
+                fields = dialog.fields.map {
+                    if(it.key == field.key){
+                        field.copy()
+                    }else{
+                        it.copy()
+                    }
+                }
+            )
+        }
+    }
 }

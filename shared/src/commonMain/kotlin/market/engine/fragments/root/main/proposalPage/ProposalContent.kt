@@ -61,9 +61,7 @@ fun ProposalContent(
 
     val initFields = viewModel.responseFields.collectAsState()
 
-    val selectedChoice = viewModel.selectedChoice.collectAsState()
-
-    val noFound : (@Composable () -> Unit)? = remember(proposalState) {
+    val noFound : (@Composable () -> Unit)? = remember(proposalState.value) {
         if (proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
             {
                 NoItemsFoundLayout(
@@ -167,10 +165,9 @@ fun ProposalContent(
                     body,
                     type,
                     initFields.value.find { it.first == (body.buyerInfo?.id ?: 0L) }?.second ?: emptyList(),
-                    selectedChoice.value.find { it.first == (body.buyerInfo?.id ?: 0L) }?.second ?: 2,
                     isLoading,
-                    changeChoice = { b, i ->
-                        viewModel.changeChoice(b, i, body.buyerInfo?.id ?: 0L)
+                    onValueChange = {
+                        viewModel.onValueChange(it, body.buyerInfo?.id ?: 0L)
                     },
                     confirmProposal = {
                         viewModel.confirmProposal(it, body.buyerInfo?.id ?: 0L)

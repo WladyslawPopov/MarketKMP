@@ -29,6 +29,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.UrlBuilder
+import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
@@ -145,6 +146,7 @@ class OrderRepository(
 
     fun getOperations() {
         viewModel.viewModelScope.launch {
+            val commentText = getString(strings.defaultCommentReport)
             viewModel.getOrderOperations(order.id) { listOperations ->
                 _menuList.value = buildList {
                     addAll(listOperations.map { operation ->
@@ -160,17 +162,26 @@ class OrderRepository(
                                                 id ?: "",
                                                 "orders",
                                             )
-                                            { t, f ->
+                                            { t, fields ->
+
+                                                val fieldFeedbackType = fields.find { it.key == "feedback_type" }
+                                                if(fieldFeedbackType != null){
+                                                    fields.find { it.key == "comment" }?.let {
+                                                        fieldFeedbackType.data = JsonPrimitive(1)
+                                                        it.data = JsonPrimitive(commentText)
+                                                    }
+                                                }
+
                                                 _customDialogState.value = CustomDialogState(
                                                     title = AnnotatedString(t),
                                                     typeDialog = id?: "",
-                                                    fields = f,
+                                                    fields = fields,
                                                     onDismiss = {
                                                         clearDialogFields()
                                                     },
                                                     onSuccessful = {
                                                         val body = HashMap<String, JsonElement>()
-                                                        f.forEach {
+                                                        _customDialogState.value.fields.forEach {
                                                             if (it.data != null) {
                                                                 body[it.key ?: ""] = it.data!!
                                                             }
@@ -182,8 +193,9 @@ class OrderRepository(
                                                             "orders",
                                                             body = body,
                                                             onSuccess = {
-                                                                updateItem(order)
                                                                 clearDialogFields()
+                                                                getOperations()
+                                                                viewModel.setUpdateItem(order.id)
                                                             },
                                                             errorCallback = { errFields ->
                                                                 if (errFields != null) {
@@ -215,7 +227,7 @@ class OrderRepository(
                                                         operation.id ?: "",
                                                         eventParameters
                                                     )
-
+                                                    getOperations()
                                                     viewModel.setUpdateItem(order.id)
                                                 },
                                                 errorCallback = {
@@ -383,6 +395,14 @@ class OrderRepository(
                     }
                 )
             }
+        }
+    }
+
+    fun setNewField(field : Fields){
+        _customDialogState.update {
+            it.copy(fields = it.fields.map { oldField ->
+                if (oldField.key == field.key) field.copy() else oldField.copy()
+            })
         }
     }
 }

@@ -380,7 +380,11 @@ class DynamicSettingsViewModel(
 
                         delay(1500)
 
-                        val body = payload.body?.jsonObject["action"]?.jsonPrimitive?.content
+                        val body = try {
+                            payload.body?.jsonObject["action"]?.jsonPrimitive?.content
+                        }catch (_ : Exception){
+                            null
+                        }
 
                         if (body?.isNotBlank() == true) {
                             component.goToVerificationPage(body,owner, code)
@@ -762,6 +766,20 @@ class DynamicSettingsViewModel(
                     }
                 }
             }
+        }
+    }
+
+    fun setNewFields(field : Fields){
+        _dynamicSettingsState.update { page ->
+            page.copy(
+                fields = page.fields.map {
+                    if (it.key == field.key){
+                        field.copy()
+                    } else {
+                        it.copy()
+                    }
+                }
+            )
         }
     }
 }

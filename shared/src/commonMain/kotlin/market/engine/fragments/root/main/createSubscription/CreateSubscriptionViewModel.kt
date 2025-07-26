@@ -28,15 +28,14 @@ import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.networkObjects.DynamicPayload
-import market.engine.core.network.networkObjects.OperationResult
+import market.engine.core.network.networkObjects.Fields
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
 data class CreateSubDataState(
     val appBar : SimpleAppBarData = SimpleAppBarData(),
-    val page : DynamicPayload<OperationResult>? = null,
+    val fields : List<Fields> = emptyList(),
     val title : String = "",
     val categoryState: CategoryState = CategoryState()
 )
@@ -46,14 +45,15 @@ class CreateSubscriptionViewModel(
     val component: CreateSubscriptionComponent
 ) : CoreViewModel() {
 
-    private var _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
+    private val _responseGetFields = MutableStateFlow<List<Fields>>(emptyList())
+
     private val _openCat = MutableStateFlow(false)
     val categoryViewModel = CategoryViewModel(
         isFilters = true
     )
 
     val createSubContentState : StateFlow<CreateSubDataState> = combine(
-        _responseGetPage,
+        _responseGetFields,
         _openCat,
     ) { getPage, openCat ->
         val defCat = getString(strings.selectCategory)
@@ -66,9 +66,9 @@ class CreateSubscriptionViewModel(
 
         categoryViewModel.updateFromSearchData(
             SD(
-                searchCategoryName = getPage?.fields?.find { it.key == "category_id" }?.shortDescription ?: defCat,
-                searchCategoryID = getPage?.fields?.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L,
-                searchParentID = getPage?.fields?.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
+                searchCategoryName = getPage.find { it.key == "category_id" }?.shortDescription ?: defCat,
+                searchCategoryID = getPage.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L,
+                searchParentID = getPage.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull ?: 1L
             )
         )
 
@@ -91,7 +91,7 @@ class CreateSubscriptionViewModel(
                     ),
                 )
             ),
-            page = getPage,
+            fields = getPage,
             title = title,
             categoryState = CategoryState(
                 openCategory = openCat,
@@ -115,38 +115,30 @@ class CreateSubscriptionViewModel(
     }
 
     fun applyCategory(categoryName : String, categoryId : Long){
-        _responseGetPage.update { page ->
-            val newFields = page?.fields?.map {
+        _responseGetFields.update { page ->
+            page.map {
                 if(it.key == "category_id")
                     it.copy(
                         shortDescription = categoryName,
                         data = JsonPrimitive(categoryId)
                     )
                 else it.copy()
-            } ?: emptyList()
-
-            page?.copy(
-                fields = newFields
-            )
+            }
         }
     }
 
     fun clearCategory(){
         viewModelScope.launch {
             categoryViewModel.updateFromSearchData(SD())
-            _responseGetPage.update { page ->
-                val newFields = page?.fields?.map {
+            _responseGetFields.update { page ->
+                page.map {
                     if(it.key == "category_id")
                         it.copy(
                             shortDescription = getString(strings.categoryMain),
                             data = null
                         )
                     else it.copy()
-                } ?: emptyList()
-
-                page?.copy(
-                    fields = newFields
-                )
+                }
             }
         }
     }
@@ -175,7 +167,7 @@ class CreateSubscriptionViewModel(
             val resErr = buffer.error
             withContext(Dispatchers.Main){
                 if (payload != null){
-                    _responseGetPage.value = payload
+                    _responseGetFields.value = payload.fields
                 }else{
                     if (resErr != null) {
                         onError(resErr)
@@ -191,10 +183,11 @@ class CreateSubscriptionViewModel(
             setLoading(true)
 
             val body = HashMap<String, JsonElement>()
-            _responseGetPage.value?.fields?.forEach {
+            _responseGetFields.value.forEach {
                 if (it.data != null)
                     body[it.key ?: ""] = it.data!!
             }
+
             val eventParameters = mapOf(
                 "user_id" to UserData.login,
                 "body" to body
@@ -253,10 +246,9 @@ class CreateSubscriptionViewModel(
                                     eventParameters
                                 )
 
-
-                            _responseGetPage.value = _responseGetPage.value?.copy(
-                                fields = res.recipe?.fields ?: res.fields
-                            )
+                            _responseGetFields.update {
+                                res.recipe?.fields ?: res.fields
+                            }
                         }
                     } else {
                         if (resErr != null) {
@@ -273,6 +265,17 @@ class CreateSubscriptionViewModel(
                         humanMessage = exception.message.toString()
                     )
                 )
+            }
+        }
+    }
+
+    fun setNewField(field : Fields){
+        _responseGetFields.update { oldField ->
+            oldField.map {
+                if(it.key == field.key)
+                    field.copy()
+                else
+                    it.copy()
             }
         }
     }

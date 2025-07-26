@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
@@ -40,6 +41,7 @@ import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
@@ -47,9 +49,9 @@ import kotlin.getValue
 
 class BasketViewModel(component: BasketComponent): CoreViewModel() {
 
-    private var responseGetUserCart = MutableStateFlow<List<Pair<User?, List<OfferItem?>>>>(emptyList())
-    private var selectedOffers = MutableStateFlow<List<SelectedBasketList>>(emptyList())
-    private var showExpanded = MutableStateFlow<List<Pair<Long, Int>>>(emptyList())
+    private val responseGetUserCart = MutableStateFlow<List<Pair<User?, List<OfferItem?>>>>(emptyList())
+    private val selectedOffers = MutableStateFlow<List<SelectedBasketList>>(emptyList())
+    private val showExpanded = MutableStateFlow<List<Pair<Long, Int>>>(emptyList())
 
     private val basketsEvents = BasketEventsImpl(this, component)
     private val _isMenuVisibility = MutableStateFlow(false)
@@ -208,14 +210,14 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
                                 OfferItem(
                                     id = item.offerId,
                                     title = item.offerTitle ?: "",
-                                    price = item.offerPrice ?: "",
-                                    currentQuantity = item.availableQuantity,
+                                    images = listOf(item.offerImage ?: ""),
+                                    isWatchedByMe = item.isWatchedByMe == true,
                                     quantity = item.quantity,
+                                    currentQuantity = item.availableQuantity,
+                                    price = item.offerPrice ?: "",
                                     seller = User(id = item.sellerId),
                                     location = item.freeLocation ?: "",
-                                    images = listOf(item.offerImage ?: ""),
                                     safeDeal = item.isBuyable == true,
-                                    isWatchedByMe = item.isWatchedByMe == true,
                                     state = "active",
                                 )
                             }
@@ -415,7 +417,7 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
         }
     }
 
-    fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
+    fun addOfferToBasket(body : HashMap<String, JsonElement>, newQuantity : Int, offerId: Long) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
@@ -431,12 +433,79 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
 
             if (buffer != null) {
                 updateUserInfo()
-                onSuccess(buffer.operationResult?.message ?: getString(strings.operationSuccess))
+                showToast(
+                    successToastItem.copy(message = getString(strings.operationSuccess))
+                )
+                delay(1000)
+                updateQuantityInState(offerId, newQuantity)
+
             } else {
                 if (error != null) {
                     onError(error)
                 }
             }
+        }
+    }
+
+    fun addToFavorites(offer : OfferItem)
+    {
+        if(UserData.token != "") {
+            viewModelScope.launch {
+                val buf = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperationFields(
+                        offer.id,
+                        if (offer.isWatchedByMe) "unwatch" else "watch",
+                        "offers"
+                    )
+                }
+
+                val res = buf.success
+                withContext(Dispatchers.Main) {
+                    if (res != null && res.operationResult?.result == "ok") {
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.location,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category" to offer.catPath.firstOrNull(),
+                            "seller_id" to offer.seller.id,
+                            "lot_price_start" to offer.price,
+                        )
+                        if (!offer.isWatchedByMe) {
+                            analyticsHelper.reportEvent("offer_watch", eventParameters)
+                        } else {
+                            analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                        }
+
+                        updateUserInfo()
+
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+                        responseGetUserCart.update { userCart ->
+                            userCart.map { pair ->
+                                pair.copy(
+                                    second = pair.second.map { item ->
+                                        if (item?.id == offer.id) {
+                                            item.copy(isWatchedByMe = !item.isWatchedByMe)
+                                        } else {
+                                            item
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                    } else {
+                        if (buf.error != null)
+                            onError(buf.error!!)
+                    }
+                }
+            }
+        }else{
+            goToLogin(false)
         }
     }
 }
@@ -464,18 +533,14 @@ data class BasketEventsImpl(
             viewModel.uncheckAll(userId)
         }
     }
-    override fun onQuantityChanged(offerId: Long, newQuantity: Int, onResult: (Int) -> Unit) {
+    override fun onQuantityChanged(offerId: Long, newQuantity: Int) {
         val body = HashMap<String, JsonElement>()
         body["offer_id"] = JsonPrimitive(offerId)
         body["quantity"] = JsonPrimitive(newQuantity)
-        viewModel.addOfferToBasket(body) { onResult(newQuantity) }
-        viewModel.updateQuantityInState(offerId, newQuantity)
+        viewModel.addOfferToBasket(body, newQuantity, offerId)
     }
-    override fun onAddToFavorites(offer: OfferItem, onFinish: (Boolean) -> Unit) {
-        viewModel.addToFavorites(offer) {
-            offer.isWatchedByMe = it
-            onFinish(it)
-        }
+    override fun onAddToFavorites(offer: OfferItem) {
+        viewModel.addToFavorites(offer)
     }
     override fun onDeleteOffersRequest(ids: List<Long>) {
         viewModel.setDeleteItems(ids)

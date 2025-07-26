@@ -146,17 +146,23 @@ fun ContactUsContent(
                                 DynamicInputField(
                                     field = field,
                                     enabled = UserData.token == ""
-                                )
+                                ){
+                                    model.setNewField(it)
+                                }
                             } else {
                                 DynamicInputField(
                                     field = field,
-                                )
+                                ){
+                                    model.setNewField(it)
+                                }
                             }
                         } else {
                             //selected type
                             DynamicSelect(
                                 field
-                            )
+                            ){
+                                model.setNewField(it)
+                            }
                         }
                     }
 
@@ -164,7 +170,9 @@ fun ContactUsContent(
                         DynamicInputField(
                             field = field,
                             singleLine = false
-                        )
+                        ){
+                            model.setNewField(it)
+                        }
                     }
 
                     "hidden" -> {

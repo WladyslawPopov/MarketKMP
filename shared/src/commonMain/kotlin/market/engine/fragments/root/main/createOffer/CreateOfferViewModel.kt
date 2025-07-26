@@ -48,6 +48,7 @@ import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
@@ -58,7 +59,6 @@ import kotlin.uuid.Uuid
 
 data class CreateOfferContentState(
     val appBarState: SimpleAppBarData = SimpleAppBarData(),
-    val dynamicPayloadState: DynamicPayload<OperationResult>? = null,
     val categoryState: CategoryState = CategoryState(),
 
     val catHistory : List<Category> = emptyList(),
@@ -233,16 +233,15 @@ class CreateOfferViewModel(
         isCreateOffer = true
     )
 
-    private val _responseGetPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
+    private val _responseGetPage = MutableStateFlow<List<Fields>>(emptyList())
+    val responseGetPage = _responseGetPage.asStateFlow()
+
     private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
 
     private val _isEditCat = MutableStateFlow(false)
 
-    private val _choiceCodeSaleType = MutableStateFlow<Int?>(null)
-    val choiceCodeSaleType = _choiceCodeSaleType.asStateFlow()
-
-    private val _selectedDate = MutableStateFlow(_responseGetPage.value?.fields?.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
+    private val _selectedDate = MutableStateFlow(_responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
     val selectedDate = _selectedDate.asStateFlow()
 
     private val _newOfferId = MutableStateFlow<Long?>(null)
@@ -262,9 +261,7 @@ class CreateOfferViewModel(
 
         when (type) {
             CreateOfferType.EDIT, CreateOfferType.COPY -> {
-                val photos =
-                    dynamicPayload?.fields?.filter { it.key?.contains("photo_") == true }
-                        ?: emptyList()
+                val photos = dynamicPayload.filter { it.key?.contains("photo_") == true }
 
                 photos.forEach { field ->
                     if (field.links != null) {
@@ -295,7 +292,7 @@ class CreateOfferViewModel(
             }
         }
 
-        dynamicPayload?.fields?.find { it.key == "category_id" }
+        dynamicPayload.find { it.key == "category_id" }
             ?.let { field ->
                 field.data?.jsonPrimitive?.longOrNull?.let {
                     if (categoryViewModel.searchData.value.searchCategoryID == 1L) {
@@ -310,7 +307,7 @@ class CreateOfferViewModel(
             }
 
         if(type == CreateOfferType.CREATE) {
-            dynamicPayload?.fields?.find { it.key == "session_start" }?.data =
+            dynamicPayload.find { it.key == "session_start" }?.data =
                 if (selectedDate.value != null) {
                     JsonPrimitive(2)
                 } else {
@@ -337,13 +334,12 @@ class CreateOfferViewModel(
                     )
                 )
             ),
-            dynamicPayloadState = dynamicPayload,
             catHistory = catHistory,
             categoryState = CategoryState(
                 openCategory = openCategory,
                 categoryViewModel = categoryViewModel
             ),
-            textState = dynamicPayload?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
+            textState = dynamicPayload.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
         )
     }.stateIn(
         viewModelScope,
@@ -428,7 +424,28 @@ class CreateOfferViewModel(
                         val serializer = DynamicPayload.serializer(OperationResult.serializer())
                         val payload: DynamicPayload<OperationResult> =
                             deserializePayload(response.payload, serializer)
-                        _responseGetPage.value = payload
+
+                        payload.fields.find {
+                            it.key == "future_time"
+                        }?.let { field ->
+                            if(
+                                field.data != null &&
+                                (field.data?.jsonPrimitive?.longOrNull ?: 1) >
+                                (getCurrentDate().toLongOrNull() ?: 1L)
+                            ){
+                                payload.fields.find {
+                                    it.key == "session_start"
+                                }?.let { it.data = JsonPrimitive(2) }
+                                _selectedDate.value = field.data?.jsonPrimitive?.longOrNull
+                            }else{
+                                payload.fields.find {
+                                    it.key == "session_start"
+                                }?.let { it.data = JsonPrimitive(0) }
+                                setSelectData()
+                            }
+                        }
+
+                        _responseGetPage.value = payload.fields
                     }
                 }catch (_: Exception){
                     throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
@@ -458,12 +475,11 @@ class CreateOfferViewModel(
                         val newFields = payload.fields.filter { it.key.toString().contains("par_") }
 
                         withContext(Dispatchers.Main) {
-                            _responseGetPage.value = _responseGetPage.value?.let { currentPayload ->
-                                val updatedFields = currentPayload.fields.filterNot {
+                            _responseGetPage.update { currentPayload ->
+                                val updatedFields = currentPayload.filterNot {
                                     it.key.toString().contains("par_")
                                 }
-                                val mergedFields = ArrayList(updatedFields + newFields)
-                                currentPayload.copy(fields = mergedFields)
+                                updatedFields + newFields
                             }
                         }
                     } catch (_: Exception) {
@@ -530,10 +546,10 @@ class CreateOfferViewModel(
                         )
 
                         val title =
-                            _responseGetPage.value?.fields?.find { it.key == "title" }?.data?.jsonPrimitive?.content
+                            _responseGetPage.value.find { it.key == "title" }?.data?.jsonPrimitive?.content
                                 ?: ""
                         val loc =
-                            _responseGetPage.value?.fields?.find { it.key == "location" }?.data?.jsonPrimitive?.content
+                            _responseGetPage.value.find { it.key == "location" }?.data?.jsonPrimitive?.content
                                 ?: ""
 
                         val eventParams = mapOf(
@@ -575,14 +591,9 @@ class CreateOfferViewModel(
                                 type = ToastType.ERROR
                             )
                         )
-                        _responseGetPage.value =
-                            _responseGetPage.value?.let { currentPayload ->
-                                val updatedFields = arrayListOf<Fields>()
-                                updatedFields.addAll(
-                                    payload.recipe?.fields ?: currentPayload.fields
-                                )
-                                currentPayload.copy(fields = updatedFields)
-                            }
+                        _responseGetPage.update { currentPayload ->
+                            payload.recipe?.fields ?: currentPayload
+                        }
                     }
                 } catch (_: Exception) {
                     throw ServerErrorException(
@@ -631,17 +642,13 @@ class CreateOfferViewModel(
         }
     }
 
-    fun setSelectData(data: Long) {
+    fun setSelectData(data: Long? = null) {
         _responseGetPage.update { page ->
-            val date = page?.fields?.map {
-                if(it.key == "future_time"){
-                    it.copy(data = JsonPrimitive(data) )
+            page.map {
+                if (it.key == "future_time") {
+                    it.copy(data = JsonPrimitive(data))
                 } else it.copy()
-            } ?: page?.fields ?: emptyList()
-
-            page?.copy(
-                fields = ArrayList(date)
-            )
+            }
         }
         _selectedDate.value = data
     }
@@ -649,21 +656,12 @@ class CreateOfferViewModel(
     fun setDescription(description: String) {
         val text = KsoupEntities.decodeHtml(description)
         _responseGetPage.update { page ->
-            val date = page?.fields?.map {
+            page.map {
                 if(it.key == "description"){
                     it.copy(data = JsonPrimitive(text) )
                 } else it.copy()
-            } ?: page?.fields ?: emptyList()
-
-            page?.copy(
-                fields = ArrayList(date)
-            )
+            }
         }
-    }
-
-
-    fun setChoiceCodeSaleType(code: Int) {
-        _choiceCodeSaleType.value = code
     }
 
     fun openCategory() {
@@ -675,16 +673,15 @@ class CreateOfferViewModel(
         _isEditCat.value = false
     }
 
-
     fun createJsonBody() : JsonObject {
-        val fields = _responseGetPage.value?.fields?.filter { it.data != null }
+        val fields = _responseGetPage.value.filter { it.data != null }
         val categoryID = searchData.value.searchCategoryID
         val selectedDate = selectedDate.value
         val deleteImages = photoTempViewModel.deleteImages.value
         val images = photoTempViewModel.responseImages.value
 
         return buildJsonObject {
-            fields?.forEach { field ->
+            fields.forEach { field ->
                 when (field.key) {
                     "deliverymethods" -> {
                         val valuesDelivery = arrayListOf<JsonObject>()
@@ -772,6 +769,16 @@ class CreateOfferViewModel(
 
             if (positionArray.isNotEmpty()) {
                 put("position_images", positionArray)
+            }
+        }
+    }
+
+    fun setNewFiles(field: Fields) {
+        _responseGetPage.update { page ->
+            page.map {
+                if (it.key == field.key){
+                    field.copy()
+                } else it.copy()
             }
         }
     }

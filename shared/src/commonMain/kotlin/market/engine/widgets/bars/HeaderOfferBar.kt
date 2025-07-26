@@ -10,7 +10,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,7 +29,6 @@ import org.jetbrains.compose.resources.painterResource
 fun HeaderOfferBar(
     offer: OfferItem,
     defOptions: List<MenuItem>,
-    updateItem : Long?,
     selected : Boolean = false,
     onSelected : ((Long) -> Unit)? = null
 ) {
@@ -39,8 +37,6 @@ fun HeaderOfferBar(
     val menuList = remember(defOptions) {
         mutableStateOf(defOptions)
     }
-
-    LaunchedEffect(updateItem) {}
 
     Row(
         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
