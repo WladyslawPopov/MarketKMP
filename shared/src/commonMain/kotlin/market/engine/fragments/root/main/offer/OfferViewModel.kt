@@ -163,13 +163,20 @@ class OfferViewModel(
                 setLoading(true)
                 getHistory(offerId)
                 getOurChoice(offerId)
-                clearTimers()
 
-                withContext(Dispatchers.IO) {
-                    val res = offerOperations.getOffer(offerId, isSnapshot)
-                    val data = res.success
+                val res =
+                    withContext(Dispatchers.IO) { offerOperations.getOffer(offerId, isSnapshot) }
+                val data = res.success
+                withContext(Dispatchers.Main) {
+                    setLoading(false)
+
                     data?.let { offer ->
-                        val offerRepository = OfferRepository(offer, ListingData(), events = offerRepositoryEvents, this@OfferViewModel)
+                        val offerRepository = OfferRepository(
+                            offer,
+                            ListingData(),
+                            events = offerRepositoryEvents,
+                            this@OfferViewModel
+                        )
                         getCategoriesHistory(offer.catpath)
                         val initTimer =
                             ((offer.session?.end?.toLongOrNull()
@@ -241,10 +248,13 @@ class OfferViewModel(
                             _remainingTime.value = initTimer
                         }
 
-                        offer.sellerData = getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
+                        offer.sellerData =
+                            getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
 
                         val columns =
-                            if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(1)
+                            if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(
+                                1
+                            )
 
                         val counts = (1..offer.currentQuantity).map { it.toString() }
 
@@ -257,7 +267,9 @@ class OfferViewModel(
                             buyNowCounts = counts,
                             isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
                             offerState = offerState,
-                            dealTypeString = offer.dealTypes?.joinToString(separator = ". ") { it.name ?: "" }
+                            dealTypeString = offer.dealTypes?.joinToString(separator = ". ") {
+                                it.name ?: ""
+                            }
                                 ?: "",
                             deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
                             paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") {
@@ -270,8 +282,6 @@ class OfferViewModel(
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))
-            } finally {
-                setLoading(false)
             }
         }
     }
