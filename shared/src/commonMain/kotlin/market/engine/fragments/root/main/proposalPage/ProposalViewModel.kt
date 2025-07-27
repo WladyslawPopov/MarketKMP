@@ -212,12 +212,12 @@ class ProposalViewModel(
         }
     }
 
-    fun confirmProposal(fields: List<Fields>, buyerId: Long) {
+    fun confirmProposal(buyerId: Long) {
         setLoading(true)
         viewModelScope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
 
-            fields.forEach { field ->
+            responseFields.value.find { it.first == buyerId }?.second?.forEach { field ->
                 if (field.data != null){
                     bodyProposals[field.key ?: ""] = field.data!!
                 }

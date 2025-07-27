@@ -1,6 +1,7 @@
 package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
@@ -73,7 +75,7 @@ fun CabinetBidsItem(
     val date2 = remember(offer.session?.end) { offer.session?.end?.convertDateWithMinutes() }
     val d3 = remember(date2) { "$date1 – $date2" }
 
-    if(offer.bids?.isNotEmpty() == true) {
+    if(offer.bids?.isNotEmpty() == true && offer.session != null) {
         Card(
             colors = colors.cardColors,
             shape = MaterialTheme.shapes.small,
@@ -213,6 +215,31 @@ fun CabinetBidsItem(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.black
                             )
+                        }
+
+                        if (offer.note != null) {
+                            Row(
+                                modifier = Modifier.background(
+                                    colors.white,
+                                    MaterialTheme.shapes.small
+                                ).padding(dimens.smallPadding),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                Icon(
+                                    painterResource(drawables.editNoteIcon),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(dimens.smallIconSize),
+                                    tint = colors.black
+                                )
+
+                                Text(
+                                    text = offer.note ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colors.black,
+                                    modifier = Modifier.weight(1f, !isBigScreen.value)
+                                )
+                            }
                         }
 
                         UserRow(

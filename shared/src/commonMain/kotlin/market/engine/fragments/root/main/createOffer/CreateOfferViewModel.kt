@@ -62,11 +62,7 @@ data class CreateOfferContentState(
     val categoryState: CategoryState = CategoryState(),
 
     val catHistory : List<Category> = emptyList(),
-    val deleteImages : List<JsonPrimitive> = emptyList(),
-
     val textState : String = "",
-    val futureTime : Long = 1L,
-    val selectedDate : Long? = null,
 
     val firstDynamicContent : List<String> = listOf(
         "title",
@@ -237,6 +233,7 @@ class CreateOfferViewModel(
     val responseGetPage = _responseGetPage.asStateFlow()
 
     private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
+
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
 
     private val _isEditCat = MutableStateFlow(false)
@@ -653,6 +650,15 @@ class CreateOfferViewModel(
         _selectedDate.value = data
     }
 
+    fun onBackClicked() {
+        if(categoryViewModel.searchData.value.searchCategoryID != 1L){
+            _isEditCat.value = true
+            categoryViewModel.navigateBack()
+        }else{
+            component.onBackClicked()
+        }
+    }
+
     fun setDescription(description: String) {
         val text = KsoupEntities.decodeHtml(description)
         _responseGetPage.update { page ->
@@ -775,10 +781,12 @@ class CreateOfferViewModel(
 
     fun setNewFiles(field: Fields) {
         _responseGetPage.update { page ->
-            page.map {
-                if (it.key == field.key){
+            page.map { oldField ->
+                if (oldField.key == field.key){
                     field.copy()
-                } else it.copy()
+                }else{
+                    oldField.copy()
+                }
             }
         }
     }

@@ -158,62 +158,6 @@ class OfferRepository(
         }
     }
 
-    fun addToFavorites()
-    {
-        val offer = offerState.value
-
-        if(UserData.token != "") {
-            viewModel.viewModelScope.launch {
-                val buf = withContext(Dispatchers.IO) {
-                    viewModel.operationsMethods.postOperationFields(
-                        offer.id,
-                        if (offer.isWatchedByMe) "unwatch" else "watch",
-                        "offers"
-                    )
-                }
-
-                val res = buf.success
-                withContext(Dispatchers.Main) {
-                    if (res != null && res.operationResult?.result == "ok") {
-                        val eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.title,
-                            "lot_city" to offer.location,
-                            "auc_delivery" to offer.safeDeal,
-                            "lot_category" to offer.catPath.firstOrNull(),
-                            "seller_id" to offer.seller.id,
-                            "lot_price_start" to offer.price,
-                        )
-                        if (!offer.isWatchedByMe) {
-                            viewModel.analyticsHelper.reportEvent("offer_watch", eventParameters)
-                        } else {
-                            viewModel. analyticsHelper.reportEvent("offer_unwatch", eventParameters)
-                        }
-
-                        viewModel.showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-
-                        _offerState.update {
-                            it.copy(
-                                isWatchedByMe = !offer.isWatchedByMe
-                            )
-                        }
-
-                        viewModel.updateUserInfo()
-                    } else {
-                        if (buf.error != null)
-                            viewModel.onError(buf.error!!)
-                    }
-                }
-            }
-        }else{
-            goToLogin(false)
-        }
-    }
-
     fun updateItem() {
         updateOperations()
         if(listingData.data.methodServer.isNotBlank()) {
@@ -229,7 +173,9 @@ class OfferRepository(
                         }
                     } else {
                         _offerState.update {
-                            it.copy()
+                            it.copy(
+                                session = null
+                            )
                         }
                     }
                 }
@@ -384,7 +330,7 @@ class OfferRepository(
                                                                     when (id) {
                                                                         "edit_offer_in_list" -> {
                                                                             val addList =
-                                                                                _customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
+                                                                                customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
                                                                             val removeList = buildJsonArray {
                                                                                 fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
                                                                                     !addList.toString().contains(it.code.toString())
@@ -394,22 +340,26 @@ class OfferRepository(
                                                                                     }
                                                                                 }
                                                                             }
-                                                                            _customDialogState.value.fields.forEach { field ->
-                                                                                if (field.widgetType == "hidden") {
-                                                                                    when (field.key) {
-                                                                                        "offers_list_ids_add" -> {
-                                                                                            field.data = addList
-                                                                                        }
+                                                                            _customDialogState.update { dialog ->
+                                                                                dialog.copy(
+                                                                                    fields = buildList {
+                                                                                        addAll(fields.map { field ->
+                                                                                            when (field.key) {
+                                                                                                "offers_list_ids_add" -> {
+                                                                                                    field.copy(data = addList)
+                                                                                                }
 
-                                                                                        "offers_list_ids_remove" -> {
-                                                                                            field.data = removeList
-                                                                                        }
+                                                                                                "offers_list_ids_remove" -> {
+                                                                                                    field.copy(data = removeList)
+                                                                                                }
+                                                                                                else -> {
+                                                                                                    field.copy()
+                                                                                                }
+                                                                                            }
+                                                                                        })
+                                                                                        remove(fields.find { it.widgetType == "checkbox_group" })
                                                                                     }
-                                                                                }
-                                                                            }
-                                                                            _customDialogState.value.fields = buildList {
-                                                                                addAll(fields)
-                                                                                remove(fields.find { it.widgetType == "checkbox_group" })
+                                                                                )
                                                                             }
                                                                         }
                                                                         "create_blank_offer_list" -> {
@@ -418,7 +368,7 @@ class OfferRepository(
                                                                         }
                                                                     }
 
-                                                                    _customDialogState.value.fields.forEach {
+                                                                    customDialogState.value.fields.forEach {
                                                                         if (it.data != null) {
                                                                             body[it.key ?: ""] = it.data!!
                                                                         }
@@ -911,6 +861,62 @@ class OfferRepository(
         }
     }
 
+    fun addToFavorites()
+    {
+        val offer = offerState.value
+
+        if(UserData.token != "") {
+            viewModel.viewModelScope.launch {
+                val buf = withContext(Dispatchers.IO) {
+                    viewModel.operationsMethods.postOperationFields(
+                        offer.id,
+                        if (offer.isWatchedByMe) "unwatch" else "watch",
+                        "offers"
+                    )
+                }
+
+                val res = buf.success
+                withContext(Dispatchers.Main) {
+                    if (res != null && res.operationResult?.result == "ok") {
+                        val eventParameters = mapOf(
+                            "lot_id" to offer.id,
+                            "lot_name" to offer.title,
+                            "lot_city" to offer.location,
+                            "auc_delivery" to offer.safeDeal,
+                            "lot_category" to offer.catPath.firstOrNull(),
+                            "seller_id" to offer.seller.id,
+                            "lot_price_start" to offer.price,
+                        )
+                        if (!offer.isWatchedByMe) {
+                            viewModel.analyticsHelper.reportEvent("offer_watch", eventParameters)
+                        } else {
+                            viewModel. analyticsHelper.reportEvent("offer_unwatch", eventParameters)
+                        }
+
+                        viewModel.showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
+
+                        _offerState.update {
+                            it.copy(
+                                isWatchedByMe = !offer.isWatchedByMe
+                            )
+                        }
+
+                        viewModel.updateUserInfo()
+                    } else {
+                        if (buf.error != null)
+                            viewModel.onError(buf.error!!)
+                    }
+                }
+            }
+        }else{
+            goToLogin(false)
+        }
+    }
+
     suspend fun getDefOperations() : List<MenuItem> {
         val copiedString = getString(strings.textCopied)
         return buildList {
@@ -1102,7 +1108,9 @@ class OfferRepository(
             it.copy(
                 fields = it.fields.map { oldField ->
                     if (oldField.key == field.key){
-                        field.copy()
+                        oldField.copy(
+                            data = field.data
+                        )
                     }else{
                         oldField.copy()
                     }

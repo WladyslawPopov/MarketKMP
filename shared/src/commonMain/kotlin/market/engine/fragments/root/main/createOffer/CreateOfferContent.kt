@@ -135,7 +135,7 @@ fun CreateOfferContent(
    val columnState = rememberLazyScrollState(viewModel)
 
     BackHandler(model.value.backHandler){
-        component.onBackClicked()
+        viewModel.onBackClicked()
     }
 
     val launcher = rememberFilePickerLauncher(
@@ -782,17 +782,19 @@ fun DeliveryMethods(
         field.validators?.any { it.type == "mandatory" } == true
     }
 
-    val initialSelected = remember(field.data) {
-        val selectedCodes = mutableListOf<Int>()
-        field.data?.jsonArray?.forEach { item ->
-            item.jsonObject["code"]?.jsonPrimitive?.intOrNull?.let { selectedCodes.add(it) }
+    val initialSelected = remember(field) {
+        buildList {
+            field.data?.jsonArray?.forEach { item ->
+                item.jsonObject["code"]?.jsonPrimitive?.intOrNull?.let {
+                    add(it)
+                }
+            }
         }
-        selectedCodes.toList()
     }
 
     val error = remember(field.errors) { processInput(field.errors) }
 
-    val onClickListener : (Int) -> Unit = remember {
+    val onClickListener : (Int) -> Unit = remember(initialSelected) {
         { choiceCode ->
             val currentSet = initialSelected.toMutableList()
             if (currentSet.contains(choiceCode)) {

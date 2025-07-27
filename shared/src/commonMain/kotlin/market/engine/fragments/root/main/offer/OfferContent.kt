@@ -1,6 +1,5 @@
 package market.engine.fragments.root.main.offer
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -167,7 +165,6 @@ fun OfferContent(
 
     LaunchedEffect(scrollPos) {
         if (scrollPos > 1) {
-            delay(500)
             scrollState.scrollState.animateScrollToItem(scrollPos)
             viewModel.clearScrollPosition()
         }
@@ -276,7 +273,7 @@ fun OfferContent(
         }
     }
 
-    val collapsedMaxHeight = 200.dp
+    val collapsedMaxHeight = 300.dp
     val density = LocalDensity.current
 
     var isExpanded by remember { mutableStateOf(false) }
@@ -294,7 +291,8 @@ fun OfferContent(
         topBar = {
             SimpleAppBar(
                 data = appbarData
-            ) {
+            )
+            {
                 TextAppBar(
                     stringResource(
                         if (offerState == OfferStates.SNAPSHOT)
@@ -465,8 +463,7 @@ fun OfferContent(
                     LazyVerticalStaggeredGrid(
                         columns = columns,
                         modifier = Modifier
-                            .heightIn(200.dp, 20_000.dp)
-                            .animateContentSize(),
+                            .heightIn(200.dp, 20_000.dp),
                         userScrollEnabled = false,
                         verticalItemSpacing = dimens.smallPadding,
                         horizontalArrangement = Arrangement.spacedBy(
@@ -1288,7 +1285,7 @@ fun BidsWinnerOrLastBid(
                     append("${stringResource(strings.buyerParameterName)} ")
 
                     withStyle(style = SpanStyle(color = colors.actionTextColor)) {
-                        append(offer.buyer?.login)
+                        append(offer.buyer.login)
                     }
                 }
             }else{
@@ -1370,7 +1367,7 @@ fun LocationOffer(
                 if (offer.region?.name  != null){
                     append(", ")
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = colors.actionTextColor)) {
-                        append(offer.region!!.name)
+                        append(offer.region.name)
                     }
                 }
             },
@@ -1470,11 +1467,11 @@ fun TimeOfferSession(
                     append(remainingTime)
                     if (state != OfferStates.FUTURE) {
                         if (offer.session?.end != null) {
-                            append("\n(${offer.session?.end?.convertDateWithMinutes()})")
+                            append("\n(${offer.session.end.convertDateWithMinutes()})")
                         }
                     }else{
                         if (offer.session?.start != null) {
-                            append("\n(${offer.session?.start?.convertDateWithMinutes()})")
+                            append("\n(${offer.session.start.convertDateWithMinutes()})")
                         }
                     }
                 },

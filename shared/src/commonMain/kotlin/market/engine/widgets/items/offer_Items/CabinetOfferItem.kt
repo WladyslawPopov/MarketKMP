@@ -88,117 +88,99 @@ fun CabinetOfferItem(
     val menuPromotionsList = offerRepository.promoList.collectAsState()
 
     AnimatedVisibility(offer.session != null, enter = fadeIn(), exit = fadeOut()) {
-        Card(
-            colors = if (!offer.isPromo) colors.cardColors else colors.cardColorsPromo,
-            shape = MaterialTheme.shapes.small,
-            onClick = {
-                events.openCabinetOffer(offer)
-            }
-        ) {
-            HeaderOfferBar(
-                offer = offer,
-                defOptions = defOptions.value,
-                selected = selected,
-                onSelected = onSelected,
-            )
-
-            Row(
-                modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-            ) {
-                val imageSize =
-                    if (isBigScreen.value) {
-                        250.dp
-                    } else {
-                        165.dp
-                    }
-
-                Column(
-                    modifier = Modifier.width(imageSize).padding(dimens.smallPadding),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Box(
-                        modifier = Modifier.size(imageSize),
-                    ) {
-                        if (offer.images.isNotEmpty()) {
-                            HorizontalImageViewer(
-                                images = offer.images,
-                                pagerState = pagerState,
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(drawables.noImageOffer),
-                                contentDescription = null,
-                                modifier = Modifier.size(imageSize)
-                            )
-                        }
-
-                        if (offer.videoUrls.isNotEmpty()) {
-                            SmallImageButton(
-                                drawables.iconYouTubeSmall,
-                                modifierIconSize = Modifier.size(dimens.mediumIconSize),
-                                modifier = Modifier.align(Alignment.TopStart),
-                            ) {
-
-                            }
-                        }
-
-                        if (offer.discount > 0) {
-                            val pd = "-" + offer.discount.toString() + "%"
-
-                            DiscountBadge(pd)
-                        }
-                    }
-
-                    Column {
-                        OfferActionsBtn(
-                            onClick = {
-                                openMenu.value = true
-                            }
-                        )
-
-                        PopUpMenu(
-                            openPopup = openMenu.value,
-                            menuList = menuList.value,
-                            onClosed = {
-                                openMenu.value = false
-                            }
-                        )
-                    }
+        if (offer.session != null) {
+            Card(
+                colors = if (!offer.isPromo) colors.cardColors else colors.cardColorsPromo,
+                shape = MaterialTheme.shapes.small,
+                onClick = {
+                    events.openCabinetOffer(offer)
                 }
+            ) {
+                HeaderOfferBar(
+                    offer = offer,
+                    defOptions = defOptions.value,
+                    selected = selected,
+                    onSelected = onSelected,
+                )
 
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                Row(
+                    modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                        verticalAlignment = Alignment.Top
+                    val imageSize =
+                        if (isBigScreen.value) {
+                            250.dp
+                        } else {
+                            165.dp
+                        }
+
+                    Column(
+                        modifier = Modifier.width(imageSize).padding(dimens.smallPadding),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        TitleText(offer.title, modifier = Modifier.weight(1f))
+                        Box(
+                            modifier = Modifier.size(imageSize),
+                        ) {
+                            if (offer.images.isNotEmpty()) {
+                                HorizontalImageViewer(
+                                    images = offer.images,
+                                    pagerState = pagerState,
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(drawables.noImageOffer),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(imageSize)
+                                )
+                            }
+
+                            if (offer.videoUrls.isNotEmpty()) {
+                                SmallImageButton(
+                                    drawables.iconYouTubeSmall,
+                                    modifierIconSize = Modifier.size(dimens.mediumIconSize),
+                                    modifier = Modifier.align(Alignment.TopStart),
+                                ) {
+
+                                }
+                            }
+
+                            if (offer.discount > 0) {
+                                val pd = "-" + offer.discount.toString() + "%"
+
+                                DiscountBadge(pd)
+                            }
+                        }
+
+                        Column {
+                            OfferActionsBtn(
+                                onClick = {
+                                    openMenu.value = true
+                                }
+                            )
+
+                            PopUpMenu(
+                                openPopup = openMenu.value,
+                                menuList = menuList.value,
+                                onClosed = {
+                                    openMenu.value = false
+                                }
+                            )
+                        }
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        Image(
-                            painter = painterResource(drawables.locationIcon),
-                            contentDescription = "",
-                            modifier = Modifier.size(dimens.extraSmallIconSize),
-                        )
-                        Text(
-                            text = offer.location,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
-
-                    if (!offer.isPrototype) {
-                        val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            TitleText(offer.title, modifier = Modifier.weight(1f))
+                        }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -206,271 +188,293 @@ fun CabinetOfferItem(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Image(
-                                painter = painterResource(drawables.iconClock),
+                                painter = painterResource(drawables.locationIcon),
                                 contentDescription = "",
                                 modifier = Modifier.size(dimens.extraSmallIconSize),
                             )
-
                             Text(
-                                text = buildString {
-                                    if (offer.session != null)
-                                        append((offer.session?.end ?: "").convertDateWithMinutes())
-                                    else
-                                        append(sessionEnd)
-                                },
+                                text = offer.location,
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                    }
 
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        var typeString = ""
-                        var colorType = colors.titleTextColor
+                        if (!offer.isPrototype) {
+                            val sessionEnd = stringResource(strings.offerSessionInactiveLabel)
 
-                        FlowRow(
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Image(
+                                    painter = painterResource(drawables.iconClock),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(dimens.extraSmallIconSize),
+                                )
+
+                                Text(
+                                    text = buildString {
+                                        if (offer.session != null)
+                                            append(
+                                                (offer.session?.end ?: "").convertDateWithMinutes()
+                                            )
+                                        else
+                                            append(sessionEnd)
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.Start,
                             verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                            horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            when (offer.type) {
-                                "buy_now" -> {
-                                    typeString = stringResource(strings.buyNow)
-                                    colorType = colors.buyNowColor
+                            var typeString = ""
+                            var colorType = colors.titleTextColor
 
-                                    Image(
-                                        painter = painterResource(drawables.iconCountBoxes),
-                                        contentDescription = stringResource(strings.numberOfItems),
-                                        modifier = Modifier.size(dimens.extraSmallIconSize),
-                                    )
+                            FlowRow(
+                                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                                horizontalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                when (offer.type) {
+                                    "buy_now" -> {
+                                        typeString = stringResource(strings.buyNow)
+                                        colorType = colors.buyNowColor
 
-                                    Text(
-                                        text = offer.currentQuantity.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                    )
+                                        Image(
+                                            painter = painterResource(drawables.iconCountBoxes),
+                                            contentDescription = stringResource(strings.numberOfItems),
+                                            modifier = Modifier.size(dimens.extraSmallIconSize),
+                                        )
 
-                                    var buyer = offer.buyer?.login ?: ""
-                                    var color = colors.grayText
+                                        Text(
+                                            text = offer.currentQuantity.toString(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
 
-                                    if (!offer.isPrototype) {
-                                        if (offer.currentQuantity < 2) {
-                                            if (offer.buyer?.login != "" && offer.buyer?.login != null) {
-                                                buyer = offer.buyer?.login ?: ""
-                                                color = colors.ratingBlue
+                                        var buyer = offer.buyer?.login ?: ""
+                                        var color = colors.grayText
+
+                                        if (!offer.isPrototype) {
+                                            if (offer.currentQuantity < 2) {
+                                                if (offer.buyer?.login != "" && offer.buyer?.login != null) {
+                                                    buyer = offer.buyer?.login ?: ""
+                                                    color = colors.ratingBlue
+                                                }
                                             }
+
+                                            Text(
+                                                text = buyer,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = color
+                                            )
+                                        }
+                                    }
+
+                                    "ordinary_auction" -> {
+                                        typeString = stringResource(strings.ordinaryAuction)
+
+                                        Image(
+                                            painter = painterResource(drawables.iconGroup),
+                                            contentDescription = stringResource(strings.numberOfBids),
+                                            modifier = Modifier.size(dimens.extraSmallIconSize),
+                                        )
+
+                                        Text(
+                                            text = offer.numParticipants.toString(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+
+                                        var bids = stringResource(strings.noBids)
+                                        var color = colors.grayText
+
+                                        if (offer.bids?.isNotEmpty() == true) {
+                                            bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                            color = colors.ratingBlue
                                         }
 
                                         Text(
-                                            text = buyer,
+                                            text = bids,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = color
+                                        )
+                                    }
+
+                                    "auction_with_buy_now" -> {
+                                        typeString = stringResource(strings.blitzAuction)
+                                        colorType = colors.auctionWithBuyNow
+
+                                        Image(
+                                            painter = painterResource(drawables.iconGroup),
+                                            contentDescription = stringResource(strings.numberOfBids),
+                                            modifier = Modifier.size(dimens.extraSmallIconSize),
+                                        )
+
+                                        Text(
+                                            text = offer.numParticipants.toString(),
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+
+                                        var bids = stringResource(strings.noBids)
+                                        var color = colors.grayText
+                                        if (offer.bids?.isNotEmpty() == true) {
+                                            bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
+                                            color = colors.ratingBlue
+                                        }
+                                        Text(
+                                            text = bids,
                                             style = MaterialTheme.typography.labelSmall,
                                             color = color
                                         )
                                     }
                                 }
 
-                                "ordinary_auction" -> {
-                                    typeString = stringResource(strings.ordinaryAuction)
-
+                                if (offer.safeDeal) {
                                     Image(
-                                        painter = painterResource(drawables.iconGroup),
-                                        contentDescription = stringResource(strings.numberOfBids),
-                                        modifier = Modifier.size(dimens.extraSmallIconSize),
-                                    )
-
-                                    Text(
-                                        text = offer.numParticipants.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                    )
-
-                                    var bids = stringResource(strings.noBids)
-                                    var color = colors.grayText
-
-                                    if (offer.bids?.isNotEmpty() == true) {
-                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
-                                        color = colors.ratingBlue
-                                    }
-
-                                    Text(
-                                        text = bids,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = color
-                                    )
-                                }
-
-                                "auction_with_buy_now" -> {
-                                    typeString = stringResource(strings.blitzAuction)
-                                    colorType = colors.auctionWithBuyNow
-
-                                    Image(
-                                        painter = painterResource(drawables.iconGroup),
-                                        contentDescription = stringResource(strings.numberOfBids),
-                                        modifier = Modifier.size(dimens.extraSmallIconSize),
-                                    )
-
-                                    Text(
-                                        text = offer.numParticipants.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                    )
-
-                                    var bids = stringResource(strings.noBids)
-                                    var color = colors.grayText
-                                    if (offer.bids?.isNotEmpty() == true) {
-                                        bids = offer.bids?.get(0)?.obfuscatedMoverLogin ?: ""
-                                        color = colors.ratingBlue
-                                    }
-                                    Text(
-                                        text = bids,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = color
-                                    )
-                                }
-                            }
-
-                            if (offer.safeDeal) {
-                                Image(
-                                    painter = painterResource(drawables.safeDealIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize)
-                                )
-                            }
-                        }
-
-                        if (offer.seller.id == UserData.login && offer.promoOptions.isNotEmpty()) {
-                            PromoRow(offer.promoOptions, false) {
-
-                            }
-                        }
-
-                        if (UserData.login != offer.seller.id) {
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                            ) {
-                                Text(
-                                    text = offer.seller.login ?: "",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = colors.brightBlue,
-                                )
-
-                                if ((offer.seller.rating ?: 0) > 0) {
-                                    Box(
-                                        modifier = Modifier
-                                            .background(
-                                                colors.ratingBlue,
-                                                shape = MaterialTheme.shapes.small
-                                            )
-                                            .padding(dimens.extraSmallPadding)
-                                    ) {
-                                        Text(
-                                            text = offer.seller.rating.toString(),
-                                            color = colors.alwaysWhite,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            textAlign = TextAlign.Center,
-                                        )
-                                    }
-                                }
-
-                                if (offer.seller.isVerified) {
-                                    Image(
-                                        painter = painterResource(drawables.verifiedIcon),
-                                        contentDescription = null,
+                                        painter = painterResource(drawables.safeDealIcon),
+                                        contentDescription = "",
                                         modifier = Modifier.size(dimens.smallIconSize)
                                     )
                                 }
                             }
-                        }
 
-                        if (offer.note != null) {
-                            Row(
-                                modifier = Modifier.background(
-                                    colors.white,
-                                    MaterialTheme.shapes.small
-                                ).padding(dimens.smallPadding),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                            ) {
-                                Icon(
-                                    painterResource(drawables.editNoteIcon),
-                                    contentDescription = "",
-                                    modifier = Modifier.size(dimens.smallIconSize),
-                                    tint = colors.black
-                                )
+                            if (offer.seller.id == UserData.login && offer.promoOptions.isNotEmpty()) {
+                                PromoRow(offer.promoOptions, false) {
 
-                                Text(
-                                    text = offer.note ?: "",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = colors.black,
-                                    modifier = Modifier.weight(1f, !isBigScreen.value)
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = typeString,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = colorType,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-
-                        Column {
-                            if (UserData.login == offer.seller.id && offer.state == "active") {
-                                PromoBuyBtn {
-                                    openPromoMenu.value = true
                                 }
                             }
 
-                            PopUpMenu(
-                                openPopup = openPromoMenu.value,
-                                menuList = menuPromotionsList.value,
-                                onClosed = { openPromoMenu.value = false }
+                            if (UserData.login != offer.seller.id) {
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding),
+                                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                ) {
+                                    Text(
+                                        text = offer.seller.login ?: "",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = colors.brightBlue,
+                                    )
+
+                                    if ((offer.seller.rating ?: 0) > 0) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    colors.ratingBlue,
+                                                    shape = MaterialTheme.shapes.small
+                                                )
+                                                .padding(dimens.extraSmallPadding)
+                                        ) {
+                                            Text(
+                                                text = offer.seller.rating.toString(),
+                                                color = colors.alwaysWhite,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                textAlign = TextAlign.Center,
+                                            )
+                                        }
+                                    }
+
+                                    if (offer.seller.isVerified) {
+                                        Image(
+                                            painter = painterResource(drawables.verifiedIcon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(dimens.smallIconSize)
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (offer.note != null) {
+                                Row(
+                                    modifier = Modifier.background(
+                                        colors.white,
+                                        MaterialTheme.shapes.small
+                                    ).padding(dimens.smallPadding),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                                ) {
+                                    Icon(
+                                        painterResource(drawables.editNoteIcon),
+                                        contentDescription = "",
+                                        modifier = Modifier.size(dimens.smallIconSize),
+                                        tint = colors.black
+                                    )
+
+                                    Text(
+                                        text = offer.note ?: "",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = colors.black,
+                                        modifier = Modifier.weight(1f, !isBigScreen.value)
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = typeString,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = colorType,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Column {
+                                if (UserData.login == offer.seller.id && offer.state == "active") {
+                                    PromoBuyBtn {
+                                        openPromoMenu.value = true
+                                    }
+                                }
+
+                                PopUpMenu(
+                                    openPopup = openPromoMenu.value,
+                                    menuList = menuPromotionsList.value,
+                                    onClosed = { openPromoMenu.value = false }
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                dimens.smallPadding,
+                                Alignment.End
+                            ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    append(offer.price)
+                                    append(" ${stringResource(strings.currencySign)}")
+                                },
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                color = colors.priceTextColor,
                             )
                         }
                     }
+                }
 
+                if (offer.relistingMode != null && UserData.login == offer.seller.id) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                        horizontalArrangement = Arrangement.spacedBy(
-                            dimens.smallPadding,
-                            Alignment.End
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
                     ) {
+                        Icon(
+                            painter = painterResource(drawables.recycleIcon),
+                            contentDescription = "",
+                            modifier = Modifier.size(dimens.smallIconSize),
+                            tint = colors.negativeRed
+                        )
+
+                        Spacer(modifier = Modifier.width(dimens.smallSpacer))
+
                         Text(
-                            text = buildAnnotatedString {
-                                append(offer.price)
-                                append(" ${stringResource(strings.currencySign)}")
-                            },
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = colors.priceTextColor,
+                            offer.relistingMode?.name ?: "",
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
-                }
-            }
-
-            if (offer.relistingMode != null && UserData.login == offer.seller.id) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(dimens.smallPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Icon(
-                        painter = painterResource(drawables.recycleIcon),
-                        contentDescription = "",
-                        modifier = Modifier.size(dimens.smallIconSize),
-                        tint = colors.negativeRed
-                    )
-
-                    Spacer(modifier = Modifier.width(dimens.smallSpacer))
-
-                    Text(
-                        offer.relistingMode?.name ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
                 }
             }
         }

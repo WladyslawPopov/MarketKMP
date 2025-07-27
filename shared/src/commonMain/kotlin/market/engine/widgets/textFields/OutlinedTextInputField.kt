@@ -80,7 +80,9 @@ fun OutlinedTextInputField(
                     }
                 } else {
                     if ((it.text.toIntOrNull() ?:0) >= maxNumber) {
-                        onValueChange(TextFieldValue(maxNumber.toString()))
+                        onValueChange(it.copy(
+                            text = maxNumber.toString()
+                        ))
                     }else{
                         onValueChange(it)
                     }

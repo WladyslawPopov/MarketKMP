@@ -1,6 +1,7 @@
 package market.engine.widgets.items.offer_Items
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.repositories.OfferRepository
@@ -65,200 +67,210 @@ fun CabinetProposalItem(
         }
     }
 
-    val date1 = offer.session?.start?.convertDateWithMinutes()
-    val date2 = offer.session?.end?.convertDateWithMinutes()
-    val d3 = "$date1 – $date2"
+    if (offer.session != null) {
 
-    Card(
-        colors = colors.cardColors,
-        shape = MaterialTheme.shapes.small,
-    )
-    {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimens.smallPadding),
-            verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.Top),
-            horizontalAlignment = Alignment.Start
-        ) {
-            HeaderOfferBar(
-                offer = offer,
-                defOptions = defOptions.value,
-            )
+        val date1 = offer.session?.start?.convertDateWithMinutes()
+        val date2 = offer.session?.end?.convertDateWithMinutes()
+        val d3 = "$date1 – $date2"
 
-            Row(
-                modifier = Modifier.clickable {
-                    events.openCabinetOffer(offer)
-                }.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
-                verticalAlignment = Alignment.CenterVertically
-            )
-            {
-                val imageSize = 100.dp
+        Card(
+            colors = colors.cardColors,
+            shape = MaterialTheme.shapes.small,
+        )
+        {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimens.smallPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding, Alignment.Top),
+                horizontalAlignment = Alignment.Start
+            ) {
+                HeaderOfferBar(
+                    offer = offer,
+                    defOptions = defOptions.value,
+                )
 
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
-                ) {
-                    Box(
-                        modifier = Modifier.size(imageSize),
+                Row(
+                    modifier = Modifier.clickable {
+                        events.openCabinetOffer(offer)
+                    }.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer),
+                    verticalAlignment = Alignment.CenterVertically
+                )
+                {
+                    val imageSize = 100.dp
+
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(dimens.extraSmallPadding)
                     ) {
-                        LoadImage(
-                            offer.images.firstOrNull() ?: "empty",
-                            modifier = Modifier.size(imageSize)
-                        )
+                        Box(
+                            modifier = Modifier.size(imageSize),
+                        ) {
+                            LoadImage(
+                                offer.images.firstOrNull() ?: "empty",
+                                modifier = Modifier.size(imageSize)
+                            )
+                        }
+
+                        Column {
+                            OfferActionsBtn(
+                                onClick = {
+                                    openMenu.value = true
+                                }
+                            )
+
+                            PopUpMenu(
+                                openPopup = openMenu.value,
+                                menuList = menuList.value,
+                                onClosed = { openMenu.value = false }
+                            )
+                        }
                     }
 
-                    Column {
-                        OfferActionsBtn(
-                            onClick = {
-                                openMenu.value = true
-                            }
-                        )
-
-                        PopUpMenu(
-                            openPopup = openMenu.value,
-                            menuList = menuList.value,
-                            onClosed = { openMenu.value = false }
-                        )
-                    }
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        TitleText(offer.title, color = colors.actionTextColor)
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                     ) {
-                        Image(
-                            painter = painterResource(drawables.locationIcon),
-                            contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize)
-                        )
-                        Text(
-                            offer.location,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.black
-                        )
-                    }
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            TitleText(offer.title, color = colors.actionTextColor)
+                        }
 
-                    val deliveryMethods =
-                        offer.deliveryMethods?.joinToString { it.name ?: "" } ?: ""
-                    if (deliveryMethods.isNotEmpty()) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
-
-                            Icon(
-                                painter = painterResource(drawables.trackIcon),
+                            Image(
+                                painter = painterResource(drawables.locationIcon),
                                 contentDescription = "",
-                                tint = colors.textA0AE,
                                 modifier = Modifier.size(dimens.smallIconSize)
                             )
                             Text(
-                                deliveryMethods,
+                                offer.location,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.black
                             )
                         }
-                    }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                    ) {
-                        Image(
-                            painter = painterResource(drawables.iconClock),
-                            contentDescription = "",
-                            modifier = Modifier.size(dimens.smallIconSize)
-                        )
-                        var date = d3
-                        if (offer.session == null) {
-                            date = stringResource(strings.offerSessionCompletedLabel)
+                        val deliveryMethods =
+                            offer.deliveryMethods?.joinToString { it.name ?: "" } ?: ""
+                        if (deliveryMethods.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+
+                                Icon(
+                                    painter = painterResource(drawables.trackIcon),
+                                    contentDescription = "",
+                                    tint = colors.textA0AE,
+                                    modifier = Modifier.size(dimens.smallIconSize)
+                                )
+                                Text(
+                                    deliveryMethods,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.black
+                                )
+                            }
                         }
-                        Text(
-                            date,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.black
-                        )
-                    }
 
-                    if(offer.seller.id != UserData.login) {
-                        UserRow(
-                            offer.seller,
-                            Modifier.clip(MaterialTheme.shapes.small).clickable {
-                                events.goToUserPage(offer.seller.id)
-                            }.padding(dimens.extraSmallPadding),
-                        )
-                    }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                        ) {
+                            Image(
+                                painter = painterResource(drawables.iconClock),
+                                contentDescription = "",
+                                modifier = Modifier.size(dimens.smallIconSize)
+                            )
+                            var date = d3
+                            if (offer.session == null) {
+                                date = stringResource(strings.offerSessionCompletedLabel)
+                            }
+                            Text(
+                                date,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.black
+                            )
+                        }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End)
-                    ) {
-                        Text(
-                            "${stringResource(strings.priceParameterName)}: ",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.grayText
-                        )
+                        if (offer.note != null) {
+                            Row(
+                                modifier = Modifier.background(
+                                    colors.white,
+                                    MaterialTheme.shapes.small
+                                ).padding(dimens.smallPadding),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+                            ) {
+                                Icon(
+                                    painterResource(drawables.editNoteIcon),
+                                    contentDescription = "",
+                                    modifier = Modifier.size(dimens.smallIconSize),
+                                    tint = colors.black
+                                )
 
-                        Text(
-                            offer.price + " " + stringResource(strings.currencySign),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = colors.priceTextColor
-                        )
+                                Text(
+                                    text = offer.note ?: "",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colors.black,
+                                    modifier = Modifier.weight(1f, !isBigScreen.value)
+                                )
+                            }
+                        }
+
+                        if (offer.seller.id != UserData.login) {
+                            UserRow(
+                                offer.seller,
+                                Modifier.clip(MaterialTheme.shapes.small).clickable {
+                                    events.goToUserPage(offer.seller.id)
+                                }.padding(dimens.extraSmallPadding),
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(
+                                dimens.smallPadding,
+                                Alignment.End
+                            )
+                        ) {
+                            Text(
+                                "${stringResource(strings.priceParameterName)}: ",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.grayText
+                            )
+
+                            Text(
+                                offer.price + " " + stringResource(strings.currencySign),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = colors.priceTextColor
+                            )
+                        }
                     }
                 }
-            }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            )
-            {
-                SimpleTextButton(
-                    stringResource(strings.proposalTitle),
-                    leadIcon = {
-                        Icon(
-                            painterResource(drawables.proposalIcon),
-                            contentDescription = "",
-                            tint = colors.alwaysWhite,
-                            modifier = Modifier.size(dimens.extraSmallIconSize)
-                        )
-                    },
-                    textStyle = MaterialTheme.typography.labelSmall,
-                    backgroundColor = colors.steelBlue,
-                    textColor = colors.alwaysWhite,
-                    modifier = Modifier.weight(1f, false)
-                ) {
-                    events.goToProposalPage(
-                        offer.id, if(offer.seller.id == UserData.login)
-                         ProposalType.ACT_ON_PROPOSAL
-                        else ProposalType.MAKE_PROPOSAL
-                    )
-                }
-                if(offer.seller.id == UserData.login) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        dimens.smallPadding,
+                        Alignment.End
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                )
+                {
                     SimpleTextButton(
-                        stringResource(strings.writeSellerLabel),
+                        stringResource(strings.proposalTitle),
                         leadIcon = {
                             Icon(
-                                painterResource(drawables.mail),
+                                painterResource(drawables.proposalIcon),
                                 contentDescription = "",
                                 tint = colors.alwaysWhite,
                                 modifier = Modifier.size(dimens.extraSmallIconSize)
-
                             )
                         },
                         textStyle = MaterialTheme.typography.labelSmall,
@@ -266,7 +278,31 @@ fun CabinetProposalItem(
                         textColor = colors.alwaysWhite,
                         modifier = Modifier.weight(1f, false)
                     ) {
-                        offerRepository.openMesDialog()
+                        events.goToProposalPage(
+                            offer.id, if (offer.seller.id == UserData.login)
+                                ProposalType.ACT_ON_PROPOSAL
+                            else ProposalType.MAKE_PROPOSAL
+                        )
+                    }
+                    if (offer.seller.id == UserData.login) {
+                        SimpleTextButton(
+                            stringResource(strings.writeSellerLabel),
+                            leadIcon = {
+                                Icon(
+                                    painterResource(drawables.mail),
+                                    contentDescription = "",
+                                    tint = colors.alwaysWhite,
+                                    modifier = Modifier.size(dimens.extraSmallIconSize)
+
+                                )
+                            },
+                            textStyle = MaterialTheme.typography.labelSmall,
+                            backgroundColor = colors.steelBlue,
+                            textColor = colors.alwaysWhite,
+                            modifier = Modifier.weight(1f, false)
+                        ) {
+                            offerRepository.openMesDialog()
+                        }
                     }
                 }
             }

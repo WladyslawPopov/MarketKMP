@@ -301,17 +301,8 @@ fun MyOrderItem(
             }
 
             if (myFeedback != null || feedbackToMe != null) {
-                val myFeedbackLabel = if (typeGroup != typeDef) {
-                    stringResource(strings.myFeedbacksLabel)
-                } else {
-                    stringResource(strings.toMeFeedbacksLabel)
-                }
-
-                val toMeFeedbackLabel = if (typeGroup != typeDef) {
-                    stringResource(strings.toMeFeedbacksLabel)
-                } else {
-                    stringResource(strings.myFeedbacksLabel)
-                }
+                val myFeedbackLabel = stringResource(strings.myFeedbacksLabel)
+                val toMeFeedbackLabel = stringResource(strings.toMeFeedbacksLabel)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

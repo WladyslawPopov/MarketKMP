@@ -40,7 +40,7 @@ fun OrderOperationsDialog(
     { state ->
         when(state.typeDialog){
             "show_my_report","show_report_to_me" ->{
-                val feedback = if (state.typeDialog == "show_my_report") {
+                val feedback = if (state.typeDialog != "show_my_report") {
                     if (typeGroup == typeDef) {
                         order.feedbacks?.b2s
                     } else {

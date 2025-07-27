@@ -63,7 +63,6 @@ class OfferViewModel(
     val isSnapshot : Boolean = false
 ) : CoreViewModel()
 {
-
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
     val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
     private val _responseOurChoice = MutableStateFlow<List<OfferItem>>(emptyList())
@@ -87,7 +86,7 @@ class OfferViewModel(
     private val _showDialog = MutableStateFlow("")
     val showDialog = _showDialog.asStateFlow()
 
-    val goToBids = 6
+    val goToBids = 4
 
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
 
@@ -164,7 +163,6 @@ class OfferViewModel(
                 setLoading(true)
                 getHistory(offerId)
                 getOurChoice(offerId)
-                updateUserInfo()
                 clearTimers()
 
                 withContext(Dispatchers.IO) {
@@ -266,6 +264,8 @@ class OfferViewModel(
                                 it.name ?: ""
                             } ?: "",
                         )
+
+                        updateUserState(offer.sellerData?.id ?: 1)
                     }
                 }
             } catch (e: Exception) {
@@ -647,7 +647,6 @@ class OfferViewModel(
     fun clearScrollPosition(){
         _scrollPosition.value = 0
     }
-
 
     fun clearTimers() {
         timerJob?.cancel()

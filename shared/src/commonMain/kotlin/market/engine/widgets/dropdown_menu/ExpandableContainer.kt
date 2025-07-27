@@ -27,11 +27,12 @@ fun ExpandableContainer(
     content: @Composable () -> Unit
 ) {
     Column(
-        modifier = modifier.animateContentSize()
+        modifier = modifier
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .animateContentSize()
                 .clipToBounds()
                 .then(
                     if (isOverflowing && !isExpanded) {

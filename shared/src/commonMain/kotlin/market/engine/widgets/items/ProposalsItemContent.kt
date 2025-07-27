@@ -80,8 +80,8 @@ fun ProposalsItemContent(
     val minutesLabel = stringResource(strings.minutesLabel)
 
     val selectedChoice = remember(initFields) {
-        initFields.find { it.key == "radio_group" }?.data?.jsonPrimitive?.intOrNull
-            ?: if(proposals.proposals?.isEmpty() == true) 2 else 0
+        initFields.find { it.key == "type" }?.data?.jsonPrimitive?.intOrNull
+            ?: if(proposals.proposals == null || proposals.proposals.isEmpty()) 2 else 0
     }
 
     Card(
@@ -618,164 +618,166 @@ fun GetBody(
     onValueChange : (Fields) -> Unit,
     confirmProposal : (List<Fields>) -> Unit,
 ) {
-    val fields by remember(initialFields) { mutableStateOf(initialFields) }
+    val fields by remember(initialFields.isNotEmpty(), selectedChoice) { mutableStateOf(initialFields) }
 
-    if(fields.isNotEmpty()) {
-        val quantityTextState = remember(initialFields) {
-            mutableStateOf(
-                TextFieldValue(
-                    text = (fields.find { it.key == "quantity" }?.data?.jsonPrimitive?.intOrNull
-                        ?: 1).toString()
-                )
+    val currency = stringResource(strings.currencyCode)
+    val forLabel = stringResource(strings.forLabel)
+    val counterLabel = stringResource(strings.countsSign)
+
+    val countPriceState = remember { mutableStateOf<String?>(null) }
+
+    val focusManager = LocalFocusManager.current
+
+    val quantityTextState = remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = (fields.find { it.key == "quantity" }?.data?.jsonPrimitive?.intOrNull
+                    ?: 1).toString()
             )
-        }
-        val priceTextState = remember(initialFields) {
-            mutableStateOf(
-                TextFieldValue(
-                    text = fields.find { it.key == "price" }?.data?.jsonPrimitive?.content ?: ""
-                )
-            )
-        }
-        val commentTextState = remember(initialFields) {
-            mutableStateOf(
-                TextFieldValue(
-                    text = fields.find { it.key == "comment" }?.data?.jsonPrimitive?.content ?: ""
-                )
-            )
-        }
-
-        val currency = stringResource(strings.currencyCode)
-        val forLabel = stringResource(strings.forLabel)
-        val counterLabel = stringResource(strings.countsSign)
-
-        val countPriceState = remember { mutableStateOf<String?>(null) }
-
-        val focusManager = LocalFocusManager.current
-
-        Column(
-            modifier = Modifier.pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         )
-        {
+    }
+    val priceTextState = remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = fields.find { it.key == "price" }?.data?.jsonPrimitive?.content ?: ""
+            )
+        )
+    }
+    val commentTextState = remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = fields.find { it.key == "comment" }?.data?.jsonPrimitive?.content ?: ""
+            )
+        )
+    }
 
-            fields.forEach { field ->
-                when (field.key) {
-                    "type" -> {
-                        if (buyerId != 0L) {
-                            DynamicRadioButtons(field) {
-                                onValueChange(field)
-                            }
+    Column(
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                focusManager.clearFocus()
+            })
+        },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
+    )
+    {
+
+        fields.forEach { field ->
+            when (field.key) {
+                "type" -> {
+                    if (buyerId != 0L) {
+                        DynamicRadioButtons(field) {
+                            onValueChange(it)
                         }
                     }
+                }
 
-                    "comment" -> {
-                        AnimatedVisibility(selectedChoice == 2) {
-                            val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
+                "comment" -> {
+                    AnimatedVisibility(selectedChoice == 2) {
+                        val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
 
-                            val labelString = buildString {
-                                when {
-                                    field.shortDescription != null -> append(field.shortDescription)
-                                    field.longDescription != null -> append(field.longDescription)
-                                }
+                        val labelString = buildString {
+                            when {
+                                field.shortDescription != null -> append(field.shortDescription)
+                                field.longDescription != null -> append(field.longDescription)
                             }
-
-                            OutlinedTextInputField(
-                                value = commentTextState.value,
-                                onValueChange = {
-                                    field.data = JsonPrimitive(it.text)
-                                    commentTextState.value = it
-                                },
-                                singleLine = false,
-                                maxSymbols = maxSymbols,
-                                label = labelString,
-                                keyboardType = KeyboardType.Text,
-                            )
                         }
+
+                        OutlinedTextInputField(
+                            value = commentTextState.value,
+                            onValueChange = {
+                                commentTextState.value = it
+                                onValueChange(field.copy(
+                                    data = JsonPrimitive(it.text)
+                                ))
+                            },
+                            singleLine = false,
+                            maxSymbols = maxSymbols,
+                            label = labelString,
+                            keyboardType = KeyboardType.Text,
+                        )
                     }
+                }
 
-                    "price", "quantity" -> {
-                        AnimatedVisibility(selectedChoice == 2) {
-                            val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
-                            val maxNumber =
-                                field.validators?.find { it.type == "between" }?.parameters?.max
+                "price", "quantity" -> {
+                    AnimatedVisibility(selectedChoice == 2) {
+                        val maxSymbols = field.validators?.firstOrNull()?.parameters?.max
+                        val maxNumber =
+                            field.validators?.find { it.type == "between" }?.parameters?.max
 
-                            val labelString = buildString {
-                                when {
-                                    field.shortDescription != null -> append(field.shortDescription)
-                                    field.longDescription != null -> append(field.longDescription)
-                                }
-                                if (maxNumber != null) {
-                                    append("( ${stringResource(strings.totalLabel)}")
-                                    append(" $maxNumber )")
-                                }
+                        val labelString = buildString {
+                            when {
+                                field.shortDescription != null -> append(field.shortDescription)
+                                field.longDescription != null -> append(field.longDescription)
                             }
-
-                            OutlinedTextInputField(
-                                value = if (field.key == "price") priceTextState.value else quantityTextState.value,
-                                onValueChange = {
-                                    if (field.key == "price") {
-                                        priceTextState.value = it
-                                    } else {
-                                        quantityTextState.value = it
-                                    }
-
-                                    field.data = checkValidation(field, it.text)
-
-                                    val price = priceTextState.value.text.toDoubleOrNull() ?: 1.0
-                                    val count = quantityTextState.value.text.toIntOrNull() ?: 1
-
-                                    countPriceState.value = buildString {
-                                        append((price / count).roundToLong())
-                                        append(" ")
-                                        append(currency)
-                                        append(" ")
-                                        append(forLabel)
-                                        append(" ")
-                                        append(1)
-                                        append(" ")
-                                        append(counterLabel)
-                                    }
-                                },
-                                maxSymbols = maxSymbols,
-                                maxNumber = maxNumber,
-                                isMandatory = true,
-                                label = labelString,
-                                suffix = stringResource(if (field.key == "price") strings.currencyCode else strings.countsSign),
-                                keyboardType = KeyboardType.Number,
-                                error = if (field.key == "price") countPriceState.value else null
-                            )
+                            if (maxNumber != null) {
+                                append("( ${stringResource(strings.totalLabel)}")
+                                append(" $maxNumber )")
+                            }
                         }
+
+                        OutlinedTextInputField(
+                            value = if (field.key == "price") priceTextState.value else quantityTextState.value,
+                            onValueChange = {
+                                if (field.key == "price") {
+                                    priceTextState.value = it
+                                } else {
+                                    quantityTextState.value = it
+                                }
+
+                                onValueChange(field.copy(
+                                    data = checkValidation(field, it.text)
+                                ))
+
+                                val price = priceTextState.value.text.toDoubleOrNull() ?: 1.0
+                                val count = quantityTextState.value.text.toIntOrNull() ?: 1
+
+                                countPriceState.value = buildString {
+                                    append((price / count).roundToLong())
+                                    append(" ")
+                                    append(currency)
+                                    append(" ")
+                                    append(forLabel)
+                                    append(" ")
+                                    append(1)
+                                    append(" ")
+                                    append(counterLabel)
+                                }
+                            },
+                            maxSymbols = maxSymbols,
+                            maxNumber = maxNumber,
+                            isMandatory = true,
+                            label = labelString,
+                            suffix = stringResource(if (field.key == "price") strings.currencyCode else strings.countsSign),
+                            keyboardType = KeyboardType.Number,
+                            error = if (field.key == "price") countPriceState.value else null
+                        )
                     }
                 }
             }
+        }
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
-                horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.smallPadding),
+            horizontalArrangement = Arrangement.spacedBy(dimens.smallSpacer, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SimpleTextButton(
+                stringResource(strings.actionConfirm),
+                backgroundColor = colors.inactiveBottomNavIconColor,
+                textColor = colors.alwaysWhite,
+                enabled = !isLoading && (selectedChoice != 2 || priceTextState.value.text.isNotBlank())
             ) {
-                SimpleTextButton(
-                    stringResource(strings.actionConfirm),
-                    backgroundColor = colors.inactiveBottomNavIconColor,
-                    textColor = colors.alwaysWhite,
-                    enabled = !isLoading && (selectedChoice != 2 || priceTextState.value.text.isNotBlank())
-                ) {
-                    if (fields.find { it.key == "type" }?.data == null) {
-                        fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice)
-                    }
-                    if (buyerId != 1L) {
-                        fields.find { it.key == "buyer_id" }?.data = JsonPrimitive(buyerId)
-                    }
-
-                    confirmProposal(
-                        fields
-                    )
+                if (fields.find { it.key == "type" }?.data == null) {
+                    fields.find { it.key == "type" }?.data = JsonPrimitive(selectedChoice)
                 }
+                if (buyerId != 1L) {
+                    fields.find { it.key == "buyer_id" }?.data = JsonPrimitive(buyerId)
+                }
+
+                confirmProposal(
+                    fields
+                )
             }
         }
     }
