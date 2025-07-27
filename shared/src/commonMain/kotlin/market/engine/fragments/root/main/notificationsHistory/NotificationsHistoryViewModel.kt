@@ -58,4 +58,10 @@ class NotificationsHistoryViewModel : CoreViewModel() {
             }
         }
     }
+
+    fun deleteNotification(id: String) {
+        viewModelScope.launch {
+            db.notificationsHistoryQueries.deleteNotificationById(id)
+        }
+    }
 }

@@ -1,12 +1,10 @@
 package market.engine.fragments.root.main.home
 
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.getPermissionHandler
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.utils.deleteReadNotifications
 
@@ -44,10 +42,6 @@ class DefaultHomeComponent(
 
     private val homeViewModel: HomeViewModel = HomeViewModel(this)
 
-    private val analyticsHelper = homeViewModel.analyticsHelper
-
-    private val userRepository = homeViewModel.userRepository
-
     private val _model = MutableValue(
         HomeComponent.Model(
             homeViewModel,
@@ -58,17 +52,13 @@ class DefaultHomeComponent(
     override val model: Value<HomeComponent.Model> = _model
 
     init {
-        getPermissionHandler().askPermissionNotification()
-        userRepository.updateToken()
-        homeViewModel.updateModel()
-        analyticsHelper.reportEvent("view_main_page", mapOf())
-
         lifecycle.doOnResume {
             if (homeViewModel.uiState.value.promoOffers1.isEmpty()){
                 homeViewModel.updateModel()
             }
 
             deleteReadNotifications()
+            homeViewModel.updatePage()
         }
     }
 

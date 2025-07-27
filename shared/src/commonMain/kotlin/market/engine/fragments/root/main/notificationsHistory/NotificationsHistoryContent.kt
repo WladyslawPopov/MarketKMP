@@ -114,6 +114,9 @@ fun NotificationsHistoryContent(
                         val link = item.getDeepLinkByType()
                         if (link != null) {
                             component.goToDeepLink(link)
+                        }else{
+                            viewModel.deleteNotification(item.id)
+                            component.onBackClicked()
                         }
                     }
                 }

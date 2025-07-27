@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.common.Platform
+import market.engine.common.getPermissionHandler
 import market.engine.common.openUrl
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
@@ -45,10 +46,11 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
     private val ld = ListingData()
 
     val uiState: StateFlow<HomeUiState> = combine(
+        updatePage,
         _responseCategory,
         _responseOffersPromotedOnMainPage1,
         _responseOffersPromotedOnMainPage2,
-    ) { categories, promoOffers1, promoOffers2 ->
+    ) { up, categories, promoOffers1, promoOffers2 ->
         val userInfo = UserData.userInfo
 
         val proposalString = getString(strings.proposalTitle)
@@ -209,6 +211,13 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
         started = SharingStarted.Eagerly,
         initialValue = HomeUiState()
     )
+
+    init {
+        getPermissionHandler().askPermissionNotification()
+        userRepository.updateToken()
+        updateModel()
+        analyticsHelper.reportEvent("view_main_page", mapOf())
+    }
 
     fun updateModel() {
         refresh()
