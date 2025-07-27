@@ -694,7 +694,7 @@ data class DialogItemEventsImpl(
             }
 
             is DeepLink.GoToListing -> {
-                component.goToNewSearch(deepLink.ownerId)
+                component.goToNewSearch(deepLink.ownerId ?: 1)
             }
 
             is DeepLink.GoToUser -> {

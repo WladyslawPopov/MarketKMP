@@ -15,12 +15,10 @@ fun parseDeepLink(fullPath: String): DeepLink? {
             }
             "listing" -> {
                 uri.getQueryParam("flt_prp_owner")?.let {
-                    if(it.toLongOrNull() != null){
-                        DeepLink.GoToListing(it.toLong())
-                    }else{
-                        null
-                    }
+                    DeepLink.GoToListing(it.toLongOrNull() )
                 }
+                val (catId, catName) = uri.pathCategoryLongId()
+                DeepLink.GoToListing(categoryId = catId, categoryName = catName)
             }
             "offer" -> {
                 uri.pathLongId()?.let { DeepLink.GoToOffer(it) }
@@ -75,7 +73,19 @@ private fun Uri.parseQueryParameters(): Map<String, String> {
 
 private fun Uri.pathLongId(): Long? {
     val regex = "-i(\\d+)".toRegex()
-    return regex.find(toString())?.groups?.get(1)?.value?.toLongOrNull()
+    val string = this.toString()
+    val id = regex.find(string)?.groups?.get(1)?.value?.toLongOrNull()
+    return id
+}
+
+private fun Uri.pathCategoryLongId(): Pair<Long?, String?> {
+    val regex = "-(\\d+)".toRegex()
+    val string = this.toString()
+    val name = pathSegments.getOrNull(
+        2
+    )
+    val id = regex.find(string)?.groups?.get(1)?.value?.toLongOrNull()
+    return id to name
 }
 
 fun Uri.getQueryParam(param: String): String? {

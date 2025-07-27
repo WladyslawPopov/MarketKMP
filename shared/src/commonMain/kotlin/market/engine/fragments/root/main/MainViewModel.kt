@@ -318,8 +318,19 @@ class MainViewModel(val component: MainComponent) : CoreViewModel() {
                         is DeepLink.GoToListing -> {
                             val categoryData = ListingData()
                             categoryData.searchData.userSearch = true
-                            categoryData.searchData.userID = deepLink.ownerId
-                            categoryData.searchData.userLogin = ""
+                            when{
+                                deepLink.ownerId != null -> {
+                                    categoryData.searchData.userID = deepLink.ownerId
+                                    categoryData.searchData.userLogin = ""
+                                }
+                                deepLink.categoryId != null -> {
+                                    categoryData.searchData.searchCategoryID = deepLink.categoryId
+                                    categoryData.searchData.searchCategoryName = deepLink.categoryName ?: ""
+                                }
+                                else -> {
+
+                                }
+                            }
 
                             component.modelNavigation.value.homeNavigation.pushNew(
                                 HomeConfig.ListingScreen(

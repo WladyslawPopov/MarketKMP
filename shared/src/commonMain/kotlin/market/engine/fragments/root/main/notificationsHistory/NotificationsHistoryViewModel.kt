@@ -9,6 +9,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NotificationItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deleteReadNotifications
+import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 
 class NotificationsHistoryViewModel : CoreViewModel() {
@@ -28,6 +29,9 @@ class NotificationsHistoryViewModel : CoreViewModel() {
                     addAll(buf.groupBy { it.body to it.data_ }
                         .map { (_, group) ->
                             val latestNotification = group.maxByOrNull { it.timestemp }!!
+
+                            printLogD("NotificationsHistoryViewModel", "getPage: $latestNotification")
+
                             NotificationItem(
                                 id = latestNotification.id,
                                 type = latestNotification.type,

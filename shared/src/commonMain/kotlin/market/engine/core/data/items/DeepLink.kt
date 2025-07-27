@@ -7,7 +7,7 @@ sealed class DeepLink {
     @Serializable
     class GoToUser(val userId: Long) : DeepLink()
     @Serializable
-    class GoToListing(val ownerId: Long) : DeepLink()
+    class GoToListing(val ownerId: Long? = null, val categoryId: Long? = null, val categoryName: String? = null) : DeepLink()
     @Serializable
     class GoToOffer(val offerId: Long) : DeepLink()
     @Serializable
