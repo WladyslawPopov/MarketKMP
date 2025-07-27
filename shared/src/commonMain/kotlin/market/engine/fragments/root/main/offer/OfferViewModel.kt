@@ -86,7 +86,7 @@ class OfferViewModel(
     private val _showDialog = MutableStateFlow("")
     val showDialog = _showDialog.asStateFlow()
 
-    val goToBids = 4
+    val goToBids = 5
 
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
 

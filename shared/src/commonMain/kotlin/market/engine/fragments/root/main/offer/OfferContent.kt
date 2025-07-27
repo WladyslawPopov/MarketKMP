@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -166,6 +167,7 @@ fun OfferContent(
     LaunchedEffect(scrollPos) {
         if (scrollPos > 1) {
             scrollState.scrollState.animateScrollToItem(scrollPos)
+            delay(300)
             viewModel.clearScrollPosition()
         }
     }
@@ -302,6 +304,7 @@ fun OfferContent(
             }
         },
         isLoading = isLoading || offer.id == 1L,
+        showContentWhenLoading = offer.id != 1L,
         error = error,
         noFound = null,
         toastItem = toastItem,
@@ -862,7 +865,21 @@ fun OfferContent(
                                     }
                                 }
                             }
-
+                        }
+                    )
+                }
+                item {
+                    LazyVerticalStaggeredGrid(
+                        columns = columns,
+                        modifier = Modifier
+                            .heightIn(0.dp, 5_000.dp),
+                        userScrollEnabled = false,
+                        verticalItemSpacing = dimens.smallPadding,
+                        horizontalArrangement = Arrangement.spacedBy(
+                            dimens.smallPadding,
+                            Alignment.CenterHorizontally
+                        ),
+                        content = {
                             //bids list
                             item {
                                 if (offerState == OfferStates.ACTIVE) {
