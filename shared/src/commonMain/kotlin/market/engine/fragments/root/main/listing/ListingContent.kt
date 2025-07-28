@@ -34,8 +34,8 @@ import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.SubCategoryBar
 import market.engine.widgets.bars.appBars.SimpleAppBar
-import market.engine.widgets.filterContents.FilterListingContent
-import market.engine.widgets.filterContents.SortingOffersContent
+import market.engine.widgets.filterContents.filters.FilterListingContent
+import market.engine.widgets.filterContents.sorts.SortingOffersContent
 import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.items.offer_Items.PublicOfferItemGrid

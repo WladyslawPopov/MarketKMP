@@ -45,21 +45,24 @@ fun DynamicCheckboxGroup(
 
     val error = remember(field) { processInput(field.errors) }
 
-    val onClickListener : (Long) -> Unit = { choiceCode ->
-        val currentSet = initialSelected.toMutableList()
-        if (currentSet.contains(choiceCode)) {
-            currentSet.remove(choiceCode)
-        } else {
-            currentSet.add(choiceCode)
-        }
-
-        onValueChange(field.copy(
-            data = buildJsonArray {
-                currentSet.forEach {
-                    add(JsonPrimitive(it))
-                }
+    val onClickListener : (Long?) -> Unit = remember(initialSelected) {
+        { choiceCode ->
+            val currentSet = initialSelected.toMutableList()
+            if (currentSet.contains(choiceCode)) {
+                currentSet.remove(choiceCode)
+            } else {
+                currentSet.add(choiceCode ?: 0)
             }
-        ))
+
+            onValueChange(
+                field.copy(
+                data = buildJsonArray {
+                    currentSet.forEach {
+                        add(JsonPrimitive(it))
+                    }
+                }
+            ))
+        }
     }
 
     Column(modifier = modifier) {
@@ -78,7 +81,9 @@ fun DynamicCheckboxGroup(
                     isSelected = initialSelected.contains(choice.code?.longOrNull),
                     choice = choice,
                     showRating = showRating,
-                    onClickListener = onClickListener
+                    onValueChange = { choiceCode ->
+                        onClickListener(choiceCode?.longOrNull)
+                    }
                 )
 
                 choice.extendedFields?.let { extendedField ->

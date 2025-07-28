@@ -25,7 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -33,12 +32,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -130,8 +127,6 @@ fun CreateOfferContent(
 
     val goToUp = remember { mutableStateOf(false) }
 
-    val richTextState = rememberRichTextState()
-
    val columnState = rememberLazyScrollState(viewModel)
 
     BackHandler(model.value.backHandler){
@@ -157,14 +152,6 @@ fun CreateOfferContent(
             }
         } else {
             null
-        }
-    }
-
-    LaunchedEffect(richTextState){
-        snapshotFlow{
-            richTextState.annotatedString
-        }.collectLatest { _ ->
-            viewModel.setDescription(richTextState.toHtml())
         }
     }
 
@@ -630,7 +617,9 @@ fun CreateOfferContent(
                                                 stringResource(strings.description)
                                             )
 
-                                            DescriptionTextField(field, richTextState)
+                                            DescriptionTextField(field) { description ->
+                                                viewModel.setDescription(description)
+                                            }
                                         }
                                     }
                                 }

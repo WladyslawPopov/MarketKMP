@@ -26,7 +26,7 @@ fun OfferActionsBtn(
                 BtnTypeSize.MEDIUM -> MaterialTheme.typography.labelMedium
                 BtnTypeSize.SMALL -> MaterialTheme.typography.labelSmall
             },
-        textColor = colors.white,
+        textColor = colors.alwaysWhite,
         backgroundColor = colors.steelBlue,
         leadIcon = {
             Icon(
@@ -39,7 +39,7 @@ fun OfferActionsBtn(
                         BtnTypeSize.SMALL -> dimens.smallIconSize
                     }
                 ),
-                tint = colors.white
+                tint = colors.alwaysWhite
             )
         },
         onClick = onClick

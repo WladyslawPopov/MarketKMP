@@ -67,7 +67,7 @@ fun PromoRow(
                         "featured_in_listing" -> {
                             Text(
                                 text = "TOP",
-                                color = colors.white,
+                                color = colors.alwaysWhite,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -80,7 +80,7 @@ fun PromoRow(
                                 painterResource(drawables.homeIcon),
                                 contentDescription = "",
                                 modifier = Modifier.size(dimens.mediumIconSize),
-                                tint = colors.white
+                                tint = colors.alwaysWhite
                             )
                         }
 
@@ -89,7 +89,7 @@ fun PromoRow(
                                 painter = painterResource(drawables.megaphoneIcon),
                                 contentDescription = "",
                                 modifier = Modifier.size(dimens.mediumIconSize),
-                                tint = colors.white
+                                tint = colors.alwaysWhite
                             )
                         }
 
@@ -98,7 +98,7 @@ fun PromoRow(
                                 painter = painterResource(drawables.promoHighlightIcon),
                                 contentDescription = "",
                                 modifier = Modifier.size(dimens.mediumIconSize),
-                                tint = colors.white
+                                tint = colors.alwaysWhite
                             )
                         }
 
@@ -107,7 +107,7 @@ fun PromoRow(
                                 painter = painterResource(drawables.adIcon),
                                 contentDescription = "",
                                 modifier = Modifier.size(dimens.mediumIconSize),
-                                tint = colors.white
+                                tint = colors.alwaysWhite
                             )
                         }
                     }

@@ -45,7 +45,7 @@ fun DynamicInputField(
     var passwordVisible by remember { mutableStateOf(false) }
     val isPassword = remember(field) { field.widgetType == "password" }
 
-    val textState = remember(field) {
+    val textState = remember(field.data) {
         mutableStateOf(field.data?.jsonPrimitive?.content ?: "")
     }
 
@@ -55,7 +55,7 @@ fun DynamicInputField(
 
     val maxNumber = remember(field.validators) { field.validators?.find { it.type == "between" }?.parameters?.max }
 
-    val counter = remember { mutableStateOf(maxSymbols) }
+    val counter = remember(maxSymbols) { mutableStateOf(maxSymbols) }
 
     val isMandatory = remember(field.validators, mandatory) {
         mandatory ?: (field.validators?.find { it.type == "mandatory" } != null)

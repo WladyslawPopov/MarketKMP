@@ -18,14 +18,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import com.mohamedrejeb.richeditor.model.RichTextState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
@@ -41,8 +43,18 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DescriptionTextField(
     field: Fields,
-    richTextState: RichTextState
+    setDescription: (String) -> Unit
 ) {
+    val richTextState = rememberRichTextState()
+
+    LaunchedEffect(richTextState){
+        snapshotFlow{
+            richTextState.annotatedString
+        }.collectLatest { _ ->
+            setDescription(richTextState.toHtml())
+        }
+    }
+
     LaunchedEffect(Unit) {
         richTextState.setHtml(field.data?.jsonPrimitive?.content ?: "")
     }

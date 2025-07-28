@@ -26,7 +26,7 @@ fun PromoBuyBtn(
                 BtnTypeSize.MEDIUM -> MaterialTheme.typography.labelMedium
                 BtnTypeSize.SMALL -> MaterialTheme.typography.labelSmall
             },
-        textColor = colors.promoHighlight,
+        textColor = colors.alwaysWhite,
         backgroundColor = colors.brightPurple,
         leadIcon = {
             Icon(
@@ -39,7 +39,7 @@ fun PromoBuyBtn(
                         BtnTypeSize.SMALL -> dimens.smallIconSize
                     }
                 ),
-                tint = colors.promoHighlight
+                tint = colors.alwaysWhite
             )
         },
         onClick = onClick

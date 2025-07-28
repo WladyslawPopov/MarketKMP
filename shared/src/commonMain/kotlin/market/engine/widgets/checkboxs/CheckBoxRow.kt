@@ -5,10 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Choices
 import market.engine.widgets.texts.DynamicLabel
@@ -19,23 +18,22 @@ fun CheckBoxRow(
     choice : Choices,
     showRating : Boolean = false,
     isMandatory : Boolean = false,
-    onClickListener: (Long) -> Unit,
+    onValueChange: (JsonPrimitive?) -> Unit,
 ) {
-    val choiceCode = remember(choice) { choice.code?.longOrNull ?: 0 }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding),
         modifier = Modifier
             .clickable {
-                onClickListener(choiceCode)
+                onValueChange(choice.code)
             }
             .fillMaxWidth()
     ) {
         ThemeCheckBox(
             isSelected = isSelected,
             onSelectionChange = {
-                onClickListener(choiceCode)
+                onValueChange(choice.code)
             },
             modifier = Modifier
         )

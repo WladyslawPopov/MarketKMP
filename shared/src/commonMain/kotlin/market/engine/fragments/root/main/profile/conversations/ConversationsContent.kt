@@ -38,8 +38,8 @@ import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.filterContents.CustomModalDrawer
-import market.engine.widgets.filterContents.DialogsFilterContent
-import market.engine.widgets.filterContents.SortingOrdersContent
+import market.engine.widgets.filterContents.filters.DialogsFilterContent
+import market.engine.widgets.filterContents.sorts.SortingOrdersContent
 import market.engine.widgets.items.ConversationItem
 import market.engine.widgets.texts.TextAppBar
 import org.jetbrains.compose.resources.stringResource

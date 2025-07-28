@@ -1,4 +1,4 @@
-package market.engine.widgets.filterContents
+package market.engine.widgets.filterContents.filters
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -42,6 +42,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.filterContents.PriceFilter
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 

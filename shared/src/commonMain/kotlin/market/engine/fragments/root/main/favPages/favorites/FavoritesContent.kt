@@ -25,8 +25,8 @@ import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.DeletePanel
 import market.engine.widgets.bars.FiltersBar
-import market.engine.widgets.filterContents.OfferFilterContent
-import market.engine.widgets.filterContents.SortingOffersContent
+import market.engine.widgets.filterContents.filters.OfferFilterContent
+import market.engine.widgets.filterContents.sorts.SortingOffersContent
 import market.engine.widgets.items.offer_Items.CabinetOfferItem
 import org.jetbrains.compose.resources.stringResource
 import kotlin.collections.plus

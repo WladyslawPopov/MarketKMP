@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -20,8 +18,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -77,23 +73,6 @@ fun DynamicSettingsContent(
         }
     }
 
-    val richTextState = rememberRichTextState()
-
-    LaunchedEffect(richTextState){
-        snapshotFlow{
-            richTextState.annotatedString
-        }.collectLatest { _ ->
-            viewModel.setDescription(richTextState.toHtml())
-        }
-    }
-
-    LaunchedEffect(pageState){
-        richTextState.setHtml(
-            pageState.fields.find { it.widgetType == "text_area" }?.
-            data?.jsonPrimitive?.content ?: ""
-        )
-    }
-
     BackHandler(model.backHandler){
         component.onBack()
     }
@@ -139,7 +118,9 @@ fun DynamicSettingsContent(
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
                             pageState.fields.find { it.widgetType == "text_area" }?.let {
-                                DescriptionTextField(it, richTextState)
+                                DescriptionTextField(it){ description ->
+                                    viewModel.setDescription(description)
+                                }
                             }
 
                             AcceptedPageButton(
@@ -314,6 +295,8 @@ fun DynamicSettingsContent(
                                     )
                                 }
                             } else {
+                                val richTextState = rememberRichTextState()
+
                                 HeaderAlertText(
                                     richTextState.setHtml(pageState.titleText).annotatedString
                                 )

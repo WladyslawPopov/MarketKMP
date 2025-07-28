@@ -188,7 +188,7 @@ class ListingBaseViewModel(
                 if (ld.sort != null && ld.sort?.interpretation?.isNotBlank() == true){
                     add(
                         FilterListingBtnItem(
-                            text = sortString,
+                            text = ld.sort?.interpretation ?: sortString,
                             itemClick = {
                                 setActiveWindowType(ActiveWindowListingType.SORTING)
                             },

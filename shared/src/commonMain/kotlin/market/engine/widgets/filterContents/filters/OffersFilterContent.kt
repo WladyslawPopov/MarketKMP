@@ -1,4 +1,4 @@
-package market.engine.widgets.filterContents
+package market.engine.widgets.filterContents.filters
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -40,6 +40,7 @@ import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.ExpandableSection
 import market.engine.widgets.dropdown_menu.getDropdownMenu
 import market.engine.widgets.bars.FilterContentHeaderBar
+import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.filterContents.categories.CategoryContent
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.textFields.TextFieldWithState
@@ -183,13 +184,13 @@ fun OfferFilterContent(
                             val sd = viewModel.searchData.value
                             if (sd.searchCategoryID != 1L) {
                                 listingData = listingData.map {
-                                    if(it.key == "category"){
+                                    if (it.key == "category") {
                                         it.copy(
                                             value = sd.searchCategoryID.toString(),
                                             interpretation = sd.searchCategoryName,
-                                            operation =  sd.searchIsLeaf.toString()
+                                            operation = sd.searchIsLeaf.toString()
                                         )
-                                    }else{
+                                    } else {
                                         it.copy()
                                     }
                                 }
@@ -198,7 +199,7 @@ fun OfferFilterContent(
                         }
                     )
                 }
-            ){
+            ) {
                 Box(
                     Modifier.padding(padding),
                 )
@@ -226,7 +227,7 @@ fun OfferFilterContent(
                                                         listingData.find { it.key == "state" }?.value
                                                     ) { _, choice ->
                                                         listingData = listingData.map {
-                                                            if(it.key == "state") it.copy(value = choice) else it.copy()
+                                                            if (it.key == "state") it.copy(value = choice) else it.copy()
                                                         }
                                                         isShowClear.value = checkSize()
                                                     }
@@ -287,10 +288,14 @@ fun OfferFilterContent(
                                 )
                                 {
                                     val idTextState = remember(listingData) {
-                                        mutableStateOf(listingData.find { it.key == "id"}?.value ?: "")
+                                        mutableStateOf(
+                                            listingData.find { it.key == "id" }?.value ?: ""
+                                        )
                                     }
                                     val nameTextState = remember(listingData) {
-                                        mutableStateOf(listingData.find { it.key == "search"}?.value ?: "")
+                                        mutableStateOf(
+                                            listingData.find { it.key == "search" }?.value ?: ""
+                                        )
                                     }
                                     val offerId = stringResource(strings.offerIdParameterName)
                                     val offerName = stringResource(strings.offerNameParameterName)
@@ -301,14 +306,14 @@ fun OfferFilterContent(
                                         onTextChange = { text ->
                                             listingData = if (idTextState.value.isNotBlank()) {
                                                 listingData.map {
-                                                    if(it.key == "id") it.copy(
+                                                    if (it.key == "id") it.copy(
                                                         value = text,
                                                         interpretation = "$offerId: $text"
                                                     ) else it.copy()
                                                 }
-                                            }else{
+                                            } else {
                                                 listingData.map {
-                                                    if(it.key == "id") it.copy(
+                                                    if (it.key == "id") it.copy(
                                                         value = "",
                                                         interpretation = null
                                                     ) else it.copy()
@@ -326,14 +331,14 @@ fun OfferFilterContent(
                                         onTextChange = { text ->
                                             listingData = if (nameTextState.value.isNotBlank()) {
                                                 listingData.map {
-                                                    if(it.key == "search") it.copy(
+                                                    if (it.key == "search") it.copy(
                                                         value = text,
                                                         interpretation = "$offerName: $text"
                                                     ) else it.copy()
                                                 }
-                                            }else{
+                                            } else {
                                                 listingData.map {
-                                                    if(it.key == "search") it.copy(
+                                                    if (it.key == "search") it.copy(
                                                         value = "",
                                                         interpretation = null
                                                     ) else it.copy()
@@ -358,30 +363,35 @@ fun OfferFilterContent(
                                     )
                                     {
                                         val sellerLoginTextState = remember(listingData) {
-                                            mutableStateOf(listingData.find { it.key == "seller_login" }?.value ?: "")
+                                            mutableStateOf(
+                                                listingData.find { it.key == "seller_login" }?.value
+                                                    ?: ""
+                                            )
                                         }
-                                        val sellerLogin = stringResource(strings.sellerLoginParameterName)
+                                        val sellerLogin =
+                                            stringResource(strings.sellerLoginParameterName)
 
                                         if (listingData.find { it.key == "seller_login" }?.value != null) {
                                             TextFieldWithState(
                                                 label = sellerLogin,
                                                 textState = sellerLoginTextState,
                                                 onTextChange = { text ->
-                                                    listingData = if (sellerLoginTextState.value.isNotBlank()) {
-                                                        listingData.map {
-                                                            if(it.key == "seller_login") it.copy(
-                                                                value = text,
-                                                                interpretation = "$sellerLogin: $text"
-                                                            ) else it.copy()
+                                                    listingData =
+                                                        if (sellerLoginTextState.value.isNotBlank()) {
+                                                            listingData.map {
+                                                                if (it.key == "seller_login") it.copy(
+                                                                    value = text,
+                                                                    interpretation = "$sellerLogin: $text"
+                                                                ) else it.copy()
+                                                            }
+                                                        } else {
+                                                            listingData.map {
+                                                                if (it.key == "seller_login") it.copy(
+                                                                    value = "",
+                                                                    interpretation = null
+                                                                ) else it.copy()
+                                                            }
                                                         }
-                                                    }else{
-                                                        listingData.map {
-                                                            if(it.key == "seller_login") it.copy(
-                                                                value = "",
-                                                                interpretation = null
-                                                            ) else it.copy()
-                                                        }
-                                                    }
                                                     isShowClear.value = checkSize()
                                                 },
                                                 modifier = Modifier
@@ -396,10 +406,12 @@ fun OfferFilterContent(
                                     )
                                     {
                                         val selectedCategoryID = remember(listingData) {
-                                            listingData.find { it.key == "category" }?.value?.toLongOrNull() ?: 1L
+                                            listingData.find { it.key == "category" }?.value?.toLongOrNull()
+                                                ?: 1L
                                         }
                                         val selectedCategoryName = remember(listingData) {
-                                            listingData.find { it.key == "category" }?.interpretation ?: defCat
+                                            listingData.find { it.key == "category" }?.interpretation
+                                                ?: defCat
                                         }
 
                                         FilterButton(
@@ -409,7 +421,7 @@ fun OfferFilterContent(
                                             onClick = {
                                                 openCategory.value = true
                                             },
-                                            onCancelClick = if(selectedCategoryID != 1L){
+                                            onCancelClick = if (selectedCategoryID != 1L) {
                                                 {
                                                     listingData = listingData.map {
                                                         if (it.key == "category") {
@@ -424,7 +436,7 @@ fun OfferFilterContent(
                                                     }
                                                     filtersCategoryState.categoryViewModel.resetToRoot()
                                                 }
-                                            }else{
+                                            } else {
                                                 null
                                             }
                                         )
@@ -459,23 +471,23 @@ fun OfferFilterContent(
                                     onItemClick = { type ->
                                         offersType.find { it.second == type }?.let { pair ->
                                             listingData = listingData.map {
-                                                if(it.key == "sale_type") it.copy(
+                                                if (it.key == "sale_type") it.copy(
                                                     value = pair.first,
                                                     interpretation = pair.second
                                                 ) else it.copy()
                                             }
                                         }
-                                        
+
                                         isShowClear.value = checkSize()
                                     },
                                     onClearItem = {
                                         listingData = listingData.map {
-                                            if(it.key == "sale_type") it.copy(
+                                            if (it.key == "sale_type") it.copy(
                                                 value = "",
                                                 interpretation = null
                                             ) else it.copy()
                                         }
-                                        
+
                                         isShowClear.value = checkSize()
                                     }
                                 )

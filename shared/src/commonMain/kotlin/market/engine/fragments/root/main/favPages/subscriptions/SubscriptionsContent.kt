@@ -33,7 +33,7 @@ import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.dialogs.AccessDialog
-import market.engine.widgets.filterContents.SortingOrdersContent
+import market.engine.widgets.filterContents.sorts.SortingOrdersContent
 import market.engine.widgets.items.SubscriptionItem
 import org.jetbrains.compose.resources.stringResource
 

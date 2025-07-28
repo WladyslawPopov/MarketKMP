@@ -1,4 +1,4 @@
-package market.engine.widgets.filterContents
+package market.engine.widgets.filterContents.sorts
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import market.engine.core.data.baseFilters.Sort
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.widgets.filterContents.ContentSort
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

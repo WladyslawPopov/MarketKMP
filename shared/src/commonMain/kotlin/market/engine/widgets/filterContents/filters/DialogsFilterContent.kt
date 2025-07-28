@@ -1,4 +1,4 @@
-package market.engine.widgets.filterContents
+package market.engine.widgets.filterContents.filters
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically

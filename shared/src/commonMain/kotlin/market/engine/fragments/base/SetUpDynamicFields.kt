@@ -62,8 +62,9 @@ fun SetUpDynamicFields(
                     }
 
                     if (field.key == "resetcode" && code != null){
-                        field.data = JsonPrimitive(code)
-                        onValueChange(field)
+                        onValueChange(field.copy(
+                            data = JsonPrimitive(code)
+                        ))
                     }
                 }
 

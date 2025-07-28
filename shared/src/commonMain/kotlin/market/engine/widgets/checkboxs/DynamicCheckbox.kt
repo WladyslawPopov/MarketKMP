@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.network.networkObjects.Choices
@@ -25,15 +24,17 @@ fun DynamicCheckbox(
     }
 
     val initialSelected = remember(field.data) {
-        field.data?.jsonPrimitive?.booleanOrNull ?: false
+        field.data?.jsonPrimitive
     }
 
-    val error = remember(field) { processInput(field.errors) }
+    val error = remember(field.errors) { processInput(field.errors) }
 
-    val onClickListener : (Long) -> Unit = remember {
+    val onClickListener : (JsonPrimitive?) -> Unit = remember(initialSelected) {
         { select ->
             onValueChange(field.copy(
-                data = JsonPrimitive(select)
+                data = if(initialSelected == null)
+                    select ?: JsonPrimitive(0)
+                else null
             ))
         }
     }
@@ -41,18 +42,18 @@ fun DynamicCheckbox(
     val choices = remember(field) {
         Choices(
             name = field.shortDescription ?: field.longDescription ?: "",
-            code = field.data?.jsonPrimitive ?: JsonPrimitive(0)
+            code = field.data?.jsonPrimitive,
         )
     }
 
-
     Column(modifier = modifier) {
         CheckBoxRow(
-            isSelected = initialSelected,
+            isSelected = initialSelected != null,
             choice = choices,
             isMandatory = isMandatory,
-            onClickListener = onClickListener
-        )
+        ){
+            onClickListener(it)
+        }
 
         if (error != null) {
             ErrorText(text = error, modifier = Modifier.padding(dimens.smallPadding))
