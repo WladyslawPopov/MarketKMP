@@ -1,8 +1,10 @@
 package market.engine.fragments.root.main.proposalPage
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
@@ -11,7 +13,8 @@ interface ProposalComponent {
     val model : Value<Model>
 
     data class Model(
-        val proposalViewModel: ProposalViewModel
+        val proposalViewModel: ProposalViewModel,
+        val backHandler: BackHandler,
     )
 
     fun goToOffer(offerId: Long)
@@ -21,20 +24,22 @@ interface ProposalComponent {
     fun goBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultProposalComponent(
     offerId: Long,
     proposalType: ProposalType,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateBack: () -> Unit
-) : ProposalComponent, ComponentContext by componentContext {
+) : ProposalComponent, JetpackComponentContext by componentContext {
 
     private val proposalViewModel = ProposalViewModel(proposalType, offerId, this)
 
     private val _model = MutableValue(
         ProposalComponent.Model(
-            proposalViewModel = proposalViewModel
+            proposalViewModel = proposalViewModel,
+            backHandler = backHandler
         )
     )
     override val model = _model

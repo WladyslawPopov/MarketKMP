@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.core.data.items.NavigationItem
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,11 +23,6 @@ fun ProfileContent(
     val viewModel = component.model.value.profileViewModel
     val isLoading by viewModel.isShowProgress.collectAsState()
 
-    BackHandler(
-        component.model.value.backHandler
-    ){
-
-    }
 
    EdgeToEdgeScaffold(
        modifier = modifier.padding(top = TopAppBarDefaults.TopAppBarExpandedHeight).fillMaxSize(),

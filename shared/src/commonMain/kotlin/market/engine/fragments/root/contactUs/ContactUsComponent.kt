@@ -1,6 +1,7 @@
 package market.engine.fragments.root.contactUs
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -18,10 +19,11 @@ interface ContactUsComponent {
     fun onBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultContactUsComponent(
     selectedType: String?,
-    componentContext: ComponentContext
-) : ContactUsComponent, ComponentContext by componentContext  {
+    componentContext: JetpackComponentContext
+) : ContactUsComponent, JetpackComponentContext by componentContext  {
     private val contactUsViewModel = ContactUsViewModel(this)
 
     private val _model = MutableValue(

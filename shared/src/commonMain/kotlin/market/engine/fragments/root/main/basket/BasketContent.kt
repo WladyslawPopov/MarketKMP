@@ -20,7 +20,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.ServerErrorException
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
@@ -50,10 +49,6 @@ fun BasketContent(
     val isLoading by viewModel.isShowProgress.collectAsState()
     val isError by viewModel.errorMessage.collectAsState()
     val toastItem by viewModel.toastItem.collectAsState()
-
-    BackHandler(
-        modelState.value.backHandler
-    ){}
 
     val noFound: (@Composable () ->Unit)? = remember(basketItemsState) {
         if (basketItemsState.isEmpty()) {

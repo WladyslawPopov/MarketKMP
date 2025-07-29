@@ -25,7 +25,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.FilterButton
@@ -74,13 +73,6 @@ fun CreateSubscriptionContent(
 
     val focusManager: FocusManager = LocalFocusManager.current
     val searchData = categoryState.categoryViewModel.searchData.collectAsState()
-
-    BackHandler(
-        backHandler = model.value.backHandler,
-        onBack = {
-            viewModel.onBack()
-        }
-    )
 
     EdgeToEdgeScaffold(
         topBar = {

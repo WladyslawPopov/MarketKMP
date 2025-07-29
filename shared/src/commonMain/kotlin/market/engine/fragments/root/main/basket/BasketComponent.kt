@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.basket
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -24,13 +25,14 @@ interface BasketComponent {
     fun goToCreateOrder(basketItem : Pair<Long, List<SelectedBasketItem>>)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultBasketComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val navigateToListing: () -> Unit,
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToCreateOrder: (Pair<Long, List<SelectedBasketItem>>) -> Unit,
-) : BasketComponent, ComponentContext by componentContext {
+) : BasketComponent, JetpackComponentContext by componentContext {
 
     private val basketViewModel : BasketViewModel = BasketViewModel(this)
 

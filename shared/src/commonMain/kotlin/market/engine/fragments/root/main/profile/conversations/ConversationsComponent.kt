@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.conversations
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -20,12 +21,13 @@ interface ConversationsComponent {
     fun onBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultConversationsComponent(
     copyMessage: String?,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val navigateBack : () -> Unit,
     val navigateToMessenger : (Long, String?) -> Unit,
-) : ConversationsComponent, ComponentContext by componentContext {
+) : ConversationsComponent, JetpackComponentContext by componentContext {
 
     private val viewModel : ConversationsViewModel = ConversationsViewModel(this)
 

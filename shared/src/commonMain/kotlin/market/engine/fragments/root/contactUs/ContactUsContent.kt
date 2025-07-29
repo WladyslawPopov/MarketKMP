@@ -39,7 +39,6 @@ import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.dropdown_menu.DynamicSelect
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.ilustrations.CaptchaImage
@@ -84,10 +83,6 @@ fun ContactUsContent(
         }
     }
 
-    BackHandler(modelState.backHandler){
-        component.onBack()
-    }
-
     val launcher = rememberFilePickerLauncher(
         type = PickerType.File(
             extensions = listOf("image/png", "image/jpeg", "application/pdf")
@@ -107,7 +102,7 @@ fun ContactUsContent(
     }
 
     EdgeToEdgeScaffold(
-        modifier = modifier.background(colors.primaryColor).pointerInput(Unit){
+        modifier = modifier.pointerInput(Unit){
             detectTapGestures {
                 focusManager.clearFocus()
             }

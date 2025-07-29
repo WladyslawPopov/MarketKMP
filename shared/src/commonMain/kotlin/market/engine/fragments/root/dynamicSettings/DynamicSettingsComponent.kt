@@ -1,6 +1,7 @@
 package market.engine.fragments.root.dynamicSettings
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -19,16 +20,16 @@ interface DynamicSettingsComponent {
         val backHandler: BackHandler
     )
 
-    fun onBack()
     fun goToVerificationPage(method : String, owner : Long?, code : String?)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultDynamicSettingsComponent(
     settingsType : String,
     owner : Long?,
     code : String?,
-    componentContext: ComponentContext,
-) : DynamicSettingsComponent, ComponentContext by componentContext
+    componentContext: JetpackComponentContext,
+) : DynamicSettingsComponent, JetpackComponentContext by componentContext
 {
     private val dynamicSettingsViewModel = DynamicSettingsViewModel(settingsType, owner, code, this)
 
@@ -44,14 +45,10 @@ class DefaultDynamicSettingsComponent(
 
     override val model = _model
 
-    override fun onBack() {
-        goBack()
-    }
-
     override fun goToVerificationPage(method: String, owner: Long?, code: String?) {
         goToVerification(method, owner, code)
         lifecycle.doOnResume {
-            onBack()
+            goBack()
         }
     }
 }

@@ -61,7 +61,6 @@ import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.checkboxs.DynamicCheckboxGroup
 import market.engine.widgets.checkboxs.RadioOptionRow
 import market.engine.widgets.dropdown_menu.DynamicSelect
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
@@ -128,10 +127,6 @@ fun CreateOfferContent(
     val goToUp = remember { mutableStateOf(false) }
 
    val columnState = rememberLazyScrollState(viewModel)
-
-    BackHandler(model.value.backHandler){
-        viewModel.onBackClicked()
-    }
 
     val launcher = rememberFilePickerLauncher(
         type = PickerType.Image,

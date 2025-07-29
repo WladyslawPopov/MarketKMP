@@ -203,7 +203,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
             _listingDataState.value = ListingContentState(
                 appBarData = SimpleAppBarData(
                     onBackClick = {
-                        backClick()
+                        component.goBack()
                     },
                     listItems = listOf(
                         NavigationItem(
@@ -431,7 +431,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
         }
     }
 
-    fun backClick() {
+    fun backClick(onBack: () -> Unit) {
         when {
             activeType.value == ActiveWindowListingType.CATEGORY_FILTERS &&
                     listingBaseVM.searchCategoryModel.searchData.value.searchCategoryID!= 1L -> {
@@ -448,7 +448,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
             }
 
             else -> {
-                component.goBack()
+                onBack()
             }
         }
     }

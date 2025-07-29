@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.favPages
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -10,6 +11,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.items.Tab
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.getCurrentDate
@@ -26,7 +28,8 @@ interface FavPagesComponent {
 
     val model : Value<Model>
     data class Model(
-        val viewModel: FavPagesViewModel
+        val viewModel: FavPagesViewModel,
+        val backHandler: BackHandler
     )
 
     fun selectPage(p: Int)
@@ -36,11 +39,12 @@ interface FavPagesComponent {
     fun onRefresh()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultFavPagesComponent(
     private val favoritesNavigation : StackNavigation<FavoritesConfig>,
     val favType: FavScreenType,
-    componentContext: ComponentContext,
-) : FavPagesComponent, ComponentContext by componentContext {
+    componentContext: JetpackComponentContext,
+) : FavPagesComponent, JetpackComponentContext by componentContext {
 
     val viewModel = FavPagesViewModel(this)
 
@@ -50,7 +54,8 @@ class DefaultFavPagesComponent(
 
     private var initialModel = MutableValue(
         FavPagesComponent.Model(
-            viewModel = viewModel
+            viewModel = viewModel,
+            backHandler = backHandler
         )
     )
 

@@ -3,12 +3,9 @@ package market.engine.fragments.root.main
 import androidx.compose.runtime.snapshotFlow
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import market.engine.common.Platform
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -300,109 +297,102 @@ class MainViewModel(val component: MainComponent) : CoreViewModel() {
     }
 
     fun handleDeepLink(deepLink: DeepLink) {
-        viewModelScope.launch {
-            try {
-                delay(300)
-                withContext(Dispatchers.Main) {
-                    when (deepLink) {
-                        is DeepLink.GoToUser -> {
-                            component.modelNavigation.value.homeNavigation.pushNew(
-                                HomeConfig.UserScreen(
-                                    deepLink.userId,
-                                    getCurrentDate(),
-                                    false
-                                )
-                            )
-                        }
+        when (deepLink) {
+            is DeepLink.GoToUser -> {
+                component.modelNavigation.value.homeNavigation.pushNew(
+                    HomeConfig.UserScreen(
+                        deepLink.userId,
+                        getCurrentDate(),
+                        false
+                    )
+                )
+            }
 
-                        is DeepLink.GoToListing -> {
-                            val categoryData = ListingData()
-                            categoryData.searchData.userSearch = true
-                            when{
-                                deepLink.ownerId != null -> {
-                                    categoryData.searchData.userID = deepLink.ownerId
-                                    categoryData.searchData.userLogin = ""
-                                }
-                                deepLink.categoryId != null -> {
-                                    categoryData.searchData.searchCategoryID = deepLink.categoryId
-                                    categoryData.searchData.searchCategoryName = deepLink.categoryName ?: ""
-                                }
-                                else -> {
+            is DeepLink.GoToListing -> {
+                val categoryData = ListingData()
+                categoryData.searchData.userSearch = true
+                when{
+                    deepLink.ownerId != null -> {
+                        categoryData.searchData.userID = deepLink.ownerId
+                        categoryData.searchData.userLogin = ""
+                    }
+                    deepLink.categoryId != null -> {
+                        categoryData.searchData.searchCategoryID = deepLink.categoryId
+                        categoryData.searchData.searchCategoryName = deepLink.categoryName ?: ""
+                    }
+                    else -> {
 
-                                }
-                            }
-
-                            component.modelNavigation.value.homeNavigation.pushNew(
-                                HomeConfig.ListingScreen(
-                                    false,
-                                    categoryData.data,
-                                    categoryData.searchData,
-                                    getCurrentDate()
-                                )
-                            )
-                        }
-
-                        is DeepLink.GoToOffer -> {
-                            component.modelNavigation.value.homeNavigation.pushNew(
-                                HomeConfig.OfferScreen(
-                                    deepLink.offerId,
-                                    getCurrentDate()
-                                )
-                            )
-                        }
-
-                        is DeepLink.GoToAuth -> {
-                            if (UserData.token == "")
-                                goToLogin(true)
-                        }
-
-                        is DeepLink.GoToRegistration -> {
-                            if (UserData.token == "")
-                                goToLogin(true)
-                        }
-
-                        is DeepLink.GoToDynamicSettings -> {
-                            goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
-                        }
-
-                        is DeepLink.GoToVerification -> {
-                            goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
-                        }
-
-                        is DeepLink.GoToDialog -> {
-                            if (deepLink.dialogId != 1L) {
-                                when{
-                                    component.childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
-                                        component.modelNavigation.value.homeNavigation.replaceCurrent(
-                                            HomeConfig.MessagesScreen(
-                                                deepLink.dialogId, deepLink.mes, getCurrentDate()
-                                            )
-                                        )
-                                    }
-                                    else -> {
-                                        component.modelNavigation.value.homeNavigation.pushNew(
-                                            HomeConfig.MessagesScreen(
-                                                deepLink.dialogId, deepLink.mes, getCurrentDate()
-                                            )
-                                        )
-                                    }
-                                }
-                            } else {
-                                if (deepLink.mes != null) {
-                                    component.navigateToBottomItem(
-                                        MainConfig.Profile,
-                                        "conversations/${deepLink.mes}"
-                                    )
-                                } else {
-                                    component.navigateToBottomItem(MainConfig.Profile, "conversations")
-                                }
-                            }
-                        }
-
-                        is DeepLink.Unknown -> {}
                     }
                 }
-            }catch (_ : Exception){}
+
+                component.modelNavigation.value.homeNavigation.pushNew(
+                    HomeConfig.ListingScreen(
+                        false,
+                        categoryData.data,
+                        categoryData.searchData,
+                        getCurrentDate()
+                    )
+                )
+            }
+
+            is DeepLink.GoToOffer -> {
+                component.modelNavigation.value.homeNavigation.pushNew(
+                    HomeConfig.OfferScreen(
+                        deepLink.offerId,
+                        getCurrentDate()
+                    )
+                )
+            }
+
+            is DeepLink.GoToAuth -> {
+                if (UserData.token == "")
+                    goToLogin(true)
+            }
+
+            is DeepLink.GoToRegistration -> {
+                if (UserData.token == "")
+                    goToLogin(true)
+            }
+
+            is DeepLink.GoToDynamicSettings -> {
+                goToDynamicSettings(deepLink.settingsType, deepLink.ownerId, deepLink.code)
+            }
+
+            is DeepLink.GoToVerification -> {
+                goToVerification(deepLink.settingsType ?: "", deepLink.ownerId, deepLink.code)
+            }
+
+            is DeepLink.GoToDialog -> {
+                if (deepLink.dialogId != 1L) {
+                    when{
+                        component.childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
+                            component.modelNavigation.value.homeNavigation.replaceCurrent(
+                                HomeConfig.MessagesScreen(
+                                    deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                )
+                            )
+                        }
+                        else -> {
+                            component.modelNavigation.value.homeNavigation.pushNew(
+                                HomeConfig.MessagesScreen(
+                                    deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    if (deepLink.mes != null) {
+                        component.navigateToBottomItem(
+                            MainConfig.Profile,
+                            "conversations/${deepLink.mes}"
+                        )
+                    } else {
+                        component.navigateToBottomItem(MainConfig.Profile, "conversations")
+                    }
+                }
+            }
+
+            is DeepLink.Unknown -> {}
         }
     }
 

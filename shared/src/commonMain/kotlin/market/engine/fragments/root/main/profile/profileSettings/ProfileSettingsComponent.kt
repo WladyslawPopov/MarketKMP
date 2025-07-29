@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.profileSettings
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
@@ -28,13 +29,14 @@ interface ProfileSettingsComponent {
     fun goToBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultProfileSettingsComponent(
     val type : ProfileSettingsTypes,
     val selectedPage : (ProfileSettingsTypes) -> Unit,
     val profileNavigation: StackNavigation<ProfileConfig>,
     val goToDynamicSettings : (String) -> Unit,
-    componentContext: ComponentContext,
-) : ProfileSettingsComponent, ComponentContext by componentContext
+    componentContext: JetpackComponentContext,
+) : ProfileSettingsComponent, JetpackComponentContext by componentContext
 {
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()

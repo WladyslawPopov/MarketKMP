@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.favPages.favorites
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -25,15 +26,16 @@ interface FavoritesComponent {
     fun goToCreateOffer(createOfferType : CreateOfferType, id : Long)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultFavoritesComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     favType : FavScreenType,
     idList : Long?,
     val goToOffer : (Long) -> Unit,
     val updateTabs : () -> Unit,
     val navigateToProposalPage : (ProposalType, Long) -> Unit,
     val navigateToCreateOffer : (CreateOfferType, Long) -> Unit,
-) : FavoritesComponent, ComponentContext by componentContext {
+) : FavoritesComponent, JetpackComponentContext by componentContext {
 
     private val favViewModel : FavViewModel = FavViewModel(favType, idList, this)
 

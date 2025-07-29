@@ -18,7 +18,6 @@ import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.floatingCreateOfferButton
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -50,10 +49,6 @@ fun MyOffersContent(
 
     val err by viewModel.errorMessage.collectAsState()
     val toastItem by viewModel.toastItem.collectAsState()
-
-    BackHandler(model.backHandler){
-        viewModel.onBackNavigation()
-    }
 
     val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh, activeType) {
         when {

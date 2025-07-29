@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myOrders
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -24,8 +25,9 @@ interface MyOrdersComponent {
     fun onRefresh()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultMyOrdersComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val orderSelected: Long? = null,
     val type: DealType,
     val offerSelected: (Long) -> Unit,
@@ -33,7 +35,7 @@ class DefaultMyOrdersComponent(
     val navigateToUser: (Long) -> Unit,
     val navigateToMessenger: (Long?) -> Unit,
     val navigateToBack: () -> Unit
-) : MyOrdersComponent, ComponentContext by componentContext {
+) : MyOrdersComponent, JetpackComponentContext by componentContext {
 
     private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
         orderSelected,
@@ -77,7 +79,9 @@ class DefaultMyOrdersComponent(
     }
 
     override fun goToBack() {
-        navigateToBack()
+        viewModel.onBack{
+            navigateToBack()
+        }
     }
 
     override fun onRefresh() {

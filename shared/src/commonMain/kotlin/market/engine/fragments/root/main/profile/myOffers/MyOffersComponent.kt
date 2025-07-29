@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myOffers
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -30,8 +31,9 @@ interface MyOffersComponent {
     fun onRefresh()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultMyOffersComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val type: LotsType = LotsType.MY_LOT_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyOfferPage: (LotsType) -> Unit,
@@ -39,7 +41,7 @@ class DefaultMyOffersComponent(
     val navigateToProposal: (Long, ProposalType) -> Unit,
     val navigateToBack: () -> Unit,
     val navigateToDynamicSettings: (String, Long?) -> Unit,
-) : MyOffersComponent, ComponentContext by componentContext {
+) : MyOffersComponent, JetpackComponentContext by componentContext {
 
     private val viewModel : MyOffersViewModel = MyOffersViewModel(type, this)
 
@@ -101,7 +103,9 @@ class DefaultMyOffersComponent(
     }
 
     override fun goToBack() {
-        navigateToBack()
+        viewModel.onBackNavigation {
+            navigateToBack()
+        }
     }
 
     override fun onRefresh() {

@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.notificationsHistory
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -20,11 +21,12 @@ interface NotificationsHistoryComponent {
     fun goToDeepLink(url: DeepLink)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultNotificationsHistoryComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val navigateBack: () -> Unit,
     val navigateDeepLink: (DeepLink) -> Unit,
-) : NotificationsHistoryComponent, ComponentContext by componentContext {
+) : NotificationsHistoryComponent, JetpackComponentContext by componentContext {
 
     private val viewModel = NotificationsHistoryViewModel()
 

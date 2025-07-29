@@ -36,6 +36,7 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
@@ -234,7 +235,7 @@ class DynamicSettingsViewModel(
                     },
                     appBarState = SimpleAppBarData(
                         onBackClick = {
-                            component.onBack()
+                            goBack()
                         },
                         listItems = listOf(
                             NavigationItem(
@@ -389,7 +390,7 @@ class DynamicSettingsViewModel(
                         if (body?.isNotBlank() == true) {
                             component.goToVerificationPage(body,owner, code)
                         } else {
-                            component.onBack()
+                            goBack()
                         }
 
                     } else {
@@ -564,7 +565,7 @@ class DynamicSettingsViewModel(
                             )
                         )
                         delay(2000)
-                        component.onBack()
+                        goBack()
                     }
                 } else {
                     if (resErr != null) {

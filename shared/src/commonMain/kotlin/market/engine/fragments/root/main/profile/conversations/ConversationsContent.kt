@@ -29,7 +29,6 @@ import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.fragments.base.EdgeToEdgeScaffold
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -115,10 +114,6 @@ fun ConversationsContent(
                 null
             }
         }
-    }
-
-    BackHandler(model.backHandler){
-        component.onBack()
     }
 
     CustomModalDrawer(

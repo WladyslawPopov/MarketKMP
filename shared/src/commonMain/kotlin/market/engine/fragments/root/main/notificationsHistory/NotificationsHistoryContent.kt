@@ -18,7 +18,6 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.utils.getDeepLinkByType
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -64,11 +63,6 @@ fun NotificationsHistoryContent(
             null
         }
     }
-
-    BackHandler(
-        backHandler = model.value.backHandler,
-        onBack = component::onBackClicked
-    )
 
     EdgeToEdgeScaffold(
         topBar = {

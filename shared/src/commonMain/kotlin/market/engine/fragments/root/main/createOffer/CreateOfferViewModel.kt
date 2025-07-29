@@ -650,12 +650,12 @@ class CreateOfferViewModel(
         _selectedDate.value = data
     }
 
-    fun onBackClicked() {
+    fun onBackClicked(onBack: () -> Unit) {
         if(categoryViewModel.searchData.value.searchCategoryID != 1L){
             _isEditCat.value = true
             categoryViewModel.navigateBack()
         }else{
-            component.onBackClicked()
+            onBack()
         }
     }
 

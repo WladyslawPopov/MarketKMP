@@ -138,7 +138,7 @@ class MyProposalsViewModel(
         }
     }
 
-    fun onBackNavigation(){
+    fun onBackNavigation(onBack: () -> Unit){
         when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
                 if (filtersCategoryModel.searchData.value.searchCategoryID != 1L){
@@ -148,7 +148,7 @@ class MyProposalsViewModel(
                 }
             }
             else -> {
-                component.goToBack()
+                onBack()
             }
         }
     }

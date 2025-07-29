@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myBids
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -28,8 +29,9 @@ interface MyBidsComponent {
     fun onRefresh()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultMyBidsComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val type: LotsType = LotsType.MY_BIDS_ACTIVE,
     val offerSelected: (Long) -> Unit,
     val selectedMyBidsPage: (LotsType) -> Unit,
@@ -37,7 +39,7 @@ class DefaultMyBidsComponent(
     val navigateToPurchases: () -> Unit,
     val navigateToDialog: (Long?) -> Unit,
     val navigateBack: () -> Unit
-) : MyBidsComponent, ComponentContext by componentContext {
+) : MyBidsComponent, JetpackComponentContext by componentContext {
 
     private val viewModel : MyBidsViewModel = MyBidsViewModel(type, this)
 
@@ -87,7 +89,9 @@ class DefaultMyBidsComponent(
     }
 
     override fun goToBack() {
-        navigateBack()
+        viewModel.onBackNavigation {
+            navigateBack()
+        }
     }
 
     override fun onRefresh() {

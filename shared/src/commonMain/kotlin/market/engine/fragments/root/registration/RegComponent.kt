@@ -1,6 +1,7 @@
 package market.engine.fragments.root.registration
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -17,9 +18,10 @@ interface RegistrationComponent {
     fun onBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultRegistrationComponent(
-    componentContext: ComponentContext
-) : RegistrationComponent, ComponentContext by componentContext {
+    componentContext: JetpackComponentContext
+) : RegistrationComponent, JetpackComponentContext by componentContext {
 
     private val regViewModel = RegViewModel()
 

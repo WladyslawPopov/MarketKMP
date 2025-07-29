@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
@@ -30,12 +31,13 @@ interface ProfileComponent {
     fun goToSettings(key: String)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultProfileComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     selectedPage : String?,
     private val navigationProfile: StackNavigation<ProfileConfig>,
     private val navigateToSubscriptions : () -> Unit
-) : ProfileComponent, ComponentContext by componentContext {
+) : ProfileComponent, JetpackComponentContext by componentContext {
 
     val viewModel by lazy {  CoreViewModel() }
 

@@ -1,10 +1,10 @@
 package market.engine.fragments.root.verifyPage
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface VerificationComponent {
     val model : Value<Model>
@@ -13,15 +13,15 @@ interface VerificationComponent {
         val verificationViewModel: VerificationViewModel,
         val backHandler: BackHandler
     )
-    fun onBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultVerificationComponent(
     owner : Long?,
     code : String?,
     settingsType : String,
-    componentContext: ComponentContext,
-) : VerificationComponent, ComponentContext by componentContext
+    componentContext: JetpackComponentContext,
+) : VerificationComponent, JetpackComponentContext by componentContext
 {
     private  val verificationViewModel : VerificationViewModel = VerificationViewModel(
         owner = owner,
@@ -38,8 +38,4 @@ class DefaultVerificationComponent(
     )
 
     override val model = _model
-
-    override fun onBack() {
-        goBack()
-    }
 }

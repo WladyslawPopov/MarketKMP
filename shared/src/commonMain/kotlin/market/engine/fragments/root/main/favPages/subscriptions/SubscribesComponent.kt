@@ -1,11 +1,14 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.filtersObjects.ListingFilters
@@ -27,13 +30,14 @@ interface SubscriptionsComponent {
     fun goToListing(item : Subscription)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultSubscriptionsComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     favType : FavScreenType,
 
     val navigateToCreateNewSubscription : (Long?) -> Unit,
     val navigateToListing : (ListingData) -> Unit,
-) : SubscriptionsComponent, ComponentContext by componentContext {
+) : SubscriptionsComponent, JetpackComponentContext by componentContext {
 
     private val subViewModel : SubViewModel = SubViewModel(this)
 
@@ -137,8 +141,9 @@ class DefaultSubscriptionsComponent(
                 item.catpath?.keys?.firstOrNull() ?: 1L
             ld.searchData.searchCategoryName =
                 item.catpath?.values?.firstOrNull() ?: defCat
-
-            navigateToListing(ld)
+            withContext(Dispatchers.Main){
+                navigateToListing(ld)
+            }
         }
     }
 }

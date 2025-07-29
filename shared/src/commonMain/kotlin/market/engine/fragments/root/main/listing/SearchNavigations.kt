@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -16,6 +15,7 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import market.engine.common.backAnimation
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
@@ -110,7 +110,30 @@ fun SearchNavigation(
         stack = stack,
         modifier = modifier
             .fillMaxSize(),
-        animation = stackAnimation(fade())
+        animation = backAnimation(
+            backHandler = when (val screen = stack.active.instance) {
+                is ChildSearch.ListingChild -> screen.component.model.value.backHandler
+                is ChildSearch.OfferChild -> screen.component.model.value.backHandler
+                is ChildSearch.UserChild -> screen.component.model.value.backHandler
+                is ChildSearch.CreateOfferChild -> screen.component.model.value.backHandler
+                is ChildSearch.CreateOrderChild -> screen.component.model.value.backHandler
+                is ChildSearch.MessageChild -> screen.component.model.value.backHandler
+                is ChildSearch.ProposalChild -> screen.component.model.value.backHandler
+                is ChildSearch.CreateSubscriptionChild -> screen.component.model.value.backHandler
+            },
+            onBack = {
+                when (val screen = stack.active.instance) {
+                    is ChildSearch.ListingChild -> screen.component.goBack()
+                    is ChildSearch.OfferChild -> screen.component.onBackClick()
+                    is ChildSearch.UserChild -> screen.component.onBack()
+                    is ChildSearch.CreateOfferChild -> screen.component.onBackClicked()
+                    is ChildSearch.CreateOrderChild -> screen.component.onBackClicked()
+                    is ChildSearch.MessageChild -> screen.component.onBackClicked()
+                    is ChildSearch.ProposalChild -> screen.component.goBack()
+                    is ChildSearch.CreateSubscriptionChild -> screen.component.onBackClicked()
+                }
+            }
+        ),
     ) { child ->
         when (val screen = child.instance) {
             is ChildSearch.ListingChild -> ListingContent(screen.component, modifier)
@@ -125,9 +148,10 @@ fun SearchNavigation(
     }
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 fun createSearchChild(
     config: SearchConfig,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     searchNavigation: StackNavigation<SearchConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToSubscribe: () -> Unit,

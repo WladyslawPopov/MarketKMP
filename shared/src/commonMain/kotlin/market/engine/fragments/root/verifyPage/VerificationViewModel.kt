@@ -14,6 +14,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -65,7 +66,7 @@ class VerificationViewModel(
                                     resSmsErr
                                 )
                             }
-                            component.onBack()
+                            goBack()
                         }
                     }
                 } catch (e : ServerErrorException){
@@ -119,7 +120,7 @@ class VerificationViewModel(
                             )
                         )
                         delay(2000)
-                        component.onBack()
+                        goBack()
                     } else {
                         if (resEerr != null) {
                             onError(
@@ -155,7 +156,7 @@ class VerificationViewModel(
                             setPage(body)
                         } else {
                             onError(ServerErrorException(res.errorCode ?:"", res.humanMessage ?: ""))
-                            component.onBack()
+                            goBack()
                         }
                     } else {
                         if (res.status == "operation_success") {
@@ -165,7 +166,7 @@ class VerificationViewModel(
                                 )
                             )
                             delay(2000)
-                            component.onBack()
+                            goBack()
                         } else {
                             showToast(
                                 errorToastItem.copy(
@@ -173,7 +174,7 @@ class VerificationViewModel(
                                 )
                             )
                             delay(2000)
-                            component.onBack()
+                            goBack()
                         }
                     }
                 } else {

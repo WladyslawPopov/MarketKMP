@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
@@ -25,9 +26,9 @@ import market.engine.fragments.root.main.favPages.ChildFavorites
 import market.engine.fragments.root.main.favPages.FavoritesConfig
 import market.engine.fragments.root.main.basket.createBasketChild
 import market.engine.fragments.root.main.favPages.createFavoritesChild
+import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.profile.ChildProfile
 import market.engine.fragments.root.main.profile.ProfileConfig
-import market.engine.fragments.root.main.listing.ChildSearch
 import market.engine.fragments.root.main.listing.SearchConfig
 import market.engine.fragments.root.main.listing.createSearchChild
 import market.engine.fragments.root.main.profile.createProfileChild
@@ -67,9 +68,10 @@ interface MainComponent {
     fun navigateToBottomItem(config: MainConfig, openPage: String? = null)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultMainComponent(
-    componentContext: ComponentContext,
-) : MainComponent, ComponentContext by componentContext {
+    componentContext: JetpackComponentContext,
+) : MainComponent, JetpackComponentContext by componentContext {
 
     val viewModel = MainViewModel(this)
 

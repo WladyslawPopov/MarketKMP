@@ -29,7 +29,6 @@ import market.engine.widgets.grids.GridPopularCategory
 import market.engine.widgets.grids.GridPromoOffers
 import market.engine.widgets.bars.SearchBar
 import market.engine.widgets.buttons.floatingCreateOfferButton
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.DrawerAppBar
@@ -66,8 +65,6 @@ fun HomeContent(
             null
         }
     }
-
-    BackHandler(model.backHandler) {}
 
     Scaffold {
         ModalNavigationDrawer(

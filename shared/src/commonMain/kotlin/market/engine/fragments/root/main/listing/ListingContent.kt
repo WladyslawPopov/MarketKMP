@@ -25,7 +25,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.widgets.filterContents.search.SearchContent
 import market.engine.widgets.dialogs.CreateSubscribeDialog
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.screens.OnError
@@ -77,10 +76,6 @@ fun ListingContent(
     val searchData = listingDataState.searchData
 
     val listingState = rememberLazyScrollState(viewModel)
-
-    BackHandler(model.backHandler) {
-        viewModel.backClick()
-    }
 
     val error: (@Composable () -> Unit)? = remember(err) {
         if (err.humanMessage != "") {

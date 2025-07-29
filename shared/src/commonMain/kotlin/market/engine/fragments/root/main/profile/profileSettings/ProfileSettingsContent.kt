@@ -15,7 +15,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.base.EdgeToEdgeScaffold
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.main.profile.profileSettings.content.GlobalSettings
 import market.engine.fragments.root.main.profile.profileSettings.content.SettingsContent
@@ -32,10 +31,6 @@ fun ProfileSettingsContent(
     val settingsType = model.type
     val err by viewModel.errorMessage.collectAsState()
     val toastItem by viewModel.toastItem.collectAsState()
-
-    BackHandler(model.backHandler){
-        component.goToBack()
-    }
 
     val error : (@Composable () -> Unit)? = remember(err) {
         if (err.humanMessage.isNotBlank()) {

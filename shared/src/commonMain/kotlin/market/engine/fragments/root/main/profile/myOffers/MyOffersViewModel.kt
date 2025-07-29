@@ -133,7 +133,7 @@ class MyOffersViewModel(
         }
     }
 
-    fun onBackNavigation(){
+    fun onBackNavigation(onBack: () -> Unit){
         when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
                 if (categoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
@@ -143,7 +143,7 @@ class MyOffersViewModel(
                 }
             }
             else -> {
-                component.goToBack()
+                onBack()
             }
         }
     }

@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -61,13 +62,15 @@ interface ProfileChildrenComponent {
     fun onRefreshOrders()
     fun onRefreshBids()
     fun onRefreshProposals()
+    fun onBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultProfileChildrenComponent(
     selectedPage : String?,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     private val navigationProfile: StackNavigation<ProfileConfig>,
-) : ProfileChildrenComponent, ComponentContext by componentContext {
+) : ProfileChildrenComponent, JetpackComponentContext by componentContext {
 
     private val navigationMyOffers = PagesNavigation<MyOfferConfig>()
     private val navigationMyBids = PagesNavigation<MyBidsConfig>()
@@ -124,6 +127,10 @@ class DefaultProfileChildrenComponent(
         when(myProposalsPages.value.items[index].instance){
             is MyProposalsComponent -> myProposalsPages.value.items[index].instance?.onRefresh()
         }
+    }
+
+    override fun onBack() {
+        navigationProfile.pop()
     }
 
     override fun onRefreshOffers() {

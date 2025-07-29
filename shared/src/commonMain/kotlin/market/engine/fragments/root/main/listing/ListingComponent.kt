@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.listing
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -36,16 +37,17 @@ interface ListingComponent {
     fun onTabSelect(tab: Int)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultListingComponent(
     isOpenSearch : Boolean,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     listingData: ListingData,
     private val selectOffer: (Long) -> Unit,
     private val selectedBack: () -> Unit,
     private val navigateToSubscribe: () -> Unit,
     private val navigateToListing: (ListingData) -> Unit,
     private val navigateToNewSubscription: (Long?) -> Unit,
-) : ListingComponent, ComponentContext by componentContext {
+) : ListingComponent, JetpackComponentContext by componentContext {
 
     private val listingViewModel : ListingViewModel = ListingViewModel(this)
 
@@ -172,7 +174,9 @@ class DefaultListingComponent(
     }
 
     override fun goBack() {
-        selectedBack()
+        listingViewModel.backClick{
+            selectedBack()
+        }
     }
 
     override fun goToSubscribe() {

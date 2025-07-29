@@ -40,7 +40,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.fragments.base.EdgeToEdgeScaffold
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -97,10 +96,6 @@ fun DialogsContent(
                 pagerFullState.scrollToPage(selectedIndex)
             }
         }
-    }
-
-    BackHandler(model.backHandler){
-        component.onBackClicked()
     }
 
     val listingState = rememberLazyScrollState(viewModel)

@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.user.feedbacks
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.data.types.DealTypeGroup
@@ -22,14 +23,15 @@ interface FeedbacksComponent {
     fun goToUser(userId : Long)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultFeedbacksComponent(
     val type : ReportPageType,
     val userId : Long,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     private val navigateToOrder : (Long, DealTypeGroup) -> Unit,
     private val navigateToSnapshot : (Long) -> Unit,
     private val navigateToUser : (Long) -> Unit,
-) : FeedbacksComponent, ComponentContext by componentContext {
+) : FeedbacksComponent, JetpackComponentContext by componentContext {
 
     val feedbacksViewModel = FeedbacksViewModel(type, userId)
 

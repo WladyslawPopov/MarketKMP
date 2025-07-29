@@ -17,7 +17,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
@@ -60,10 +59,6 @@ fun FavoritesContent(
     val listingState = rememberLazyScrollState(viewModel)
 
     val isLoading : State<Boolean> = rememberUpdatedState(data.loadState.refresh is LoadStateLoading)
-
-    BackHandler(model.backHandler){
-        viewModel.onBackNavigation()
-    }
 
     val noFound: @Composable (() -> Unit)? = remember(data.loadState.refresh, activeType) {
 

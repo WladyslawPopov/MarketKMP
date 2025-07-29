@@ -75,7 +75,7 @@ class CreateSubscriptionViewModel(
         CreateSubDataState(
             appBar = SimpleAppBarData(
                 onBackClick = {
-                    onBack()
+                    component.onBackClicked()
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -143,7 +143,7 @@ class CreateSubscriptionViewModel(
         }
     }
 
-    fun onBack(){
+    fun onBack(onBack : () -> Unit){
         if (createSubContentState.value.categoryState.openCategory) {
             if (categoryViewModel.searchData.value.searchCategoryID != 1L) {
                 categoryViewModel.navigateBack()
@@ -151,7 +151,7 @@ class CreateSubscriptionViewModel(
                 closeCategory()
             }
         }else{
-            component.onBackClicked()
+            onBack()
         }
     }
 

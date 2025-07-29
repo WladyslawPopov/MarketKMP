@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createOrder
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -24,14 +25,15 @@ interface CreateOrderComponent {
     fun goToMyOrders()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultCreateOrderComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     basketItem : Pair<Long, List<SelectedBasketItem>>,
     val navigateBack: () -> Unit,
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToMyOrders: () -> Unit
-) : CreateOrderComponent, ComponentContext by componentContext {
+) : CreateOrderComponent, JetpackComponentContext by componentContext {
 
     private val createOrderViewModel : CreateOrderViewModel = CreateOrderViewModel(basketItem, this)
 

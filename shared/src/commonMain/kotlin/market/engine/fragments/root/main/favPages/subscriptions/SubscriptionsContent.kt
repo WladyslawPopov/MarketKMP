@@ -27,7 +27,6 @@ import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.buttons.SmallIconButton
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -92,10 +91,6 @@ fun SubscriptionsContent(
         }else{
             null
         }
-    }
-
-    BackHandler(modelState.value.backHandler){
-        viewModel.backClick()
     }
 
     when (activeType) {

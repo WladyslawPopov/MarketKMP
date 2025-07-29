@@ -214,17 +214,6 @@ class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
         }
     }
 
-    fun backClick(){
-        when{
-            activeWindowType.value != ActiveWindowListingType.LISTING ->{
-                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
-            }
-            else -> {
-
-            }
-        }
-    }
-
     fun deleteSubscription(subId : Long) {
         viewModelScope.launch {
             val ops = getString(strings.operationSuccess)

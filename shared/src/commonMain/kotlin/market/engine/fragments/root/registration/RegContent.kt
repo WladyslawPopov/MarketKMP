@@ -1,6 +1,5 @@
 package market.engine.fragments.root.registration
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +23,6 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -50,10 +48,6 @@ fun RegistrationContent(
     val toastItem by model.toastItem.collectAsState()
     val showSuccessReg by model.showSuccessReg.collectAsState()
 
-    BackHandler(modelState.value.backHandler){
-        component.onBack()
-    }
-
     val error: (@Composable () -> Unit)? = remember(err) {
         if (err.humanMessage != "") {
             { OnError(err) {
@@ -66,7 +60,7 @@ fun RegistrationContent(
     }
 
     EdgeToEdgeScaffold(
-        modifier = modifier.background(colors.primaryColor).fillMaxSize()
+        modifier = modifier.fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {

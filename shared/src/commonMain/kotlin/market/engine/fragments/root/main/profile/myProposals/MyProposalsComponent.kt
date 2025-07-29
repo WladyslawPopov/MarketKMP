@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myProposals
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -27,8 +28,9 @@ interface MyProposalsComponent {
     fun onRefresh()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultMyProposalsComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val type: LotsType = LotsType.ALL_PROPOSAL,
     val offerSelected: (Long) -> Unit,
     val selectedMyProposalsPage: (LotsType) -> Unit,
@@ -36,7 +38,7 @@ class DefaultMyProposalsComponent(
     val navigateToDialog: (Long?) -> Unit,
     val navigateBack: () -> Unit,
     val navigateToProposal: (Long, ProposalType) -> Unit,
-) : MyProposalsComponent, ComponentContext by componentContext {
+) : MyProposalsComponent, JetpackComponentContext by componentContext {
 
     private val viewModel : MyProposalsViewModel = MyProposalsViewModel(type, this)
 
@@ -87,7 +89,9 @@ class DefaultMyProposalsComponent(
     }
 
     override fun goToBack() {
-        navigateBack()
+        viewModel.onBackNavigation {
+            navigateBack()
+        }
     }
 
     override fun onRefresh() {

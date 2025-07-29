@@ -81,7 +81,6 @@ import market.engine.widgets.buttons.SmallImageButton
 import market.engine.widgets.dialogs.rememberPickerState
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
@@ -155,10 +154,6 @@ fun OfferContent(
     val valuesPickerState = rememberPickerState()
 
     val focusManager = LocalFocusManager.current
-
-    BackHandler(model.backHandler) {
-        component.onBackClick()
-    }
 
     val scrollState = rememberLazyScrollState(viewModel)
 

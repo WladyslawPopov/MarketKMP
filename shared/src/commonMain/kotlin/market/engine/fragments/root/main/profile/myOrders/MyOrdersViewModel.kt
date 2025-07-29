@@ -170,11 +170,11 @@ class MyOrdersViewModel(
         }
     }
 
-    fun onBack(){
+    fun onBack(goBack : () -> Unit){
         if(activeType.value != ActiveWindowListingType.LISTING){
             listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
         }else{
-            component.goToBack()
+            goBack()
         }
     }
 

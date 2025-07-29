@@ -1,6 +1,7 @@
 package market.engine.fragments.root
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
@@ -11,13 +12,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
-import market.engine.common.AnalyticsFactory
-import market.engine.common.showReviewManager
-import market.engine.core.analytics.AnalyticsHelper
-import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.items.DeepLink
-import market.engine.core.repositories.SettingsRepository
-import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
 import market.engine.fragments.root.dynamicSettings.DefaultDynamicSettingsComponent
@@ -30,7 +25,6 @@ import market.engine.fragments.root.registration.DefaultRegistrationComponent
 import market.engine.fragments.root.registration.RegistrationComponent
 import market.engine.fragments.root.verifyPage.DefaultVerificationComponent
 import market.engine.fragments.root.verifyPage.VerificationComponent
-import org.koin.mp.KoinPlatform.getKoin
 
 interface RootComponent {
     val childStack: Value<ChildStack<*, Child>>
@@ -54,15 +48,12 @@ interface RootComponent {
     fun updateOrientation (orientation : Int)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultRootComponent(
-    componentContext: ComponentContext,
-    var deepLink: DeepLink?,
-) : RootComponent, ComponentContext by componentContext {
+    componentContext: JetpackComponentContext,
+) : RootComponent, JetpackComponentContext by componentContext {
 
-    private val analyticsHelper : AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-    private val settingsHelper : SettingsRepository = getKoin().get()
-
-    val viewModel = CoreViewModel()
+    val viewModel = RootVewModel(this)
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {
         childStack(
@@ -82,21 +73,7 @@ class DefaultRootComponent(
     override val model = _model
 
     override fun updateURL(url: DeepLink) {
-        try {
-            var component =
-                (childStack.active.instance as? RootComponent.Child.MainChild)?.component
-
-            if (component != null) {
-                component.model.value.viewModel.handleDeepLink(url)
-            } else {
-                navigation.replaceAll(RootConfig.Main)
-                component =
-                    (childStack.active.instance as? RootComponent.Child.MainChild)?.component
-                component?.model?.value?.viewModel?.handleDeepLink(url)
-            }
-        } catch (e: Exception) {
-            println("Ignoring deep link update during navigation: ${e.message}")
-        }
+        viewModel.goToDeepLink(url)
     }
 
     override fun updateOrientation(orientation: Int) {
@@ -110,31 +87,7 @@ class DefaultRootComponent(
         println("upd orientation: $orientation")
     }
 
-    init {
-
-        if(deepLink != null){
-            updateURL(deepLink!!)
-        }
-
-        val isFirstLaunch = settingsHelper.getSettingValue("isFirstLaunch", true)
-        if (isFirstLaunch == true) {
-            settingsHelper.setSettingValue("isFirstLaunch", false)
-            analyticsHelper.reportEvent("launch_first_time", mapOf())
-        }
-
-        analyticsHelper.reportEvent("start_session", mapOf("traffic_source" to "direct"))
-
-        val appAttributes = mapOf("app_version" to SAPI.version)
-        analyticsHelper.updateUserProfile(appAttributes)
-
-        var countLaunch = settingsHelper.getSettingValue("count_launch", 0) ?: 0
-        settingsHelper.setSettingValue("count_launch", ++countLaunch)
-
-
-        showReviewManager()
-    }
-
-    private fun createChild(rootConfig: RootConfig, componentContext: ComponentContext): RootComponent.Child =
+    private fun createChild(rootConfig: RootConfig, componentContext: JetpackComponentContext): RootComponent.Child =
         when (rootConfig) {
             is RootConfig.Main -> RootComponent.Child.MainChild(
                 DefaultMainComponent(

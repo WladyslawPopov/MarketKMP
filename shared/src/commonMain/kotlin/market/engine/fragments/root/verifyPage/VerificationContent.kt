@@ -1,6 +1,5 @@
 package market.engine.fragments.root.verifyPage
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,8 +26,8 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.states.SimpleAppBarData
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.texts.DynamicLabel
@@ -57,23 +56,20 @@ fun VerificationContent(
         }
     }
 
-    BackHandler(model.backHandler){
-        component.onBack()
-    }
 
     EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
                 data = SimpleAppBarData(
                     onBackClick = {
-                        component.onBack()
+                        goBack()
                     }
                 )
             ){
                 TextAppBar(stringResource(strings.acceptChangesLabel))
             }
         },
-        modifier = Modifier.background(colors.primaryColor).pointerInput(Unit){
+        modifier = Modifier.pointerInput(Unit){
             detectTapGestures {
                 focusManager.clearFocus()
             }

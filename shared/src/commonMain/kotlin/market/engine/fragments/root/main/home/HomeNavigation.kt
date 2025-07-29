@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -16,6 +15,7 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import market.engine.common.backAnimation
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.UserData
@@ -129,7 +129,83 @@ fun HomeNavigation (
         stack = stack,
         modifier = modifier
             .fillMaxSize(),
-        animation = stackAnimation(fade())
+        animation = backAnimation(
+            backHandler = when (val screen = stack.active.instance) {
+                is HomeChild ->{
+                    screen.component.model.value.backHandler
+                }
+                is OfferChild ->{
+                    screen.component.model.value.backHandler
+                }
+                is ListingChild ->{
+                    screen.component.model.value.backHandler
+                }
+                is UserChild ->{
+                    screen.component.model.value.backHandler
+                }
+                is CreateOfferChild ->{
+                    screen.component.model.value.backHandler
+                }
+                is CreateOrderChild -> {
+                    screen.component.model.value.backHandler
+                }
+                is MessagesChild -> {
+                    screen.component.model.value.backHandler
+                }
+                is ProposalChild -> {
+                    screen.component.model.value.backHandler
+                }
+                is CreateSubscriptionChild -> {
+                    screen.component.model.value.backHandler
+                }
+                is NotificationHistoryChild -> {
+                    screen.component.model.value.backHandler
+                }
+            },
+            onBack = {
+                when (val screen = stack.active.instance) {
+                    is HomeChild -> {
+
+                    }
+
+                    is OfferChild -> {
+                        screen.component.onBackClick()
+                    }
+
+                    is ListingChild -> {
+                        screen.component.goBack()
+                    }
+
+                    is UserChild -> {
+                        screen.component.onBack()
+                    }
+
+                    is CreateOfferChild -> {
+                        screen.component.onBackClicked()
+                    }
+
+                    is CreateOrderChild -> {
+                        screen.component.onBackClicked()
+                    }
+
+                    is MessagesChild -> {
+                        screen.component.onBackClicked()
+                    }
+
+                    is ProposalChild -> {
+                        screen.component.goBack()
+                    }
+
+                    is CreateSubscriptionChild -> {
+                        screen.component.onBackClicked()
+                    }
+
+                    is NotificationHistoryChild -> {
+                        screen.component.onBackClicked()
+                    }
+                }
+            }
+        ),
     ) { child ->
         when (val screen = child.instance) {
             is HomeChild ->{
@@ -166,9 +242,10 @@ fun HomeNavigation (
     }
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 fun createHomeChild(
     config: HomeConfig,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     homeNavigation: StackNavigation<HomeConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,

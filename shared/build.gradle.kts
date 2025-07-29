@@ -65,6 +65,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
 
             implementation(libs.decompose)
+            implementation(libs.jetpack.context)
             implementation(libs.decompose.extensions)
 
             implementation(libs.richeditor.compose)
@@ -95,14 +96,10 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.native.driver)
             implementation(libs.ktor.client.darwin)
-            implementation(libs.decompose)
-            implementation(libs.decompose.extensions)
         }
         nativeMain.dependencies {
             implementation(libs.native.driver)
             implementation(libs.ktor.client.darwin)
-            implementation(libs.decompose)
-            implementation(libs.decompose.extensions)
         }
         androidMain.dependencies {
             implementation(libs.android.driver)

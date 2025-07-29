@@ -32,7 +32,6 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.dropdown_menu.getDropdownMenu
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsContent
 import market.engine.fragments.base.screens.OnError
@@ -68,10 +67,6 @@ fun CreateOrderContent(
     val toastItem by viewModel.toastItem.collectAsState()
 
     val focusManager = LocalFocusManager.current
-
-    BackHandler(model.value.backHandler){
-        component.onBackClicked()
-    }
 
     val error: (@Composable () -> Unit)? = remember(err) {
         if (err.humanMessage.isNotBlank()) {

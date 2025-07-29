@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.messenger
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -28,8 +29,9 @@ interface DialogsComponent{
     fun goToNewSearch(userId: Long)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultDialogsComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val navigateBack: () -> Unit,
     val navigateToOffer: (Long) -> Unit,
     val navigateToUser: (Long) -> Unit,
@@ -37,7 +39,7 @@ class DefaultDialogsComponent(
     val navigateToListingSelected: (ListingData) -> Unit,
     dialogId : Long,
     message : String?,
-) : DialogsComponent, ComponentContext by componentContext {
+) : DialogsComponent, JetpackComponentContext by componentContext {
 
     private val dialogsViewModel : DialogsViewModel = DialogsViewModel(dialogId,message, this)
 

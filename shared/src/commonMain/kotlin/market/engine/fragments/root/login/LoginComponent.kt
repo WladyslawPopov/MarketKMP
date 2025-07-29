@@ -1,6 +1,7 @@
 package market.engine.fragments.root.login
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -20,12 +21,13 @@ interface LoginComponent {
     fun onBack()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultLoginComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     private val isReset: Boolean,
     private val navigateToRegistration: () -> Unit,
     private val navigateToForgotPassword: () -> Unit,
-) : LoginComponent, ComponentContext by componentContext  {
+) : LoginComponent, JetpackComponentContext by componentContext  {
 
     val viewModel : LoginViewModel = LoginViewModel(this)
 

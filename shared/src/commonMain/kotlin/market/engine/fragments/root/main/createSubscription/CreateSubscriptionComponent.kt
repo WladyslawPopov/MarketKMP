@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createSubscription
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -17,11 +18,12 @@ interface CreateSubscriptionComponent {
     fun onBackClicked()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultCreateSubscriptionComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     editId : Long?,
     val navigateBack: () -> Unit,
-) : CreateSubscriptionComponent, ComponentContext by componentContext {
+) : CreateSubscriptionComponent, JetpackComponentContext by componentContext {
 
     private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel(editId, this)
 
@@ -35,6 +37,8 @@ class DefaultCreateSubscriptionComponent(
     override val model = _model
 
     override fun onBackClicked() {
-        navigateBack()
+        createSubscriptionViewModel.onBack {
+            navigateBack()
+        }
     }
 }

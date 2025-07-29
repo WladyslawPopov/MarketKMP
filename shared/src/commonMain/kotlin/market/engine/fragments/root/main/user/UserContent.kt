@@ -43,7 +43,6 @@ import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.user.feedbacks.FeedbacksContent
-import market.engine.fragments.base.BackHandler
 import market.engine.widgets.tabs.TabRow
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
@@ -83,10 +82,6 @@ fun UserContent(
         }else{
             null
         }
-    }
-
-    BackHandler(modelState.value.backHandler){
-        component.onBack()
     }
 
     val isVisibleUserPanel = remember { viewModel.isVisibleUserPanel }

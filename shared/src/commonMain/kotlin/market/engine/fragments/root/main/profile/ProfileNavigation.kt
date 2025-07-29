@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -17,6 +16,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import market.engine.common.backAnimation
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
@@ -154,7 +154,44 @@ fun ProfileNavigation(
         stack = stack,
         modifier = modifier
             .fillMaxSize(),
-        animation = stackAnimation(fade())
+        animation = backAnimation(
+            backHandler = when (val screen = stack.active.instance) {
+                is ChildProfile.ListingChild -> screen.component.model.value.backHandler
+                is ChildProfile.OfferChild -> screen.component.model.value.backHandler
+                is ChildProfile.UserChild -> screen.component.model.value.backHandler
+                is ChildProfile.CreateOfferChild -> screen.component.model.value.backHandler
+                is ChildProfile.CreateOrderChild -> screen.component.model.value.backHandler
+                is ChildProfile.DialogsChild -> screen.component.model.value.backHandler
+                is ChildProfile.ProposalChild -> screen.component.model.value.backHandler
+                is ChildProfile.CreateSubscriptionChild -> screen.component.model.value.backHandler
+                is ChildProfile.ConversationsChild -> screen.component.model.value.backHandler
+                is ChildProfile.MyBidsChild -> screen.component.model.value.backHandler
+                is ChildProfile.MyOffersChild -> screen.component.model.value.backHandler
+                is ChildProfile.MyOrdersChild -> screen.component.model.value.backHandler
+                is ChildProfile.MyProposalsChild -> screen.component.model.value.backHandler
+                is ChildProfile.ProfileChild -> screen.component.model.value.backHandler
+                is ChildProfile.ProfileSettingsChild -> screen.component.model.value.backHandler
+            },
+            onBack = {
+                when (val screen = stack.active.instance) {
+                    is ChildProfile.ListingChild -> screen.component.goBack()
+                    is ChildProfile.OfferChild -> screen.component.onBackClick()
+                    is ChildProfile.UserChild -> screen.component.onBack()
+                    is ChildProfile.CreateOfferChild -> screen.component.onBackClicked()
+                    is ChildProfile.CreateOrderChild -> screen.component.onBackClicked()
+                    is ChildProfile.DialogsChild -> screen.component.onBackClicked()
+                    is ChildProfile.ProposalChild -> screen.component.goBack()
+                    is ChildProfile.CreateSubscriptionChild -> screen.component.onBackClicked()
+                    is ChildProfile.ConversationsChild -> screen.component.onBack()
+                    is ChildProfile.MyBidsChild -> screen.component.onBack()
+                    is ChildProfile.MyOffersChild -> screen.component.onBack()
+                    is ChildProfile.MyOrdersChild -> screen.component.onBack()
+                    is ChildProfile.MyProposalsChild -> screen.component.onBack()
+                    is ChildProfile.ProfileSettingsChild -> screen.component.onBack()
+                    is ChildProfile.ProfileChild -> {}
+                }
+            }
+        ),
     ) { child ->
         when (val screen = child.instance) {
             is ChildProfile.ProfileChild -> ProfileContent(screen.component, modifier, publicProfileNavigationItems)
@@ -197,9 +234,10 @@ fun ProfileNavigation(
     }
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 fun createProfileChild(
     config: ProfileConfig,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToSubscribe: () -> Unit

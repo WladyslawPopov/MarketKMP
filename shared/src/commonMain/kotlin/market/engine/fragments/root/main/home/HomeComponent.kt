@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.home
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -27,8 +28,9 @@ interface HomeComponent {
     fun goToNewSearch(listingData: ListingData = ListingData(), search: Boolean = true)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultHomeComponent(
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     private val navigateToListingSelected: (ListingData, Boolean) -> Unit,
     val navigateToLoginSelected: () -> Unit,
     val navigateToOfferSelected: (id: Long) -> Unit,
@@ -38,7 +40,7 @@ class DefaultHomeComponent(
     val navigateToSettingsSelected: () -> Unit,
     val navigateToMyProposalsSelected: () -> Unit,
     val navigateToNotificationHistorySelected: () -> Unit,
-) : HomeComponent, ComponentContext by componentContext {
+) : HomeComponent, JetpackComponentContext by componentContext {
 
     private val homeViewModel: HomeViewModel = HomeViewModel(this)
 

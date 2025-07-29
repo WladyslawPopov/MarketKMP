@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
@@ -17,6 +16,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.Value
 import kotlinx.serialization.Serializable
+import market.engine.common.backAnimation
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
@@ -122,7 +122,32 @@ fun FavoritesNavigation(
         stack = stack,
         modifier = modifier
             .fillMaxSize(),
-        animation = stackAnimation(fade())
+        animation = backAnimation(
+            backHandler = when (val screen = stack.active.instance) {
+                is ChildFavorites.ListingChild -> screen.component.model.value.backHandler
+                is ChildFavorites.OfferChild -> screen.component.model.value.backHandler
+                is ChildFavorites.UserChild -> screen.component.model.value.backHandler
+                is ChildFavorites.CreateOfferChild -> screen.component.model.value.backHandler
+                is ChildFavorites.CreateOrderChild -> screen.component.model.value.backHandler
+                is ChildFavorites.MessengerChild -> screen.component.model.value.backHandler
+                is ChildFavorites.ProposalChild -> screen.component.model.value.backHandler
+                is ChildFavorites.CreateSubscriptionChild -> screen.component.model.value.backHandler
+                is ChildFavorites.FavPagesChild -> screen.component.model.value.backHandler
+            },
+            onBack = {
+                when (val screen = stack.active.instance) {
+                    is ChildFavorites.ListingChild -> screen.component.goBack()
+                    is ChildFavorites.OfferChild -> screen.component.onBackClick()
+                    is ChildFavorites.UserChild -> screen.component.onBack()
+                    is ChildFavorites.CreateOfferChild -> screen.component.onBackClicked()
+                    is ChildFavorites.CreateOrderChild -> screen.component.onBackClicked()
+                    is ChildFavorites.MessengerChild -> screen.component.onBackClicked()
+                    is ChildFavorites.ProposalChild -> screen.component.goBack()
+                    is ChildFavorites.CreateSubscriptionChild -> screen.component.onBackClicked()
+                    is ChildFavorites.FavPagesChild -> {}
+                }
+            }
+        ),
     ) { child ->
         when (val screen = child.instance) {
             is ChildFavorites.FavPagesChild -> FavPagesNavigation(screen.component, modifier)
@@ -138,9 +163,10 @@ fun FavoritesNavigation(
     }
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 fun createFavoritesChild(
     config: FavoritesConfig,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     favoritesNavigation : StackNavigation<FavoritesConfig>,
     navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToConversations: () -> Unit,

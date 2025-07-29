@@ -186,21 +186,6 @@ class FavViewModel(
         }
     }
 
-    fun onBackNavigation(){
-        when(activeType.value){
-            ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (filtersCategoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
-                    filtersCategoryState.categoryViewModel.navigateBack()
-                }else{
-                    listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
-                }
-            }
-            else -> {
-                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
-            }
-        }
-    }
-
     fun deleteSelectsItems() {
         viewModelScope.launch {
             selectItems.value.forEach { item ->

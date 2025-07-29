@@ -10,7 +10,9 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.common.backAnimation
 import market.engine.core.data.globalData.ThemeResources.colors
+import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.fragments.root.contactUs.ContactUsContent
 import market.engine.fragments.root.dynamicSettings.DynamicSettingsContent
 import market.engine.fragments.root.login.LoginContent
@@ -30,7 +32,15 @@ fun RootNavigation(
     ) {
         Children(
             stack = childStack,
-            modifier = modifier.fillMaxSize()
+            modifier = modifier.fillMaxSize(),
+            animation = backAnimation(
+                backHandler = component.model.value.backHandler,
+                onBack = {
+                    if(childStack.active.instance !is RootComponent.Child.MainChild ) {
+                        goBack()
+                    }
+                }
+            ),
         ) { child ->
             when (val instance = child.instance) {
                 is RootComponent.Child.MainChild -> {

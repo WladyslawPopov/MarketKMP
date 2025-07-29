@@ -40,7 +40,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
-import market.engine.fragments.base.BackHandler
 import market.engine.widgets.ilustrations.CaptchaView
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.SimpleAppBar
@@ -89,10 +88,6 @@ fun LoginContent(
         } else {
             null
         }
-    }
-
-    BackHandler(modelState.value.backHandler) {
-        component.onBack()
     }
 
     DisposableEffect(Unit) {

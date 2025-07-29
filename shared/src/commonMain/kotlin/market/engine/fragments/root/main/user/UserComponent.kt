@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.user
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -43,17 +44,18 @@ interface UserComponent {
     fun goToSettings(key: String)
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultUserComponent(
     userId: Long,
     isClickedAboutMe: Boolean = false,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val goToListing: (ListingData) -> Unit,
     val navigateBack: () -> Unit,
     val navigateToSnapshot: (Long) -> Unit,
     val navigateToOrder: (Long, DealTypeGroup) -> Unit,
     val navigateToUser: (Long) -> Unit,
     val navigateToSubscriptions: () -> Unit,
-) : UserComponent, ComponentContext by componentContext {
+) : UserComponent, JetpackComponentContext by componentContext {
 
     val viewModel : UserViewModel = UserViewModel(userId, this)
 
@@ -105,7 +107,7 @@ class DefaultUserComponent(
         )
     }
 
-    private fun itemFeedback(config: FeedbackConfig, componentContext: ComponentContext) : FeedbacksComponent {
+    private fun itemFeedback(config: FeedbackConfig, componentContext: JetpackComponentContext) : FeedbacksComponent {
         return DefaultFeedbacksComponent(
             userId = model.value.userId,
             type = config.type,

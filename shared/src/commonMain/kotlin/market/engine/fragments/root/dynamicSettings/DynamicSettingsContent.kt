@@ -23,7 +23,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
-import market.engine.fragments.base.BackHandler
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.root.dynamicSettings.contents.AppSettingsContent
@@ -73,10 +72,6 @@ fun DynamicSettingsContent(
         }
     }
 
-    BackHandler(model.backHandler){
-        component.onBack()
-    }
-
     EdgeToEdgeScaffold(
         topBar = {
             SimpleAppBar(
@@ -85,7 +80,7 @@ fun DynamicSettingsContent(
                 TextAppBar(pageState.titleText)
             }
         },
-        modifier = Modifier.background(colors.primaryColor).pointerInput(Unit) {
+        modifier = Modifier.pointerInput(Unit) {
             detectTapGestures {
                 focusManager.clearFocus()
             }

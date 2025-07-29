@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.offer
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -43,10 +44,11 @@ interface OfferComponent {
     fun goToSubscribes()
 }
 
+@OptIn(ExperimentalDecomposeApi::class)
 class DefaultOfferComponent(
     val id: Long,
     val isSnapshot: Boolean,
-    componentContext: ComponentContext,
+    componentContext: JetpackComponentContext,
     val selectOffer: (Long) -> Unit,
     val navigationBack: () -> Unit,
     val navigationListing: (listingData: ListingData) -> Unit,
@@ -63,7 +65,7 @@ class DefaultOfferComponent(
     val navigationSubscribes: () -> Unit,
     val navigateToProposalPage: (offerId: Long, type: ProposalType) -> Unit,
     val navigateDynamicSettings: (type: String, offerId: Long?) -> Unit,
-) : OfferComponent, ComponentContext by componentContext {
+) : OfferComponent, JetpackComponentContext by componentContext {
 
     val viewModel : OfferViewModel = OfferViewModel(
         getKoin().get(), this, id, isSnapshot
