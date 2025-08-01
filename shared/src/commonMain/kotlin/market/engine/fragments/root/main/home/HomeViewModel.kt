@@ -1,18 +1,19 @@
 package market.engine.fragments.root.main.home
 
+import androidx.lifecycle.SavedStateHandle
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.common.Platform
 import market.engine.common.getPermissionHandler
 import market.engine.common.openUrl
@@ -26,30 +27,56 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.TopCategory
 import market.engine.core.data.states.HomeUiState
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
+import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
 
-class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
+class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
-    private val _responseOffersPromotedOnMainPage1 = MutableStateFlow<List<OfferItem>>(emptyList())
-    private val _responseOffersPromotedOnMainPage2 = MutableStateFlow<List<OfferItem>>(emptyList())
-    private val _responseCategory = MutableStateFlow<List<TopCategory>>(emptyList())
+    companion object {
+        private const val PROMO_1_KEY = "PromotedOnMainPage1Json"
+        private const val PROMO_2_KEY = "PromotedOnMainPage2Json"
+        private const val CATEGORIES_KEY = "CategoriesJson"
+    }
+
+    private val _responseOffersPromotedOnMainPage1 = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = PROMO_1_KEY,
+        initialValue = emptyList(),
+        serializer = ListSerializer(OfferItem.serializer())
+    )
+
+    private val _responseOffersPromotedOnMainPage2 = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = PROMO_2_KEY,
+        initialValue = emptyList(),
+        serializer = ListSerializer(OfferItem.serializer())
+    )
+
+    private val _responseCategory = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = CATEGORIES_KEY,
+        initialValue = emptyList(),
+        serializer = ListSerializer(Category.serializer())
+    )
 
     private val ld = ListingData()
 
     val uiState: StateFlow<HomeUiState> = combine(
         updatePage,
-        _responseCategory,
-        _responseOffersPromotedOnMainPage1,
-        _responseOffersPromotedOnMainPage2,
+        _responseCategory.state,
+        _responseOffersPromotedOnMainPage1.state,
+        _responseOffersPromotedOnMainPage2.state,
     ) { up, categories, promoOffers1, promoOffers2 ->
         val userInfo = UserData.userInfo
 
@@ -58,51 +85,67 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
         val notificationString = getString(strings.notificationTitle)
 
         HomeUiState(
-            categories = categories,
+            categories = categories.map {
+                TopCategory(
+                    id = it.id,
+                    parentId = it.parentId,
+                    name = it.name ?: getString(strings.categoryMain),
+                    parentName = null,
+                    icon = drawables.infoIcon
+                )
+            },
             promoOffers1 = promoOffers1,
             promoOffers2 = promoOffers2,
             unreadNotificationsCount = getUnreadNotificationsCount(),
             appBarData = SimpleAppBarData(
                 listItems = listOf(
-                    NavigationItem(
-                        title = "",
+                    NavigationItemUI(
+                        data = NavigationItem(
+                            title = "",
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                        ),
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
                         onClick = { updateModel() }
                     ),
-                    NavigationItem(
-                        title = proposalString,
+                    NavigationItemUI(
+                        data = NavigationItem(
+                            title = proposalString,
+                            hasNews = false,
+                            badgeCount = userInfo?.countUnreadPriceProposals,
+                            isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
+                        ),
                         icon = drawables.currencyIcon,
                         tint = colors.titleTextColor,
-                        hasNews = false,
-                        badgeCount = userInfo?.countUnreadPriceProposals,
-                        isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
                         onClick = {
                             component.goToMyProposals()
                         }
                     ),
-                    NavigationItem(
-                        title = messageString,
+                    NavigationItemUI(
+                        data = NavigationItem(
+                            title = messageString,
+                            hasNews = false,
+                            badgeCount = if ((userInfo?.countUnreadMessages
+                                    ?: 0) > 0
+                            ) (userInfo?.countUnreadMessages ?: 0) else null,
+                        ),
                         icon = drawables.mail,
                         tint = colors.brightBlue,
-                        hasNews = false,
-                        badgeCount = if ((userInfo?.countUnreadMessages
-                                ?: 0) > 0
-                        ) (userInfo?.countUnreadMessages ?: 0) else null,
                         onClick = {
                             component.goToMessenger()
                         }
                     ),
-                    NavigationItem(
-                        title = notificationString,
+                    NavigationItemUI(
+                        data = NavigationItem(
+                            title = notificationString,
+                            isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
+                            hasNews = false,
+                            badgeCount = getUnreadNotificationsCount(),
+                        ),
                         icon = drawables.notification,
                         tint = colors.titleTextColor,
-                        isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
-                        hasNews = false,
-                        badgeCount = getUnreadNotificationsCount(),
                         onClick = {
                             component.goToNotificationHistory()
                         }
@@ -137,73 +180,84 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
                 )
             ),
             drawerList = listOf(
-                NavigationItem(
-                    title = getString(strings.top100Title),
-                    subtitle = getString(strings.top100Subtitle),
+                NavigationItemUI(
+                    data = NavigationItem(
+                        title = getString(strings.top100Title),
+                        hasNews = false,
+                        badgeCount = null,
+                    ),
                     icon = drawables.top100Icon,
                     tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
                     onClick = {
                         openUrl("${SAPI.SERVER_BASE}rating_game")
                     }
                 ),
-                NavigationItem(
-                    title = getString(strings.helpTitle),
-                    subtitle = getString(strings.helpSubtitle),
+                NavigationItemUI(
+                    data = NavigationItem(
+                        title = getString(strings.helpTitle),
+                        subtitle = getString(strings.helpSubtitle),
+                        hasNews = false,
+                        badgeCount = null,
+                    ),
                     icon = drawables.helpIcon,
                     tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
                     onClick = {
                         openUrl("${SAPI.SERVER_BASE}help/general")
                     }
                 ),
-                NavigationItem(
-                    title = getString(strings.contactUsTitle),
-                    subtitle = getString(strings.contactUsSubtitle),
+                NavigationItemUI(
+                    data = NavigationItem(
+                        title = getString(strings.contactUsTitle),
+                        subtitle = getString(strings.contactUsSubtitle),
+                        hasNews = false,
+                        badgeCount = null,
+                    ),
                     icon = drawables.contactUsIcon,
                     tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
                     onClick = {
                         component.goToContactUs()
                     }
                 ),
-                NavigationItem(
-                    title = getString(strings.aboutUsTitle),
-                    subtitle = getString(strings.aboutUsSubtitle),
+                NavigationItemUI(
+                    data = NavigationItem(
+                        title = getString(strings.aboutUsTitle),
+                        subtitle = getString(strings.aboutUsSubtitle),
+                        hasNews = false,
+                        badgeCount = null,
+                    ),
                     icon = drawables.infoIcon,
                     tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
                     onClick = {
                         openUrl("${SAPI.SERVER_BASE}staticpage/doc/about_us")
                     }
                 ),
-                NavigationItem(
-                    title = getString(strings.reviewsTitle),
-                    subtitle = getString(strings.reviewsSubtitle),
+                NavigationItemUI(
+                    data = NavigationItem(
+                        title = getString(strings.reviewsTitle),
+                        subtitle = getString(strings.reviewsSubtitle),
+                        hasNews = false,
+                        badgeCount = null,
+                        isVisible = SAPI.REVIEW_URL != "",
+                    ),
                     icon = drawables.starIcon,
                     tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    isVisible = SAPI.REVIEW_URL != "",
                     onClick = {
                         openUrl(SAPI.REVIEW_URL)
                     }
                 ),
+                NavigationItemUI(
                 NavigationItem(
-                    title = getString(strings.settingsTitleApp),
-                    subtitle = getString(strings.settingsSubtitleApp),
+                        title = getString(strings.settingsTitleApp),
+                        subtitle = getString(strings.settingsSubtitleApp),
+                        hasNews = false,
+                        badgeCount = null,
+                    ),
                     icon = drawables.settingsIcon,
                     tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
                     onClick = {
                         component.goToAppSettings()
                     }
-                ),
+                )
             )
         )
     }.stateIn(
@@ -215,7 +269,10 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
     init {
         getPermissionHandler().askPermissionNotification()
         userRepository.updateToken()
-        updateModel()
+        printLogD("start viewModel", _responseOffersPromotedOnMainPage1.value.toString())
+        if(_responseOffersPromotedOnMainPage1.value.isEmpty()) {
+            updateModel()
+        }
         analyticsHelper.reportEvent("view_main_page", mapOf())
     }
 
@@ -228,21 +285,11 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
         }
         getOffersPromotedOnMainPage(0, 16)
         getOffersPromotedOnMainPage(1, 16)
-
     }
 
     fun setCategory(category: List<Category>) {
         viewModelScope.launch {
-            val defCat = getString(strings.categoryMain)
-            _responseCategory.value = category.map {
-                TopCategory(
-                    id = it.id,
-                    parentId = it.parentId,
-                    name = it.name ?: defCat,
-                    parentName = null,
-                    icon = drawables.infoIcon
-                )
-            }
+            _responseCategory.value = category
         }
     }
 
@@ -256,8 +303,13 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
                 val serializer = Payload.serializer(Offer.serializer())
                 val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
                 when(page){
-                    0 -> _responseOffersPromotedOnMainPage1.value = payload.objects.map { it.parseToOfferItem() }
-                    1 -> _responseOffersPromotedOnMainPage2.value = payload.objects.map { it.parseToOfferItem() }
+                    0 -> {
+                        val newOffers = payload.objects.map { it.parseToOfferItem() }
+                        _responseOffersPromotedOnMainPage1.value = newOffers
+                    }
+                    1 ->{
+                        _responseOffersPromotedOnMainPage2.value = payload.objects.map { it.parseToOfferItem() }
+                    }
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -282,8 +334,9 @@ class HomeViewModel(val component: HomeComponent) : CoreViewModel() {
             }?.interpretation = allPromo
 
             ld.searchData.clear(allPromo)
-
-            component.goToNewSearch(ld, false)
+            withContext(Dispatchers.Main) {
+                component.goToNewSearch(ld, false)
+            }
         }
     }
 

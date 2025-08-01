@@ -61,7 +61,7 @@ class CategoryOperations(private val apiService : APIService) {
         }
     }
 
-    suspend fun getRegions(): ArrayList<RegionOptions>? {
+    suspend fun getRegions(): List<RegionOptions>? {
         try {
             val response = apiService.getTaggedBy("region")
             if(response.payload != null) {

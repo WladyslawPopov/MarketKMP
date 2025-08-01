@@ -1,5 +1,6 @@
 package market.engine.fragments.root.verifyPage
 
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -22,8 +23,9 @@ class VerificationViewModel(
     val settingsType: String,
     val owner: Long?,
     val code: String?,
-    val component: VerificationComponent
-) : CoreViewModel() {
+    val component: VerificationComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     val userOperations : UserOperations by lazy { getKoin().get() }
 

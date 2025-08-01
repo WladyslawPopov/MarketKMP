@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
@@ -39,7 +41,9 @@ class DefaultProfileComponent(
     private val navigateToSubscriptions : () -> Unit
 ) : ProfileComponent, JetpackComponentContext by componentContext {
 
-    val viewModel by lazy {  CoreViewModel() }
+    val viewModel = viewModel("rootViewModel"){
+        CoreViewModel(createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         ProfileComponent.Model(

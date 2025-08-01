@@ -5,15 +5,20 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.SavedStateHandle
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -29,41 +34,107 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
-data class DynamicSettingsState(
-    val appBarState: SimpleAppBarData = SimpleAppBarData(),
+@Serializable
+data class DynamicSettingsData(
     val titleText: String = "",
     val fields: List<Fields> = emptyList(),
+    val errorMessage: String? = null
+)
+
+data class DynamicSettingsUIState(
+    val appBarState: SimpleAppBarData = SimpleAppBarData(),
     val errorMessage: Pair<AnnotatedString, String>? = null,
+    val data: DynamicSettingsData = DynamicSettingsData()
 )
 
 class DynamicSettingsViewModel(
     val settingsType: String,
     val owner : Long? = null,
     val code : String? = null,
-    val component: DynamicSettingsComponent
-) : CoreViewModel() {
+    val component: DynamicSettingsComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     private val userOperations : UserOperations by lazy { getKoin().get() }
 
-    val deliveryCardsViewModel = DeliveryCardsViewModel()
+    val deliveryCardsViewModel = DeliveryCardsViewModel(savedStateHandle)
 
-    private val _dynamicSettingsState = MutableStateFlow(DynamicSettingsState())
-    val dynamicSettingsState = _dynamicSettingsState.asStateFlow()
+    private val _dynamicSettingsState = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "dynamicSettingsState",
+        DynamicSettingsData(),
+        DynamicSettingsData.serializer()
+    )
 
     private val _blocList = MutableStateFlow<List<ListItem>>(emptyList())
     val blocList = _blocList.asStateFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val dynamicSettingsUIState = _dynamicSettingsState.state.flatMapLatest { data ->
+        flowOf(
+            DynamicSettingsUIState(
+                data = data,
+                errorMessage = if (data.errorMessage?.isNotEmpty() == true) {
+                    Pair(
+                        buildAnnotatedString {
+                            append(getString(strings.yourCurrentLogin))
+                            append("  ")
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.titleTextColor,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(UserData.userInfo?.login.toString())
+                            }
+                        },
+                        data.errorMessage
+                    )
+                }else{
+                    null
+                },
+                appBarState = SimpleAppBarData(
+                    onBackClick = {
+                        goBack()
+                    },
+                    listItems = listOf(
+                        NavigationItemUI(
+                            NavigationItem(
+                                title = "",
+
+                                hasNews = false,
+                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                                badgeCount = null,
+                            ),
+                            icon = drawables.recycleIcon,
+                            tint = colors.inactiveBottomNavIconColor,
+                            onClick = {
+                                setUpPage()
+                            }
+                        )
+                    )
+                )
+            )
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        initialValue = DynamicSettingsUIState()
+    )
 
     init {
         setUpPage()
@@ -211,46 +282,10 @@ class DynamicSettingsViewModel(
                     }
                 }
 
-                _dynamicSettingsState.value = DynamicSettingsState(
+                _dynamicSettingsState.value = DynamicSettingsData(
                     titleText = title,
                     fields = payload?.fields ?: emptyList(),
-                    errorMessage = if (resErr?.humanMessage?.isNotEmpty() == true) {
-                        Pair(
-                            buildAnnotatedString {
-                                append(getString(strings.yourCurrentLogin))
-                                append("  ")
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.titleTextColor,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                ) {
-                                    append(UserData.userInfo?.login.toString())
-                                }
-                            },
-                            resErr.humanMessage
-                        )
-                    }else{
-                        null
-                    },
-                    appBarState = SimpleAppBarData(
-                        onBackClick = {
-                            goBack()
-                        },
-                        listItems = listOf(
-                            NavigationItem(
-                                title = "",
-                                icon = drawables.recycleIcon,
-                                tint = colors.inactiveBottomNavIconColor,
-                                hasNews = false,
-                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                                badgeCount = null,
-                                onClick = {
-                                    setUpPage()
-                                }
-                            ),
-                        )
-                    )
+                    errorMessage = resErr?.humanMessage
                 )
             }catch (e : ServerErrorException){
                 onError(e)
@@ -271,7 +306,7 @@ class DynamicSettingsViewModel(
             userRepository.updateToken()
 
             val body = HashMap<String, JsonElement>()
-            dynamicSettingsState.value.fields.forEach { field ->
+            _dynamicSettingsState.value.fields.forEach { field ->
                 if (field.data != null && field.key != "verifiedbycaptcha" && field.key != "captcha_image" && field.data?.jsonPrimitive?.content?.isNotBlank() == true) {
                     body[field.key ?: ""] = field.data!!
                 }
@@ -423,7 +458,7 @@ class DynamicSettingsViewModel(
     }
 
     fun removeBidsOfUser(){
-        val field = dynamicSettingsState.value.fields.find { it.key == "bidders" } ?: return
+        val field = _dynamicSettingsState.value.fields.find { it.key == "bidders" } ?: return
         val data = field.data?.jsonArray
         field.data = buildJsonArray {
             field.choices?.forEachIndexed { index, choices ->

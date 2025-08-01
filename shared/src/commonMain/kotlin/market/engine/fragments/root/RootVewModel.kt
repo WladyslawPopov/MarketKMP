@@ -1,5 +1,6 @@
 package market.engine.fragments.root
 
+import androidx.lifecycle.SavedStateHandle
 import com.arkivanov.decompose.router.stack.active
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -12,7 +13,7 @@ import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToMain
 
-class RootVewModel(val component: RootComponent) : CoreViewModel() {
+class RootVewModel(val component: RootComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
     init {
         viewModelScope.launch {
             val isFirstLaunch = settings.getSettingValue("isFirstLaunch", true)

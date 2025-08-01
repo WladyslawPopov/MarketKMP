@@ -15,13 +15,13 @@ import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.PhotoSave
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
 
 @Composable
 fun DialogsImgUploadItem(
-    item : PhotoTemp,
+    item : PhotoSave,
     delete : () -> Unit,
 ) {
     Card(

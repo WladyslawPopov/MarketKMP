@@ -17,7 +17,6 @@ import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.WhoPaysForDelivery
 import market.engine.core.utils.getCurrentDate
 
-
 @Serializable
 data class OfferItem(
     val id: Long = 1L,

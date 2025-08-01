@@ -1,13 +1,13 @@
 package market.engine.widgets.filterContents.deliveryCardsContents
 
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.constants.successToastItem
@@ -17,22 +17,48 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryAddress
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform
 
-class DeliveryCardsViewModel: CoreViewModel() {
-    private val _deliveryCards = MutableStateFlow<List<DeliveryAddress>>(emptyList())
-    val deliveryCardsState = _deliveryCards.asStateFlow()
+class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(savedStateHandle) {
+    private val _deliveryCards = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "deliveryCards",
+        emptyList(),
+        ListSerializer(DeliveryAddress.serializer())
+    )
+    val deliveryCardsState = _deliveryCards.state
 
-    private val _deliveryFields = MutableStateFlow<List<Fields>>(emptyList())
-    val deliveryFieldsState = _deliveryFields.asStateFlow()
+    private val _deliveryFields = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "deliveryFields",
+        emptyList(),
+        ListSerializer(Fields.serializer())
+    )
+    val deliveryFieldsState = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "deliveryFields",
+        emptyList(),
+        ListSerializer(Fields.serializer())
+    )
 
-    private val _showFields = MutableStateFlow(false)
-    val showFieldsState = _showFields.asStateFlow()
+    private val _showFields = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "showFields",
+        false,
+        Boolean.serializer()
+    )
+    val showFieldsState = _showFields.state
 
-    private val _selectedCard = MutableStateFlow<Long?>(null)
-    val selectedCardState = _selectedCard.asStateFlow()
+    private val _selectedCard = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectedCard",
+        1L,
+        Long.serializer()
+    )
+    val selectedCardState = _selectedCard.state
 
 
     private val userOperations by lazy { KoinPlatform.getKoin().get<UserOperations>() }
@@ -190,7 +216,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
                         )
 
                         _showFields.value = false
-                        _selectedCard.value = cards.find { it.isDefault }?.id
+                        _selectedCard.value = cards.find { it.isDefault }?.id ?: 1L
 
                         refreshCards()
                     } else {
@@ -248,7 +274,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
         val cards = _deliveryCards.value
         _showFields.value = false
         setDeliveryFields(cards.find { it.isDefault }?.id)
-        _selectedCard.value = cards.find { it.isDefault }?.id
+        _selectedCard.value = cards.find { it.isDefault }?.id ?: 1L
     }
 
     fun deleteCard(){
@@ -259,7 +285,7 @@ class DeliveryCardsViewModel: CoreViewModel() {
                 address
             ){
                 _showFields.value = false
-                _selectedCard.value = null
+                _selectedCard.value = 1L
                 refreshCards()
             }
         }

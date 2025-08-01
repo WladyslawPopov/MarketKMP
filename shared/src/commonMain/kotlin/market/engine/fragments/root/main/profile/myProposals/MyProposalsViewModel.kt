@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.profile.myProposals
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -15,8 +16,6 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
@@ -27,7 +26,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -37,18 +36,19 @@ import org.jetbrains.compose.resources.getString
 
 class MyProposalsViewModel(
     val type: LotsType,
-    val component: MyProposalsComponent
-) : CoreViewModel() {
+    val component: MyProposalsComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel()
+    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
     val ld = listingBaseViewModel.listingData
     val activeType = listingBaseViewModel.activeWindowType
 
     val categoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
-        CategoryViewModel(isFilters = true)
+        CategoryViewModel(isFilters = true, savedStateHandle = savedStateHandle)
     )
 
     val pagingParamsFlow: Flow<ListingData> = combine(
@@ -61,10 +61,11 @@ class MyProposalsViewModel(
 
     private val filtersCategoryModel = CategoryViewModel(
         isFilters = true,
+        savedStateHandle = savedStateHandle
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<OfferBaseViewModel>> = pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -74,11 +75,11 @@ class MyProposalsViewModel(
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
-                    OfferRepository(
+                    OfferBaseViewModel(
                         offer= offer,
                         listingParams,
                         events = OfferRepositoryEventsImpl(this, component),
-                        this
+                        savedStateHandle
                     )
                 }
             }
@@ -112,25 +113,15 @@ class MyProposalsViewModel(
                     add(
                         NavigationItem(
                             title = filterString,
-                            icon = drawables.filterIcon,
-                            tint = colors.black,
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
-                            }
                         )
                     )
                     add(
                         NavigationItem(
                             title = sortString,
-                            icon = drawables.sortIcon,
-                            tint = colors.black,
                             hasNews = ld.value.data.sort != null,
                             badgeCount = null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
-                            }
                         )
                     )
                 }

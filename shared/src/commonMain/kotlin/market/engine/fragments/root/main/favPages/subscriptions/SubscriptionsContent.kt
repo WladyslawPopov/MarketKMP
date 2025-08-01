@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.collectAsLazyPagingItems
@@ -23,6 +24,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.items.ActiveFilterListingItem
@@ -114,6 +116,28 @@ fun SubscriptionsContent(
                         ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if (listingData.sort != null) {
+                            ActiveFilterListingItem(
+                                FilterListingBtnItem(
+                                    text = listingData.sort?.interpretation ?: "",
+                                    removeFilter = {
+                                        listingBaseViewModel.setListingData(
+                                            listingDataState.copy(
+                                                data = listingData.copy(
+                                                    sort = null
+                                                )
+                                            )
+                                        )
+                                        listingBaseViewModel.refresh()
+                                    },
+                                    itemClick = {
+                                        listingBaseViewModel.setActiveWindowType(
+                                            ActiveWindowListingType.SORTING
+                                        )
+                                    }
+                                ))
+                        }
+
                         SmallIconButton(
                             drawables.newLotIcon,
                             color = colors.positiveGreen,
@@ -121,14 +145,10 @@ fun SubscriptionsContent(
                         ) {
                             component.goToCreateNewSubscription()
                         }
-                        val createSubBtn by viewModel.filterListingBtnItem.collectAsState()
-                        if (listingData.sort != null) {
-                            ActiveFilterListingItem(createSubBtn.first())
-                        }
 
                         SmallIconButton(
                             drawables.sortIcon,
-                            color = colors.black
+                            color = colors.black,
                         ) {
                             listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
                         }
@@ -155,12 +175,12 @@ fun SubscriptionsContent(
                         )
                     }
                 )
-                val titleDialog by viewModel.titleDialog.collectAsState()
-                val deleteId by viewModel.deleteId.collectAsState()
+                val titleDialog by viewModel.titleDialog.state.collectAsState()
+                val deleteId by viewModel.deleteId.state.collectAsState()
 
                 AccessDialog(
                     showDialog = deleteId != 1L,
-                    title = titleDialog,
+                    title = AnnotatedString(titleDialog),
                     onDismiss = {
                         viewModel.closeDialog()
                     },

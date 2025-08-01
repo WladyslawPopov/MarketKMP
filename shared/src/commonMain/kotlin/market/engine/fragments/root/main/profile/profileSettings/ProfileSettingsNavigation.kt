@@ -15,9 +15,9 @@ import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.Tab
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.items.TabWithIcon
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileChildrenComponent
 import market.engine.widgets.bars.appBars.DrawerAppBar
@@ -36,7 +36,7 @@ data class ProfileSettingsConfig(
 fun ProfileSettingsNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: List<NavigationItem>
+    publicProfileNavigationItems: List<NavigationItemUI>
 ) {
     val hideDrawer = remember { mutableStateOf(isBigScreen.value) }
     val selectedTabIndex = rememberSaveable { mutableStateOf(0) }
@@ -53,13 +53,13 @@ fun ProfileSettingsNavigation(
 
             val tabs = remember {
                 listOf(
-                    Tab(
+                    TabWithIcon(
                         title = globalSettings,
                     ),
-                    Tab(
+                    TabWithIcon(
                         title = sellerSettings,
                     ),
-                    Tab(
+                    TabWithIcon(
                         title = additionalSettings,
                     )
                 )

@@ -1,16 +1,14 @@
 package market.engine.fragments.base.listing
 
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
@@ -23,16 +21,19 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.Tab
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.SearchUiState
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.items.TabWithIcon
 import market.engine.core.data.states.SwipeTabsBarState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.shared.SearchHistory
@@ -67,51 +68,111 @@ data class SearchEventsImpl(
 
     override fun onTabSelect(tab : Int) = viewModel.changeSearchTab(tab)
 
-    override fun updateSearch(value: TextFieldValue) = viewModel.onUpdateSearchString(value)
+    override fun updateSearch(value: String) = viewModel.onUpdateSearchString(value)
     override fun clearSearch() = viewModel.clearSearch()
-
 }
 
 class ListingBaseViewModel(
     showSwipeTabs : Boolean = false,
     val listingComponent: ListingComponent? = null,
     val deleteSelectedItems: () -> Unit = {},
-) : CoreViewModel() {
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
-    private val _selectItems = MutableStateFlow<List<Long>>(listOf())
-    val selectItems : StateFlow<List<Long>> = _selectItems.asStateFlow()
+    private val _selectItems = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "selectItems",
+        initialValue = emptyList(),
+        serializer = ListSerializer(
+            Long.serializer()
+        )
+    )
+    val selectItems : StateFlow<List<Long>> = _selectItems.state
 
-    private val _totalCount = MutableStateFlow(0)
-    val totalCount : StateFlow<Int> = _totalCount.asStateFlow()
+    private val _totalCount = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "totalCount",
+        initialValue = 0,
+        serializer = Int.serializer()
+    )
+    val totalCount : StateFlow<Int> = _totalCount.state
 
-    private val _listingType = MutableStateFlow(0)
-    val listingType : StateFlow<Int> = _listingType.asStateFlow()
+    private val _listingType = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "listingType",
+        initialValue = 0,
+        serializer = Int.serializer()
+    )
+    val listingType : StateFlow<Int> = _listingType.state
 
-    private val _listingData = MutableStateFlow(ListingData())
-    val listingData : StateFlow<ListingData> = _listingData.asStateFlow()
+    private val _listingData = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "listingData",
+        initialValue = ListingData(),
+        serializer = ListingData.serializer()
+    )
+    val listingData : StateFlow<ListingData> = _listingData.state
 
-    private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
-    val activeWindowType : StateFlow<ActiveWindowListingType> = _activeWindowType.asStateFlow()
+    private val _activeWindowType = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "activeWindowType",
+        initialValue = ActiveWindowListingType.LISTING,
+        serializer = ActiveWindowListingType.serializer()
+    )
+    val activeWindowType : StateFlow<ActiveWindowListingType> = _activeWindowType.state
 
-    private val _changeSearchTab = MutableStateFlow(0)
+    private val _changeSearchTab = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "changeSearchTab",
+        initialValue = 0,
+        serializer = Int.serializer()
+    )
 
-    private val _responseHistory = MutableStateFlow<List<SearchHistoryItem>>(emptyList())
-    val searchCategoryModel = CategoryViewModel(isFilters = true)
+    private val _responseHistory = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "responseHistory",
+        initialValue = emptyList(),
+        serializer = ListSerializer(SearchHistoryItem.serializer())
+    )
 
-    private val _promoList = MutableStateFlow<List<OfferItem>>(emptyList())
-    val promoList : StateFlow<List<OfferItem>> = _promoList.asStateFlow()
+    private val _promoList = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "promoList",
+        initialValue = emptyList(),
+        serializer = ListSerializer(OfferItem.serializer())
+    )
+    val promoList : StateFlow<List<OfferItem>> = _promoList.state
 
-    private val _isReversingPaging = MutableStateFlow(false)
-    val isReversingPaging : StateFlow<Boolean> = _isReversingPaging.asStateFlow()
+    val searchCategoryModel = CategoryViewModel(
+        isFilters = true,
+        savedStateHandle = savedStateHandle
+    )
 
-    private val _listItemsNavigationFilterBar = MutableStateFlow<List<NavigationItem>>(emptyList())
+    private val _isReversingPaging = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "isReversingPaging",
+        initialValue = false,
+        serializer = Boolean.serializer()
+    )
+    val isReversingPaging : StateFlow<Boolean> = _isReversingPaging.state
 
-    private val _searchString = MutableStateFlow(TextFieldValue(""))
+    private val _listItemsNavigationFilterBar = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "listItemsNavigationFilterBar",
+        initialValue = emptyList(),
+        serializer = ListSerializer(NavigationItem.serializer())
+    )
+    private val _searchString = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "searchString",
+        initialValue = "",
+        serializer = String.serializer()
+    )
 
     val filterBarUiState : StateFlow<FilterBarUiState> = combine(
-        _listingType,
-        _listingData,
-        _listItemsNavigationFilterBar
+        _listingType.state,
+        _listingData.state,
+        _listItemsNavigationFilterBar.state
     )
     { listingType, listingData, listItemsNavigation ->
         val ld = listingData.data
@@ -121,9 +182,13 @@ class ListingBaseViewModel(
         val buyNowString = getString(strings.buyNow)
         val allString = getString(strings.allOffers)
         val userDef = getString(strings.searchUsersSearch)
-        val sortString = getString(strings.sort)
+
         val searchFinishedString = getString(strings.searchUserFinishedStringChoice)
         val userString = getString(strings.searchUsersSearch)
+
+        val filterString = getString(strings.filter)
+        val sortString = getString(strings.sort)
+        val chooseAction = getString(strings.chooseAction)
 
         val filters = ld.filters.filter { it.value != "" && it.interpretation?.isNotBlank() == true }
 
@@ -150,21 +215,12 @@ class ListingBaseViewModel(
         val tabs = listOf(
             Tab(
                 title = allString,
-                onClick = {
-                    changeSaleTab("")
-                }
             ),
             Tab(
                 title = auctionString,
-                onClick = {
-                    changeSaleTab("auction")
-                }
             ),
             Tab(
                 title = buyNowString,
-                onClick = {
-                    changeSaleTab("buynow")
-                }
             ),
         )
 
@@ -243,10 +299,38 @@ class ListingBaseViewModel(
                 SwipeTabsBarState(
                     tabs = tabs,
                     currentTab = curTab,
-                    isTabsVisible = true
+                    isTabsVisible = true,
+                    onClick = {
+                        when(curTab){
+                            allString -> {
+                                changeSaleTab("")
+                            }
+                            auctionString -> {
+                                changeSaleTab("auction")
+                            }
+                            buyNowString -> {
+                                changeSaleTab("buynow")
+                            }
+                        }
+                    }
                 )
             } else {
                 null
+            },
+            onClick = { item ->
+                when(item.title){
+                     filterString-> {
+                        setActiveWindowType(ActiveWindowListingType.FILTERS)
+                    }
+                    sortString -> {
+                        setActiveWindowType(ActiveWindowListingType.SORTING)
+                    }
+                    chooseAction -> {
+                        val newType = if (listingType == 0) 1 else 0
+                        settings.setSettingValue("listingType", newType)
+                        setListingType(newType)
+                    }
+                }
             }
         )
     }.stateIn(
@@ -256,11 +340,11 @@ class ListingBaseViewModel(
     )
 
     val searchDataState: StateFlow<SearchUiState?> = combine(
-        _responseHistory,
-        _changeSearchTab,
-        _listingData,
-        _searchString,
-        _activeWindowType
+        _responseHistory.state,
+        _changeSearchTab.state,
+        _listingData.state,
+        _searchString.state,
+        _activeWindowType.state
     )
     { responseHistory, changeSearchTab, listingData, searchString, activeType ->
         val searchHistory = getString(strings.searchHistory)
@@ -270,15 +354,15 @@ class ListingBaseViewModel(
         if (listingComponent != null) {
             SearchUiState(
                 searchData = listingData.searchData,
-                searchString = searchString,
+                searchString = searchDataState.value?.searchString ?: searchString,
                 searchHistory = responseHistory,
                 selectedTabIndex = changeSearchTab,
                 tabs = buildList {
                     add(
-                        Tab(searchHistory)
+                        TabWithIcon(searchHistory)
                     )
                     if (UserData.token != "") {
-                        add(Tab(subTitle))
+                        add(TabWithIcon(subTitle))
                     }
                 },
                 appBarData = SimpleAppBarData(
@@ -286,12 +370,14 @@ class ListingBaseViewModel(
                         changeOpenSearch(false)
                     },
                     listItems = listOf(
-                        NavigationItem(
-                            title = searchTitle,
+                        NavigationItemUI(
+                            data = NavigationItem(
+                                title = searchTitle,
+                                hasNews = false,
+                                badgeCount = null,
+                            ),
                             icon = drawables.searchIcon,
                             tint = colors.black,
-                            hasNews = false,
-                            badgeCount = null,
                             onClick = {
                                 changeOpenSearch(false)
                             }
@@ -330,7 +416,7 @@ class ListingBaseViewModel(
     }
 
     fun clearSearch() {
-        _searchString.value = TextFieldValue("")
+        _searchString.value = ""
         _listingData.update {
             it.copy(searchData = it.searchData.copy(searchString = ""))
         }
@@ -379,10 +465,7 @@ class ListingBaseViewModel(
         val sd = listingData.value.searchData
         if (value) {
 
-            _searchString.value = TextFieldValue(
-                sd.searchString,
-                TextRange(sd.searchString.length)
-            )
+            _searchString.value = sd.searchString
 
             val eventParameters = mapOf(
                 "search_string" to sd.searchString,
@@ -440,17 +523,17 @@ class ListingBaseViewModel(
         val selectedUserFinished = searchData.searchFinished
 
         addHistory(
-            _searchString.value.text,
+            _searchString.value,
             if(selectedUserLogin == null) selectedUser else false,
             selectedUserFinished
         )
 
         if (selectedUser && selectedUserLogin == null){
-            if (_searchString.value.text != "") {
+            if (_searchString.value != "") {
                 searchData.isRefreshing = true
-                searchData.userLogin = _searchString.value.text
+                searchData.userLogin = _searchString.value
                 searchData.userSearch = selectedUser
-                _searchString.value = TextFieldValue()
+                _searchString.value = ""
             }
         }else{
             if (searchData.userLogin != selectedUserLogin){
@@ -464,8 +547,8 @@ class ListingBaseViewModel(
             }
         }
 
-        if (searchData.searchString != _searchString.value.text) {
-            searchData.searchString = _searchString.value.text
+        if (searchData.searchString != _searchString.value) {
+            searchData.searchString = _searchString.value
             searchData.isRefreshing = true
         }
 
@@ -490,7 +573,7 @@ class ListingBaseViewModel(
     fun searchRefresh() {
         setLoading(true)
         onError(ServerErrorException())
-        getHistory(_searchString.value.text)
+        getHistory(_searchString.value)
         setSearchFilters()
         viewModelScope.launch {
             delay(1000)
@@ -499,7 +582,7 @@ class ListingBaseViewModel(
     }
 
     fun onClickHistoryItem(item: SearchHistoryItem) {
-        _searchString.value = _searchString.value.copy(text = item.query)
+        _searchString.value = item.query
 
         _listingData.update {
             it.copy(
@@ -516,7 +599,7 @@ class ListingBaseViewModel(
     }
 
     fun editHistoryItem(item: SearchHistoryItem) {
-        _searchString.value = _searchString.value.copy(text = item.query, selection = TextRange(item.query.length))
+        _searchString.value = item.query
         deleteItemHistory(item.id)
     }
 
@@ -550,9 +633,9 @@ class ListingBaseViewModel(
         }
     }
 
-    fun onUpdateSearchString(value: TextFieldValue) {
+    fun onUpdateSearchString(value: String) {
         _searchString.value = value
-        getHistory(value.text)
+        getHistory(value)
     }
 
     fun deleteHistory() {
@@ -674,7 +757,7 @@ class ListingBaseViewModel(
 
     fun clearListingData() {
         viewModelScope.launch {
-            _listingData.update { listingData ->
+            _listingData.asyncUpdate { listingData ->
                 val sd = listingData.searchData.copy()
                 sd.clear(getString(strings.categoryMain))
 
@@ -710,7 +793,7 @@ class ListingBaseViewModel(
 
     fun clearSearchCategory() {
         viewModelScope.launch {
-            _listingData.update { currentListingData ->
+            _listingData.asyncUpdate { currentListingData ->
                 currentListingData.searchData.clear(getString(strings.categoryMain))
                 currentListingData.copy()
             }

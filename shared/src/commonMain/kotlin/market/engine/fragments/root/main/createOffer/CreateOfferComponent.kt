@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.createOffer
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -40,13 +42,16 @@ class DefaultCreateOfferComponent(
     val navigateToCreateOffer: (Long?, List<Long>?, CreateOfferType) -> Unit
 ) : CreateOfferComponent, JetpackComponentContext by componentContext {
 
-    private val createOfferViewModel : CreateOfferViewModel = CreateOfferViewModel(
-        catPath = catPath,
-        offerId = offerId,
-        type = type,
-        externalImages = externalImages,
-        component = this
-    )
+    private val createOfferViewModel = viewModel("createOfferViewModel") {
+        CreateOfferViewModel(
+            catPath = catPath,
+            offerId = offerId,
+            type = type,
+            externalImages = externalImages,
+            component = this@DefaultCreateOfferComponent,
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
 
     private val _model = MutableValue(
         CreateOfferComponent.Model(

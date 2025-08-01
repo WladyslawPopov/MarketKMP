@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile.myBids
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -41,7 +43,9 @@ class DefaultMyBidsComponent(
     val navigateBack: () -> Unit
 ) : MyBidsComponent, JetpackComponentContext by componentContext {
 
-    private val viewModel : MyBidsViewModel = MyBidsViewModel(type, this)
+    private val viewModel = viewModel("myBidsViewModel"){
+        MyBidsViewModel(type, this@DefaultMyBidsComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         MyBidsComponent.Model(

@@ -34,17 +34,16 @@ fun PopUpMenu(
     ) {
         menuList.forEach { menu ->
             DropdownMenuItem(
-                leadingIcon =
-                    menu.icon?.let {
-                        {
-                            Icon(
-                                painterResource(menu.icon!!),
-                                contentDescription = stringResource(strings.shareOffer),
-                                modifier = Modifier.size(dimens.smallIconSize),
-                                tint = colors.steelBlue
-                            )
-                        }
-                    },
+                leadingIcon = {
+                    menu.icon?.let{
+                        Icon(
+                            painterResource(it),
+                            contentDescription = stringResource(strings.shareOffer),
+                            modifier = Modifier.size(dimens.smallIconSize),
+                            tint = colors.steelBlue
+                        )
+                    }
+                },
                 text = {
                     Text(
                         text = menu.title,
@@ -57,6 +56,7 @@ fun PopUpMenu(
                     onClosed()
                 }
             )
+
             if (menuList.indexOf(menu) != menuList.lastIndex)
                 HorizontalDivider(Modifier)
         }

@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.Tab
+import market.engine.core.data.items.TabWithIcon
 import market.engine.widgets.dropdown_menu.PopUpMenu
 import market.engine.widgets.rows.LazyRowWithScrollBars
 import sh.calvin.reorderable.ReorderableItem
@@ -36,12 +36,13 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReorderTabRow(
-    tabs: List<Tab>,
+    tabs: List<TabWithIcon>,
     selectedTab: Int,
     lazyListState: LazyListState,
     menuList: List<MenuItem>,
     isDragMode: Boolean,
-    onTabsReordered: (List<Tab>) -> Unit, // Callback when tabs are reordered
+    onTabsReordered: (List<TabWithIcon>) -> Unit, // Callback when tabs are reordered
+    onClick: (Long) -> Unit = {},
     onLongClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -75,7 +76,7 @@ fun ReorderTabRow(
                             .combinedClickable(
                                 onClick = {
                                     if (!isDragMode) {
-                                        item.onClick()
+                                        onClick(item.id)
                                     }
                                 },
                                 onLongClick = {

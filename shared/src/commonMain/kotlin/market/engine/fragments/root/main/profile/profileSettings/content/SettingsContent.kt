@@ -10,14 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.texts.SeparatorLabel
 
 @Composable
 fun SettingsContent(
     separatorString: String,
-    list: List<NavigationItem>,
+    list: List<NavigationItemUI>,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -28,7 +28,7 @@ fun SettingsContent(
             title = separatorString
         )
         list.forEach { item ->
-            if (item.isVisible) {
+            if (item.data.isVisible) {
                 getNavigationItem(
                     item,
                     label = {
@@ -38,15 +38,15 @@ fun SettingsContent(
                             horizontalAlignment = Alignment.Start
                         ) {
                             Text(
-                                item.title,
+                                item.data.title,
                                 color = colors.black,
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 lineHeight = dimens.largeText,
                             )
 
-                            if (item.subtitle != null) {
+                            if (item.data.subtitle != null) {
                                 Text(
-                                    item.subtitle,
+                                    item.data.subtitle,
                                     color = colors.grayText,
                                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                     lineHeight = dimens.largeText

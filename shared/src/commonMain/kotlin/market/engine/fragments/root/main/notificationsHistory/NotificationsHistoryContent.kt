@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.notificationsHistory
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,7 +16,8 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.utils.getDeepLinkByType
 import market.engine.fragments.base.EdgeToEdgeScaffold
@@ -53,7 +55,7 @@ fun NotificationsHistoryContent(
     }
 
     val noFound = remember(responseGetPage) {
-        if (responseGetPage?.isEmpty() == true) {
+        if (responseGetPage.isEmpty()) {
             @Composable {
                 NoItemsFoundLayout {
                     viewModel.getPage()
@@ -69,15 +71,17 @@ fun NotificationsHistoryContent(
             SimpleAppBar(
                 data = SimpleAppBarData(
                     listItems = listOf(
-                        NavigationItem(
-                            title = "",
+                        NavigationItemUI(
+                            NavigationItem(
+                                title = "",
+                                hasNews = false,
+                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                                badgeCount = null,
+                            ),
                             icon = drawables.recycleIcon,
                             tint = colors.inactiveBottomNavIconColor,
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
                             onClick = viewModel::getPage
-                        ),
+                        )
                     ),
                     onBackClick = component::onBackClicked
                 )
@@ -100,18 +104,14 @@ fun NotificationsHistoryContent(
             modifierList = Modifier.fillMaxSize(),
             contentPadding = contentPadding,
         ) {
-            items(responseGetPage?.size ?: 0, key = { i ->
-                responseGetPage?.get(i)?.id ?: i
-            }) { i->
-                responseGetPage?.get(i)?.let { item ->
-                    NotificationsHistoryItem(item) {
-                        val link = item.getDeepLinkByType()
-                        if (link != null) {
-                            component.goToDeepLink(link)
-                        }else{
-                            viewModel.deleteNotification(item.id)
-                            component.onBackClicked()
-                        }
+            items(responseGetPage, key = { i -> i.id }) { item ->
+                NotificationsHistoryItem(item) {
+                    val link = item.getDeepLinkByType()
+                    if (link != null) {
+                        component.goToDeepLink(link)
+                    }else{
+                        viewModel.deleteNotification(item.id)
+                        component.onBackClicked()
                     }
                 }
             }

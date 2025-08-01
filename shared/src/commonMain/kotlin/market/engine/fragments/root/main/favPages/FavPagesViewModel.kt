@@ -1,17 +1,16 @@
 package market.engine.fragments.root.main.favPages
 
-import androidx.compose.ui.text.AnnotatedString
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import market.engine.common.Platform
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -19,47 +18,76 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
+import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.Tab
-import market.engine.core.data.states.MenuData
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import market.engine.widgets.tooltip.TooltipData
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
+
 
 data class FavPagesState(
     val appState : SimpleAppBarData = SimpleAppBarData(),
     val isDragMode: Boolean = false
 )
 
-class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
+class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
-    private val offersListOperations = OffersListOperations(apiService)
+    private val offersListOperations : OffersListOperations = getKoin().get()
 
-    private val _favoritesTabList = MutableStateFlow(emptyList<Tab>())
-    val favoritesTabList = _favoritesTabList.asStateFlow()
+    private val _favoritesTabList = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "favoritesTabList",
+        emptyList(),
+        ListSerializer(Tab.serializer())
+    )
+    val favoritesTabList = _favoritesTabList.state
 
-    private val _initPosition = MutableStateFlow(0)
-    val initPosition = _initPosition.asStateFlow()
+    private val _initPosition = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "initPosition",
+        0,
+        Int.serializer()
+    )
+    val initPosition = _initPosition.state
 
-    private val _isDragMode = MutableStateFlow(false)
+    private val _customDialogState = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "customDialogState",
+        CustomDialogState(),
+        CustomDialogState.serializer()
+    )
+    val customDialogState = _customDialogState.state
 
-    private val _isMenuVisible = MutableStateFlow(false)
+    private val _isDragMode = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isDragMode",
+        false,
+        Boolean.serializer()
+    )
 
-    private val _customDialogState = MutableStateFlow(CustomDialogState())
-    val customDialogState = _customDialogState.asStateFlow()
+    private val _isMenuVisible = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isMenuVisible",
+        false,
+        Boolean.serializer()
+    )
 
     val favPagesState : StateFlow<FavPagesState> = combine(
-        _favoritesTabList,
-        _initPosition,
-        _isDragMode,
-        _isMenuVisible
+        _favoritesTabList.state,
+        _initPosition.state,
+        _isDragMode.state,
+        _isMenuVisible.state
     )
     { favTabList, currentTab, isDragMode, isMenuVisible ->
 
@@ -67,19 +95,25 @@ class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
             favTabList[currentTab].id > 1000 else false
 
         val listItems = listOf(
-            NavigationItem(
-                title = "",
+            NavigationItemUI(
+                NavigationItem(
+                    title = "",
+                    hasNews = false,
+                    isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                    badgeCount = null,
+                ),
                 icon = drawables.recycleIcon,
                 tint = colors.inactiveBottomNavIconColor,
-                hasNews = false,
-                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                badgeCount = null,
                 onClick = {
                     getFavTabList()
                 }
             ),
+            NavigationItemUI(
             NavigationItem(
-                title = getString(strings.createNewOffersListLabel),
+                    title = getString(strings.createNewOffersListLabel),
+                    isVisible = !isDragMode,
+                    badgeCount = null,
+                ),
                 icon = drawables.addFolderIcon,
                 tint = colors.steelBlue,
                 tooltipData =
@@ -92,31 +126,30 @@ class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
                     }else{
                         null
                     },
-                isVisible = !isDragMode,
-                badgeCount = null,
                 onClick = {
                     makeOperation("create_blank_offer_list", UserData.login)
                 }
             ),
-            NavigationItem(
-                title = getString(strings.menuTitle),
+            NavigationItemUI(
+                NavigationItem(
+                    title = getString(strings.menuTitle),
+                    hasNews = false,
+                    isVisible = isVisibleMenu && !isDragMode,
+                    badgeCount = null,
+                ),
                 icon = drawables.menuIcon,
                 tint = colors.inactiveBottomNavIconColor,
-                hasNews = false,
-                isVisible = isVisibleMenu && !isDragMode,
-                badgeCount = null,
                 onClick = {
                     _isMenuVisible.value = true
                 }
-            ),
+            )
         )
-
 
         FavPagesState(
             appState = SimpleAppBarData(
                 menuData = MenuData(
                     isMenuVisible = isMenuVisible,
-                    menuItems = if(isVisibleMenu)
+                    menuItems = if (isVisibleMenu)
                         getOperationFavTab(favTabList[currentTab].id)
                     else getDefOperationFavTab(),
                     closeMenu = {
@@ -188,9 +221,6 @@ class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
                             title = it.title ?: "",
                             image = it.images.firstOrNull(),
                             isPined = it.markedAsPrimary,
-                            onClick = {
-                                selectPage(newList.indexOf(it))
-                            },
                         )
                     }
 
@@ -284,15 +314,8 @@ class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
                 ) { t, f ->
                     _customDialogState.value = CustomDialogState(
                         typeDialog = type,
-                        title = AnnotatedString(t),
-                        fields = f,
-                        onDismiss = {
-                            closeDialog()
-                        },
-                        onSuccessful = {
-                            postOperation(UserData.login, type,"users")
-                            _initPosition.value = favoritesTabList.value.lastIndex +1
-                        }
+                        title = t,
+                        fields = f
                     )
                 }
             }
@@ -301,14 +324,8 @@ class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
                 getOperationFields(id, type, "offers_lists") { t, f ->
                     _customDialogState.value = CustomDialogState(
                         typeDialog = type,
-                        title = AnnotatedString(t),
-                        fields = f,
-                        onDismiss = {
-                            closeDialog()
-                        },
-                        onSuccessful = {
-                            postOperation(id, type,"offers_lists")
-                        }
+                        title = t,
+                        fields = f
                     )
                 }
             }
@@ -356,6 +373,18 @@ class FavPagesViewModel(val component: FavPagesComponent) : CoreViewModel() {
 
             else -> {
 
+            }
+        }
+    }
+
+    fun onClickOperation(type: String, id: Long){
+        when(type){
+            "create_blank_offer_list"->{
+                postOperation(UserData.login, type,"users")
+                _initPosition.value = favoritesTabList.value.lastIndex +1
+            }
+            "copy_offers_list", "rename_offers_list" -> {
+                postOperation(id, type,"offers_lists")
             }
         }
     }

@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile.conversations
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -29,7 +31,9 @@ class DefaultConversationsComponent(
     val navigateToMessenger : (Long, String?) -> Unit,
 ) : ConversationsComponent, JetpackComponentContext by componentContext {
 
-    private val viewModel : ConversationsViewModel = ConversationsViewModel(this)
+    private val viewModel = viewModel("conversationViewModel"){
+        ConversationsViewModel(this@DefaultConversationsComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         ConversationsComponent.Model(

@@ -9,16 +9,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.textFields.OutlinedTextInputField
 import market.engine.widgets.texts.SeparatorLabel
@@ -26,17 +30,25 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferOperationsDialogs(
-    offerRepository: OfferRepository,
+    offerBaseViewModel: OfferBaseViewModel,
     valuesPickerState: PickerState? = null,
     offerCounts : List<String> = emptyList(),
 ) {
-    val customDialogState = offerRepository.customDialogState.collectAsState()
-    val myMaximalBid = offerRepository.myMaximalBid.collectAsState()
-    val messageText = offerRepository.messageText.collectAsState()
+    val customDialogState by offerBaseViewModel.customDialogState.collectAsState()
+    val myMaximalBid by offerBaseViewModel.myMaximalBid.collectAsState()
+    val messageTextState by offerBaseViewModel.messageText.collectAsState()
+    val messageText = remember { mutableStateOf(TextFieldValue(messageTextState)) }
 
     CustomDialog(
         containerColor = colors.primaryColor,
-        uiState = customDialogState.value
+        annotatedString = offerBaseViewModel.annotatedTitle.value,
+        uiState = customDialogState,
+        onDismiss = {
+            offerBaseViewModel.clearDialogFields()
+        },
+        onSuccessful = {
+            offerBaseViewModel.makeOperations()
+        },
     )
     { state->
         when (state.typeDialog)  {
@@ -44,7 +56,8 @@ fun OfferOperationsDialogs(
                 OutlinedTextInputField(
                     value = messageText.value,
                     onValueChange = {
-                        offerRepository.setMessageText(it)
+                        messageText.value = it
+                        offerBaseViewModel.setMessageText(it.text)
                     },
                     label = stringResource(strings.messageLabel),
                     maxSymbols = 2000,
@@ -56,10 +69,10 @@ fun OfferOperationsDialogs(
                     showDialog = state.typeDialog != "",
                     isSelectableDates = true,
                     onDismiss = {
-                        offerRepository.clearDialogFields()
+                        offerBaseViewModel.clearDialogFields()
                     },
                     onSucceed = { futureTimeInSeconds ->
-                        offerRepository.setFutureTimeInSeconds(futureTimeInSeconds.toString())
+                        offerBaseViewModel.setFutureTimeInSeconds(futureTimeInSeconds.toString())
                     }
                 )
             }
@@ -86,7 +99,7 @@ fun OfferOperationsDialogs(
                             fontWeight = FontWeight.Bold
                         )
                     ) {
-                        append(myMaximalBid.value)
+                        append(myMaximalBid)
                         append(currency)
                     }
                 }
@@ -126,7 +139,7 @@ fun OfferOperationsDialogs(
                 Column {
                     if (state.fields.isNotEmpty()) {
                         SetUpDynamicFields(state.fields){
-                            offerRepository.setNewField(it)
+                            offerBaseViewModel.setNewField(it)
                         }
                     }
                 }

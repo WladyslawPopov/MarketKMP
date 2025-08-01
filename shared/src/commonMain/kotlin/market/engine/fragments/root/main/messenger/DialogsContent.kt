@@ -92,7 +92,7 @@ fun DialogsContent(
         snapshotFlow {
             images to selectIndex
         }.collectLatest { (images, selectedIndex) ->
-            if (selectedIndex != null && images.isNotEmpty() && images.size > selectedIndex) {
+            if (selectedIndex != 0 && images.isNotEmpty() && images.size > selectedIndex) {
                 pagerFullState.scrollToPage(selectedIndex)
             }
         }
@@ -158,7 +158,7 @@ fun DialogsContent(
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->
         CustomBottomSheet(
-            initValue = selectIndex != null,
+            initValue = selectIndex != 0,
             contentPadding = contentPadding,
             onClosed = {
                 viewModel.closeImages()

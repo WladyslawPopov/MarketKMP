@@ -1,7 +1,9 @@
 package market.engine.fragments.root.dynamicSettings
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -31,7 +33,15 @@ class DefaultDynamicSettingsComponent(
     componentContext: JetpackComponentContext,
 ) : DynamicSettingsComponent, JetpackComponentContext by componentContext
 {
-    private val dynamicSettingsViewModel = DynamicSettingsViewModel(settingsType, owner, code, this)
+    private val dynamicSettingsViewModel = viewModel {
+        DynamicSettingsViewModel(
+            settingsType,
+            owner,
+            code,
+            this@DefaultDynamicSettingsComponent,
+            createSavedStateHandle()
+        )
+    }
 
     private val _model = MutableValue(
         DynamicSettingsComponent.Model(

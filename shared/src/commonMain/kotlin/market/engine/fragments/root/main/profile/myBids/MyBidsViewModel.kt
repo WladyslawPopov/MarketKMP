@@ -1,11 +1,11 @@
 package market.engine.fragments.root.main.profile.myBids
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -16,8 +16,6 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
@@ -28,7 +26,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -38,16 +36,15 @@ import org.jetbrains.compose.resources.getString
 
 class MyBidsViewModel(
     val type: LotsType,
-    val component: MyBidsComponent
-) : CoreViewModel() {
+    val component: MyBidsComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel()
+    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
     val ld = listingBaseViewModel.listingData
     val activeType = listingBaseViewModel.activeWindowType
-
-    private val _activeWindowType = MutableStateFlow(ActiveWindowListingType.LISTING)
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         ld,
@@ -59,11 +56,11 @@ class MyBidsViewModel(
 
     val categoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
-        CategoryViewModel(isFilters = true)
+        CategoryViewModel(isFilters = true, savedStateHandle = savedStateHandle)
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<OfferBaseViewModel>> = pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -73,11 +70,11 @@ class MyBidsViewModel(
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
-                    OfferRepository(
+                    OfferBaseViewModel(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this@MyBidsViewModel, component),
-                        this@MyBidsViewModel
+                        savedStateHandle
                     )
                 }
             }
@@ -110,25 +107,15 @@ class MyBidsViewModel(
                     add(
                         NavigationItem(
                             title = filterString,
-                            icon = drawables.filterIcon,
-                            tint = colors.black,
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
-                            }
                         )
                     )
                     add(
                         NavigationItem(
                             title = sortString,
-                            icon = drawables.sortIcon,
-                            tint = colors.black,
                             hasNews = ld.value.data.sort != null,
                             badgeCount = null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
-                            }
                         )
                     )
                 }
@@ -142,7 +129,7 @@ class MyBidsViewModel(
                 if (categoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
                     categoryState.categoryViewModel.navigateBack()
                 }else{
-                    _activeWindowType.value = ActiveWindowListingType.LISTING
+                    listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
                 }
             }
             else -> {

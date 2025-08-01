@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.listing
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.cachedIn
 import androidx.paging.map
 import app.cash.paging.PagingData
@@ -32,10 +33,10 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.core.data.states.ListingContentState
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
@@ -44,7 +45,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
@@ -57,21 +58,21 @@ import org.jetbrains.compose.resources.getString
 import kotlin.String
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
+class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
     private val _regionOptions = MutableStateFlow<List<Options>>(emptyList())
     val regionOptions : StateFlow<List<Options>> = _regionOptions.asStateFlow()
 
-    private val _listingDataState = MutableStateFlow(ListingContentState())
-    val listingDataState : StateFlow<ListingContentState> = _listingDataState.asStateFlow()
+    private val _listingDataState = MutableStateFlow(SimpleAppBarData())
+    val listingDataState : StateFlow<SimpleAppBarData> = _listingDataState.asStateFlow()
 
     val errorString = MutableStateFlow("")
 
-    val listingBaseVM = ListingBaseViewModel(true, component)
+    val listingBaseVM = ListingBaseViewModel(true, component, savedStateHandle = savedStateHandle)
 
-    val listingCategoryModel = CategoryViewModel()
+    val listingCategoryModel = CategoryViewModel(savedStateHandle = savedStateHandle)
 
     val ld = listingBaseVM.listingData
     val activeType = listingBaseVM.activeWindowType
@@ -84,7 +85,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
         listingData
     }
 
-    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow.flatMapLatest{ listingData ->
+    val pagingDataFlow: Flow<PagingData<OfferBaseViewModel>> = pagingParamsFlow.flatMapLatest{ listingData ->
         pagingRepository.getListing(
             listingData,
             apiService,
@@ -114,11 +115,11 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
                     }
                 }
 
-                OfferRepository(
+                OfferBaseViewModel(
                     offer,
                     listingData,
                     events = OfferRepositoryEventsImpl(this, component),
-                    this@ListingViewModel
+                    savedStateHandle
                 )
             }
         }
@@ -145,7 +146,7 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
                 buildList {
                     val filterString = getString(strings.filter)
                     val sortString = getString(strings.sort)
-                    val menuString = getString(strings.menuTitle)
+                    val menuString = getString(strings.chooseAction)
 
                     val filters = ld.data.filters.filter { it.value != "" &&
                             it.interpretation?.isNotBlank() == true }
@@ -153,40 +154,23 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
                     add(
                         NavigationItem(
                             title = filterString,
-                            icon = drawables.filterIcon,
-                            tint = colors.black,
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
-                            onClick = {
-                                listingBaseVM.setActiveWindowType(ActiveWindowListingType.FILTERS)
-                            }
                         )
                     )
                     add(
                         NavigationItem(
                             title = sortString,
-                            icon = drawables.sortIcon,
-                            tint = colors.black,
                             hasNews = ld.data.sort != null,
                             badgeCount = null,
-                            onClick = {
-                                listingBaseVM.setActiveWindowType(ActiveWindowListingType.SORTING)
-                            }
                         )
                     )
                     add(
                         NavigationItem(
                             title = menuString,
-                            icon = if (listingBaseVM.listingType.value == 0) drawables.iconWidget else drawables.iconSliderHorizontal,
-                            tint = colors.black,
                             hasNews = false,
                             badgeCount = null,
                             isVisible = true,
-                            onClick = {
-                                val newType = if (listingBaseVM.listingType.value == 0) 1 else 0
-                                settings.setSettingValue("listingType", newType)
-                                listingBaseVM.setListingType(newType)
-                            }
                         )
                     )
                 }
@@ -200,53 +184,57 @@ class ListingViewModel(val component: ListingComponent) : CoreViewModel() {
             val subs = getString(strings.subscribersLabel)
             val searchTitle = getString(strings.searchTitle)
 
-            _listingDataState.value = ListingContentState(
-                appBarData = SimpleAppBarData(
-                    onBackClick = {
-                        component.goBack()
-                    },
-                    listItems = listOf(
+            _listingDataState.value = SimpleAppBarData(
+                onBackClick = {
+                    component.goBack()
+                },
+                listItems = listOf(
+                    NavigationItemUI(
                         NavigationItem(
                             title = "",
-                            icon = drawables.recycleIcon,
-                            tint = colors.inactiveBottomNavIconColor,
                             hasNews = false,
                             isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
                             badgeCount = null,
-                            onClick = { refresh() }
                         ),
+                        icon = drawables.recycleIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        onClick = { refresh() }
+                    ),
+                    NavigationItemUI(
                         NavigationItem(
                             title = subs,
-                            icon = drawables.favoritesIcon,
-                            tint = colors.inactiveBottomNavIconColor,
                             hasNews = false,
                             badgeCount = null,
                             isVisible = (searchData.searchCategoryID != 1L || searchData.userSearch || searchData.searchString != ""),
-                            onClick = {
-                                if (UserData.token != "") {
-                                    addNewSubscribe(
-                                        ld.data,
-                                        searchData,
-                                        onSuccess = {},
-                                        errorCallback = { es ->
-                                            errorString.value = es
-                                        }
-                                    )
-                                } else {
-                                    goToLogin(false)
-                                }
-                            }
                         ),
+                        icon = drawables.favoritesIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        onClick = {
+                            if (UserData.token != "") {
+                                addNewSubscribe(
+                                    ld.data,
+                                    searchData,
+                                    onSuccess = {},
+                                    errorCallback = { es ->
+                                        errorString.value = es
+                                    }
+                                )
+                            } else {
+                                goToLogin(false)
+                            }
+                        }
+                    ),
+                    NavigationItemUI(
                         NavigationItem(
                             title = searchTitle,
-                            icon = drawables.searchIcon,
-                            tint = colors.black,
                             hasNews = false,
                             badgeCount = null,
-                            onClick = { listingBaseVM.changeOpenSearch(true) }
                         ),
+                        icon = drawables.searchIcon,
+                        tint = colors.black,
+                        onClick = { listingBaseVM.changeOpenSearch(true) }
                     )
-                ),
+                )
             )
         }
     }
@@ -463,7 +451,6 @@ data class OfferRepositoryEventsImpl(
     val component: ListingComponent
 ): OfferRepositoryEvents
 {
-
     override fun goToCreateOffer(
         type: CreateOfferType,
         catpath: List<Long>,

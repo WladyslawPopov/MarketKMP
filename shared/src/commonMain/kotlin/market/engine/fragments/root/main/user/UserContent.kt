@@ -36,8 +36,9 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.Tab
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.items.TabWithIcon
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.EdgeToEdgeScaffold
@@ -91,19 +92,19 @@ fun UserContent(
     }
 
     val tabs = listOf(
-        Tab(
+        TabWithIcon(
             stringResource(strings.allFeedbackToUserLabel),
         ),
-        Tab(
+        TabWithIcon(
             stringResource(strings.fromBuyerLabel),
         ),
-        Tab(
+        TabWithIcon(
             stringResource(strings.fromSellerLabel),
         ),
-        Tab(
+        TabWithIcon(
             stringResource(strings.fromUsersLabel),
         ),
-        Tab(
+        TabWithIcon(
             stringResource(strings.aboutMeLabel),
         )
     )
@@ -187,27 +188,31 @@ fun UserContent(
                    },
                    data = SimpleAppBarData(
                        listItems = listOf(
-                           NavigationItem(
-                               title = "",
+                           NavigationItemUI(
+                               NavigationItem(
+                                   title = "",
+                                   hasNews = false,
+                                   isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                                   badgeCount = null,
+                               ),
                                icon = drawables.recycleIcon,
                                tint = colors.inactiveBottomNavIconColor,
-                               hasNews = false,
-                               isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                               badgeCount = null,
                                onClick = {
                                    viewModel.getUserInfo()
                                }
                            ),
-                           NavigationItem(
-                               title = stringResource(strings.searchUserStringChoice),
+                           NavigationItemUI(
+                               NavigationItem(
+                                   title = stringResource(strings.searchUserStringChoice),
+                                   hasNews = false,
+                                   badgeCount = null,
+                               ),
                                icon = drawables.iconArrowDown,
                                tint = colors.black,
-                               hasNews = false,
-                               badgeCount = null,
                                onClick = {
                                    isVisibleUserPanel.value = true
                                }
-                           ),
+                           )
                        ),
                        onBackClick = {
                            component.onBack()

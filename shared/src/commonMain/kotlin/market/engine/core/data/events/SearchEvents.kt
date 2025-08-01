@@ -1,6 +1,5 @@
 package market.engine.core.data.events
 
-import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.items.SearchHistoryItem
 
 interface SearchEvents {
@@ -16,6 +15,6 @@ interface SearchEvents {
     fun clearUser()
     fun clickSearchFinished()
     fun onTabSelect(tab : Int)
-    fun updateSearch(value : TextFieldValue)
+    fun updateSearch(value : String)
     fun clearSearch()
 }

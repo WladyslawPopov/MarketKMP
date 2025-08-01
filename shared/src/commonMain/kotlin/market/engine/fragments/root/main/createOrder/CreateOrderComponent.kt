@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.createOrder
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -35,7 +37,9 @@ class DefaultCreateOrderComponent(
     val navigateToMyOrders: () -> Unit
 ) : CreateOrderComponent, JetpackComponentContext by componentContext {
 
-    private val createOrderViewModel : CreateOrderViewModel = CreateOrderViewModel(basketItem, this)
+    private val createOrderViewModel = viewModel("createOrderViewModel") {
+        CreateOrderViewModel(basketItem, this@DefaultCreateOrderComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         CreateOrderComponent.Model(

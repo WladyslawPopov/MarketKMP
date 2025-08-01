@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.messenger
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import androidx.paging.map
@@ -11,18 +12,17 @@ import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import market.engine.common.clipBoardEvent
@@ -44,12 +44,14 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.DeepLink
 import market.engine.core.data.items.DialogsData
 import market.engine.core.data.items.MenuItem
+import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.PhotoSave
 import market.engine.core.data.items.PhotoTemp
-import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.MessengerBarState
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.MessageType
 import market.engine.core.network.ServerErrorException
@@ -66,6 +68,7 @@ import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.convertDateYear
 import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseDeepLink
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
@@ -90,47 +93,97 @@ class DialogsViewModel(
     val dialogId: Long,
     val message: String?,
     val component: DialogsComponent,
-) : CoreViewModel() {
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
     private val privateMessagesOperation: PrivateMessagesOperation = getKoin().get()
     private val pagingRepository: PagingRepository<Dialog> = PagingRepository()
 
-    private val _responseGetConversation = MutableStateFlow<Conversations?>(null)
+    private val _responseGetConversation = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetConversation",
+        Conversations(),
+        Conversations.serializer()
+    )
 
-    private val _responseGetOfferInfo = MutableStateFlow<Offer?>(null)
+    private val _responseGetOfferInfo = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetOfferInfo",
+        Offer(),
+        Offer.serializer()
+    )
 
-    private val _responseGetOrderInfo = MutableStateFlow<Order?>(null)
+    private val _responseGetOrderInfo = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetOrderInfo",
+        Order(),
+        Order.serializer()
+    )
 
-    private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
+    private val _responseImages = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseImages",
+        emptyList(),
+        ListSerializer(PhotoSave.serializer())
+    )
 
-    private val _messageTextState = MutableStateFlow("")
+    private val _messageTextState = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "messageTextState",
+        "",
+        String.serializer()
+    )
 
-    private val _isDisabledSendMes = MutableStateFlow(true)
-    private val _isDisabledAddPhotos = MutableStateFlow(true)
+    private val _isDisabledSendMes = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isDisabledSendMes",
+        true,
+        Boolean.serializer()
+    )
+    private val _isDisabledAddPhotos = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isDisabledAddPhotos",
+        true,
+        Boolean.serializer()
+    )
 
-    private val _selectedImageIndex = MutableStateFlow<Int?>(null)
-    val selectedImageIndex = _selectedImageIndex.asStateFlow()
+    private val _selectedImageIndex = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectedImageIndex",
+        0,
+        Int.serializer()
+    )
+    val selectedImageIndex = _selectedImageIndex.state
 
-    private val _images = MutableStateFlow<List<String>>(emptyList())
-    val images = _images.asStateFlow()
+    private val _images = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "images",
+        emptyList(),
+        ListSerializer(String.serializer())
+    )
+    val images = _images.state
+
+    private val _isMenuVisible = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isMenuVisible",
+        false,
+        Boolean.serializer()
+    )
 
     private val conversationsOperations : ConversationsOperations by lazy { getKoin().get() }
     private val offerOperations : OfferOperations by lazy { getKoin().get() }
     private val orderOperations : OrderOperations by lazy { getKoin().get() }
 
-    private val _isMenuVisible = MutableStateFlow(false)
-
     val messageBarEvents = MessageBarEventsImpl(this)
 
-    val listingBaseViewModel = ListingBaseViewModel()
+    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
 
     val listingData = listingBaseViewModel.listingData
 
-
     val messageBarState : StateFlow<MessengerBarState> = combine(
-        _isDisabledSendMes,
-        _isDisabledAddPhotos,
-        _responseImages,
-        _messageTextState,
+        _isDisabledSendMes.state,
+        _isDisabledAddPhotos.state,
+        _responseImages.state,
+        _messageTextState.state,
     ){ disabledSendMes, disabledAddPhotos, images, messageTextState ->
         MessengerBarState(
             isDisabledSendMes = disabledSendMes,
@@ -145,10 +198,10 @@ class DialogsViewModel(
     )
 
     val dialogContentState : StateFlow<DialogContentState> = combine(
-        _isMenuVisible,
-        _responseGetConversation,
-        _responseGetOfferInfo,
-        _responseGetOrderInfo,
+        _isMenuVisible.state,
+        _responseGetConversation.state,
+        _responseGetOfferInfo.state,
+        _responseGetOrderInfo.state,
         listingData
     )
     { isMenuVisible, conversation, offerInfo, orderInfo, listingData ->
@@ -164,14 +217,14 @@ class DialogsViewModel(
         var userRole = ""
 
         val headerItem = when {
-            offer != null -> {
+            offer.id != 1L -> {
                 if (offer.sellerData?.markedAsDeleted == true) {
                     _isDisabledSendMes.value = true
                     _isDisabledAddPhotos.value = true
                 } else {
                     _isDisabledSendMes.value = false
 
-                    if (offer.sellerData?.id == conversation?.interlocutor?.id) {
+                    if (offer.sellerData?.id == conversation.interlocutor?.id) {
                         userRole = "buyer"
                         _isDisabledAddPhotos.value = true
                     } else {
@@ -208,7 +261,7 @@ class DialogsViewModel(
 
             }
 
-            order != null -> {
+            order.id != 1L -> {
                 if (order.sellerData?.markedAsDeleted == true) {
                     _isDisabledSendMes.value = true
                     _isDisabledAddPhotos.value = true
@@ -216,7 +269,7 @@ class DialogsViewModel(
                     _isDisabledSendMes.value = false
                     _isDisabledAddPhotos.value = false
 
-                    userRole = if (order.sellerData?.id == conversation?.interlocutor?.id) {
+                    userRole = if (order.sellerData?.id == conversation.interlocutor?.id) {
                         "buyer"
                     } else {
                         "seller"
@@ -268,12 +321,12 @@ class DialogsViewModel(
                     menuItems = listOf(
                         MenuItem(
                             id = "copyId",
-                            title = if (conversation?.aboutObjectClass == "offer")
+                            title = if (conversation.aboutObjectClass == "offer")
                                 copyOfferId
                             else copyOrderId,
                             icon = drawables.copyIcon,
                         ) {
-                            clipBoardEvent(conversation?.aboutObjectId.toString())
+                            clipBoardEvent(conversation.aboutObjectId.toString())
                             showToast(
                                 successToastItem.copy(
                                     message = copyId
@@ -285,7 +338,7 @@ class DialogsViewModel(
                             title = deleteDialogLabel,
                             icon = drawables.deleteIcon,
                         ) {
-                            deleteConversation(conversation?.id ?: 1L) {
+                            deleteConversation(conversation.id) {
                                 component.onBackClicked()
                             }
                         }
@@ -295,22 +348,26 @@ class DialogsViewModel(
                     }
                 ),
                 listItems = listOf(
-                    NavigationItem(
-                        title = "",
+                    NavigationItemUI(
+                        NavigationItem(
+                            title = "",
+                            hasNews = false,
+                            badgeCount = null,
+                        ),
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        badgeCount = null,
                         onClick = {
                             updatePage()
                         }
                     ),
-                    NavigationItem(
-                        title = getString(strings.menuTitle),
+                    NavigationItemUI(
+                        NavigationItem(
+                            title = getString(strings.menuTitle),
+                            hasNews = false,
+                            badgeCount = null,
+                        ),
                         icon = drawables.menuIcon,
                         tint = colors.black,
-                        hasNews = false,
-                        badgeCount = null,
                         onClick = {
                             _isMenuVisible.value = true
                         }
@@ -336,7 +393,7 @@ class DialogsViewModel(
     )
 
     val pagingParamsFlow: Flow<Pair<Conversations?,ListingData>> = combine(
-        _responseGetConversation,
+        _responseGetConversation.state,
         listingData,
         updatePage
     ) { conversations, listingData, _ ->
@@ -386,9 +443,7 @@ class DialogsViewModel(
                             title = getString(strings.actionDelete),
                             icon = drawables.deleteIcon,
                         ) {
-                            deleteMessage(dialog.id) {
-                                //isDeleteItem.value = true
-                            }
+                            deleteMessage(dialog.id)
                         },
                         MenuItem(
                             id = "copy_message",
@@ -544,12 +599,20 @@ class DialogsViewModel(
 
             _responseImages.value = buildList {
                 addAll(_responseImages.value)
-                addAll(newImages)
+                addAll(newImages.map {
+                    PhotoSave(
+                        id = it.id,
+                        uri = it.uri,
+                        tempId = it.tempId,
+                        url = it.url,
+                        rotate = it.rotate
+                    )
+                })
             }
         }
     }
 
-    fun deleteImage(item: PhotoTemp) {
+    fun deleteImage(item: PhotoSave) {
         _responseImages.value = buildList {
             addAll(_responseImages.value)
             remove(item)
@@ -560,10 +623,10 @@ class DialogsViewModel(
         viewModelScope.launch {
             setLoading(true)
 
-            val userId = _responseGetConversation.value?.interlocutor?.id
-            val interlocutorRole = _responseGetConversation.value?.interlocutor?.role
-            val idAboutDialog = _responseGetConversation.value?.aboutObjectId
-            val aboutObject = _responseGetConversation.value?.aboutObjectClass
+            val userId = _responseGetConversation.value.interlocutor?.id
+            val interlocutorRole = _responseGetConversation.value.interlocutor?.role
+            val idAboutDialog = _responseGetConversation.value.aboutObjectId
+            val aboutObject = _responseGetConversation.value.aboutObjectClass
             val message = _messageTextState.value
 
             val bodyMessage = buildJsonObject {
@@ -622,20 +685,20 @@ class DialogsViewModel(
             if (conversations.aboutObjectClass == "offer") {
                 val buffer = offerOperations.getOffer(conversations.aboutObjectId ?: 1L)
                 val res = buffer.success
-                res.let { offer ->
+                res?.let { offer ->
                     _responseGetOfferInfo.value = offer
                 }
             } else {
                 val buf = orderOperations.getOrder(conversations.aboutObjectId ?: 1L)
                 val res = buf.success
-                res.let {
+                res?.let {
                     _responseGetOrderInfo.value = it
                 }
             }
         }
     }
 
-    fun deleteMessage(id: Long, onSuccess: () -> Unit) {
+    fun deleteMessage(id: Long) {
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
                 privateMessagesOperation.postDeleteForInterlocutor(id)
@@ -649,8 +712,7 @@ class DialogsViewModel(
                             message = getString(strings.operationSuccess)
                         )
                     )
-                    delay(2000)
-                    onSuccess()
+                    setUpdateItem(id)
                 } else {
                     showToast(
                         errorToastItem.copy(
@@ -674,7 +736,7 @@ class DialogsViewModel(
     }
 
     fun closeImages(){
-        _selectedImageIndex.value = null
+        _selectedImageIndex.value = 0
     }
 }
 
@@ -737,7 +799,7 @@ data class MessageBarEventsImpl(
         viewModel.getImages(images)
     }
 
-    override fun deleteImage(image: PhotoTemp) {
+    override fun deleteImage(image: PhotoSave) {
         viewModel.deleteImage(image)
     }
 

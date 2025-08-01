@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile.profileSettings
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
@@ -41,7 +43,9 @@ class DefaultProfileSettingsComponent(
 
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
-    private  val profileSettingsViewModel = ProfileSettingsViewModel(this)
+    private  val profileSettingsViewModel = viewModel("ProfileSettingsViewModel"){
+        ProfileSettingsViewModel(this@DefaultProfileSettingsComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         ProfileSettingsComponent.Model(

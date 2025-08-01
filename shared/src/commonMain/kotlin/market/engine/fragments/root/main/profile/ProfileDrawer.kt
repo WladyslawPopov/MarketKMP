@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.compositions.LocalBottomBarHeight
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 
 @Composable
 fun ProfileDrawer(
     activeTitle: String,
-    list: List<NavigationItem>,
+    list: List<NavigationItemUI>,
 ) {
     val bottomBarPadding = LocalBottomBarHeight.current
 

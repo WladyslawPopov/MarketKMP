@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile.myProposals
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -40,7 +42,9 @@ class DefaultMyProposalsComponent(
     val navigateToProposal: (Long, ProposalType) -> Unit,
 ) : MyProposalsComponent, JetpackComponentContext by componentContext {
 
-    private val viewModel : MyProposalsViewModel = MyProposalsViewModel(type, this)
+    private val viewModel = viewModel("MyProposalsViewModel"){
+        MyProposalsViewModel(type, this@DefaultMyProposalsComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         MyProposalsComponent.Model(
@@ -50,7 +54,6 @@ class DefaultMyProposalsComponent(
         )
     )
     override val model: Value<MyProposalsComponent.Model> = _model
-
 
     private val analyticsHelper = viewModel.analyticsHelper
 

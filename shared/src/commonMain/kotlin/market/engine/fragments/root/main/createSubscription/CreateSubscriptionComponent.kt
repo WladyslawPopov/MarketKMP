@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.createSubscription
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -25,7 +27,9 @@ class DefaultCreateSubscriptionComponent(
     val navigateBack: () -> Unit,
 ) : CreateSubscriptionComponent, JetpackComponentContext by componentContext {
 
-    private val createSubscriptionViewModel : CreateSubscriptionViewModel = CreateSubscriptionViewModel(editId, this)
+    private val createSubscriptionViewModel = viewModel {
+        CreateSubscriptionViewModel(editId, this@DefaultCreateSubscriptionComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         CreateSubscriptionComponent.Model(

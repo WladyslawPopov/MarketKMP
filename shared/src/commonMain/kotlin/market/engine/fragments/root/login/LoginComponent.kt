@@ -1,7 +1,9 @@
 package market.engine.fragments.root.login
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -29,7 +31,9 @@ class DefaultLoginComponent(
     private val navigateToForgotPassword: () -> Unit,
 ) : LoginComponent, JetpackComponentContext by componentContext  {
 
-    val viewModel : LoginViewModel = LoginViewModel(this)
+    val viewModel : LoginViewModel = viewModel("loginViewModel") {
+        LoginViewModel(this@DefaultLoginComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         LoginComponent.Model(

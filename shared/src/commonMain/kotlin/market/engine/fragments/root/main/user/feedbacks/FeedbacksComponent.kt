@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.user.feedbacks
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.data.types.DealTypeGroup
@@ -33,7 +35,9 @@ class DefaultFeedbacksComponent(
     private val navigateToUser : (Long) -> Unit,
 ) : FeedbacksComponent, JetpackComponentContext by componentContext {
 
-    val feedbacksViewModel = FeedbacksViewModel(type, userId)
+    val feedbacksViewModel = viewModel("feedbacksViewModel"){
+        FeedbacksViewModel(type, userId, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         FeedbacksComponent.Model(

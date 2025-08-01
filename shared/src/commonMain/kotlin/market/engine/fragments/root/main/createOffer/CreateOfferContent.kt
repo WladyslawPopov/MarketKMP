@@ -201,7 +201,7 @@ fun CreateOfferContent(
                 )
             }
 
-            !isEditCategory && payloadState.isNotEmpty() && newOfferId == null ->{
+            !isEditCategory && payloadState.isNotEmpty() && newOfferId == 1L ->{
                 LazyColumnWithScrollBars(
                     modifierList = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
@@ -639,7 +639,7 @@ fun CreateOfferContent(
                     }
                 }
             }
-            newOfferId != null -> {
+            newOfferId != 1L -> {
                 val title = remember {
                     payloadState.find { it.key == "title" }?.data?.jsonPrimitive?.content
                         ?: ""
@@ -651,9 +651,9 @@ fun CreateOfferContent(
                     payloadState.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                     modifier = Modifier.padding(contentPadding)
                         .padding(dimens.mediumPadding),
-                    futureTime = selectedDate ?: getCurrentDate().toLong(),
+                    futureTime = if(selectedDate != 0L) selectedDate else getCurrentDate().toLong(),
                     goToOffer = {
-                        component.goToOffer(newOfferId!!)
+                        component.goToOffer(newOfferId)
                     },
                     addSimilarOffer = {
                         component.createNewOffer(offerId= newOfferId, type = CreateOfferType.COPY)

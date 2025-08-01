@@ -24,7 +24,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
+import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.MenuItem
+import market.engine.core.data.items.Tab
+import market.engine.core.data.items.TabWithIcon
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.SetUpDynamicFields
@@ -97,6 +100,8 @@ fun FavPagesNavigation(
         }
     }
 
+    val activeFavTabId = remember { mutableStateOf(1L) }
+
     EdgeToEdgeScaffold(
         topBar = {
             TooltipWrapper(
@@ -110,15 +115,34 @@ fun FavPagesNavigation(
                         val menuList = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
 
                         ReorderTabRow(
-                            tabs = favTabListState.value,
+                            tabs = favTabListState.value.map {
+                                TabWithIcon(
+                                    id = it.id,
+                                    title = it.title,
+                                    image = it.image,
+                                    isPined = it.isPined,
+                                    icon = if(it.isPined) drawables.pinIcon else null
+                                )
+                            },
                             selectedTab = pages.selectedIndex,
                             isDragMode = isDragMode,
                             menuList = menuList.value,
                             onTabsReordered = { newList ->
-                                viewModel.updateFavTabList(newList)
+                                viewModel.updateFavTabList(newList.map {
+                                    Tab(
+                                        id = it.id,
+                                        title = it.title,
+                                        image = it.image,
+                                        isPined = it.isPined,
+                                    )
+                                })
+                            },
+                            onClick = {
+                                viewModel.selectPage(favTabListState.value.indexOf(favTabListState.value.find { it.id == activeFavTabId.value }))
                             },
                             onLongClick = { id ->
                                 viewModel.viewModelScope.launch {
+                                    activeFavTabId.value = id
                                     if (id > 1000) {
                                         menuList.value = viewModel.getOperationFavTab(id)
                                     }else{
@@ -186,6 +210,13 @@ fun FavPagesNavigation(
 
         CustomDialog(
             uiState = customDialogState,
+            onDismiss = {
+                viewModel.closeDialog()
+            },
+            onSuccessful = {
+                viewModel.onClickOperation(customDialogState.typeDialog, activeFavTabId.value)
+                activeFavTabId.value = 1
+            },
         ){ state ->
             Column {
                 if (state.fields.isNotEmpty()) {

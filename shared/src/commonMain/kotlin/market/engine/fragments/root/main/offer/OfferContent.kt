@@ -61,9 +61,9 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
+import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.OfferItem
-import market.engine.core.data.states.MenuData
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.BtnTypeSize
 import market.engine.core.network.networkObjects.Param
 import market.engine.core.data.types.CreateOfferType
@@ -123,7 +123,7 @@ fun OfferContent(
 
     val scrollPos by viewModel.scrollPosition.collectAsState()
 
-    val offerRepository = uiState.offerRepository
+    val offerRepository = viewModel.offerBaseViewModel
 
     val remainingTime = viewModel.remainingTime.collectAsState()
 
@@ -135,7 +135,7 @@ fun OfferContent(
         }
     }
 
-    val listItems = produceState(initialValue = emptyList(), offerRepository.operationsList.value) {
+    val listItems = produceState(initialValue = emptyList(), offerRepository.menuList.value) {
         value = offerRepository.getAppBarOfferList()
     }
 
@@ -536,7 +536,7 @@ fun OfferContent(
 
                             item {
                                 val promoList by offerRepository.promoList.collectAsState()
-                                val operationsList by offerRepository.operationsList.collectAsState()
+                                val operationsList by offerRepository.menuList.collectAsState()
 
                                 //action seller mode and active promo options
                                 if (offerState != OfferStates.SNAPSHOT && UserData.token != "") {

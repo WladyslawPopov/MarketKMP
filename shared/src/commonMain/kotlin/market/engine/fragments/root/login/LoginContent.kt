@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.additionalAuthorizationContent
@@ -69,7 +71,7 @@ fun LoginContent(
     val captchaImage = uiState.captchaImage
     val appBarData = uiState.appBarData
 
-    val auth2ContentState = uiState.auth2ContentState
+    val auth2ContentState = viewModel.auth2ContentViewModel
 
     val isLoading by viewModel.isShowProgress.collectAsState()
     val err by viewModel.errorMessage.collectAsState()
@@ -149,21 +151,28 @@ fun LoginContent(
                 }
 
                 item {
+                    val textValue = remember { mutableStateOf(TextFieldValue(captchaText)) }
+
                     CaptchaView(
                         isVisible = captchaImage != null,
                         captchaImage = captchaImage,
-                        captchaTextValue = captchaText,
+                        captchaTextValue = textValue.value,
                         onCaptchaTextChange = {
-                            viewModel.setCaptchaTextValue(it)
+                            textValue.value = it
+                            viewModel.setCaptchaTextValue(it.text)
                         }
                     )
                 }
 
                 item {
+                    val textValueEmail = remember { mutableStateOf(TextFieldValue(emailText)) }
+                    val textValuePassword = remember { mutableStateOf(TextFieldValue(passwordText)) }
+
                     OutlinedTextInputField(
-                        value = emailText,
+                        value = textValueEmail.value,
                         onValueChange = {
-                            viewModel.setEmailTextValue(it)
+                            textValueEmail.value = it
+                            viewModel.setEmailTextValue(it.text)
                         },
                         label = stringResource(strings.promptEmail) +
                                 " / " + stringResource(strings.loginParameterName),
@@ -172,9 +181,10 @@ fun LoginContent(
                     )
 
                     OutlinedTextInputField(
-                        value = passwordText,
+                        value = textValuePassword.value,
                         onValueChange = {
-                            viewModel.setPasswordTextValue(it)
+                            textValuePassword.value = it
+                            viewModel.setPasswordTextValue(it.text)
                         },
                         label = stringResource(strings.promptPassword),
                         keyboardType = KeyboardType.Password,

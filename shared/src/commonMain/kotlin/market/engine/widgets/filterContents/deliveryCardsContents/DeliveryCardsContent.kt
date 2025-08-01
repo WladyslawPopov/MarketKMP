@@ -44,7 +44,7 @@ fun DeliveryCardsContent(
     refresh: () -> Unit
 ){
     val cardsState by viewModel.deliveryCardsState.collectAsState()
-    val fieldsState by viewModel.deliveryFieldsState.collectAsState()
+    val fieldsState by viewModel.deliveryFieldsState.state.collectAsState()
     val showFieldsState by viewModel.showFieldsState.collectAsState()
     val selectedCardsState by viewModel.selectedCardState.collectAsState()
     val isLoading by viewModel.isShowProgress.collectAsState()
@@ -163,7 +163,7 @@ fun DeliveryCardsContent(
             )
             {
                 AnimatedVisibility(
-                    !showFieldsState && selectedCardsState != null
+                    !showFieldsState && selectedCardsState != 1L
                             && cardsState.find { it.id == selectedCardsState }?.isDefault == false
                 )
                 {
@@ -180,7 +180,7 @@ fun DeliveryCardsContent(
                     }
                 }
 
-                AnimatedVisibility(!showFieldsState && selectedCardsState != null) {
+                AnimatedVisibility(!showFieldsState && selectedCardsState != 1L) {
                     SimpleTextButton(
                         stringResource(strings.editCardLabel),
                         backgroundColor = colors.greenWaterBlue,
@@ -213,7 +213,7 @@ fun DeliveryCardsContent(
                     }
                 }
 
-                AnimatedVisibility(!showFieldsState && selectedCardsState != null) {
+                AnimatedVisibility(!showFieldsState && selectedCardsState != 1L) {
                     SimpleTextButton(
                         stringResource(strings.actionDelete),
                         backgroundColor = colors.negativeRed,

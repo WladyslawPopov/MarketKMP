@@ -12,6 +12,7 @@ import market.engine.core.network.APIService
 import market.engine.core.network.functions.CategoryOperations
 import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
+import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
@@ -51,6 +52,7 @@ val operationsModule = module {
     singleOf(::SubscriptionOperations)
     singleOf(::UserOperations)
     singleOf(::OperationsMethods)
+    singleOf(::OffersListOperations)
 }
 
 val repositoryModule = module {

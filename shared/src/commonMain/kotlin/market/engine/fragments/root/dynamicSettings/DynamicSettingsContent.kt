@@ -1,6 +1,5 @@
 package market.engine.fragments.root.dynamicSettings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +51,7 @@ fun DynamicSettingsContent(
     val settingsType = model.settingsType
     val code = model.code
 
-    val pageState by viewModel.dynamicSettingsState.collectAsState()
+    val pageState by viewModel.dynamicSettingsUIState.collectAsState()
 
     val blocList by viewModel.blocList.collectAsState()
 
@@ -77,7 +76,7 @@ fun DynamicSettingsContent(
             SimpleAppBar(
                 data = pageState.appBarState
             ){
-                TextAppBar(pageState.titleText)
+                TextAppBar(pageState.data.titleText)
             }
         },
         modifier = Modifier.pointerInput(Unit) {
@@ -112,7 +111,7 @@ fun DynamicSettingsContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
-                            pageState.fields.find { it.widgetType == "text_area" }?.let {
+                            pageState.data.fields.find { it.widgetType == "text_area" }?.let {
                                 DescriptionTextField(it){ description ->
                                     viewModel.setDescription(description)
                                 }
@@ -130,7 +129,7 @@ fun DynamicSettingsContent(
 
                 "set_vacation" -> {
                     item {
-                        VacationSettingsContent(pageState.fields, onValueChange = {
+                        VacationSettingsContent(pageState.data.fields, onValueChange = {
                             viewModel.setNewFields(it)
                         }) {
                             viewModel.postSubmit()
@@ -140,7 +139,7 @@ fun DynamicSettingsContent(
 
                 "set_bidding_step" -> {
                     item {
-                        BiddingStepSettingsContent(pageState.fields) {
+                        BiddingStepSettingsContent(pageState.data.fields) {
                             viewModel.postSubmit()
                         }
                     }
@@ -149,7 +148,7 @@ fun DynamicSettingsContent(
                 "set_auto_feedback" -> {
                     item {
                         AutoFeedbackSettingsContent(
-                            pageState.fields,
+                            pageState.data.fields,
                             onValueChange = {
                                 viewModel.setNewFields(it)
                             }
@@ -196,11 +195,11 @@ fun DynamicSettingsContent(
                         ) {
                             HeaderAlertText(
                                 rememberRichTextState().setHtml(
-                                    pageState.titleText
+                                    pageState.data.titleText
                                 ).annotatedString
                             )
 
-                            SetUpDynamicFields(pageState.fields, showRating = true){
+                            SetUpDynamicFields(pageState.data.fields, showRating = true){
                                 viewModel.setNewFields(it)
                             }
 
@@ -246,7 +245,7 @@ fun DynamicSettingsContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                         ) {
-                            val field = pageState.fields.find { it.key == "bidders" }
+                            val field = pageState.data.fields.find { it.key == "bidders" }
 
                             if (field != null) {
                                 DynamicCheckboxGroup(
@@ -293,10 +292,10 @@ fun DynamicSettingsContent(
                                 val richTextState = rememberRichTextState()
 
                                 HeaderAlertText(
-                                    richTextState.setHtml(pageState.titleText).annotatedString
+                                    richTextState.setHtml(pageState.data.titleText).annotatedString
                                 )
 
-                                SetUpDynamicFields(pageState.fields, code){
+                                SetUpDynamicFields(pageState.data.fields, code){
                                     viewModel.setNewFields(it)
                                 }
 

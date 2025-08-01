@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.user
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -57,7 +59,9 @@ class DefaultUserComponent(
     val navigateToSubscriptions: () -> Unit,
 ) : UserComponent, JetpackComponentContext by componentContext {
 
-    val viewModel : UserViewModel = UserViewModel(userId, this)
+    val viewModel : UserViewModel = viewModel("userViewModel"){
+        UserViewModel(userId, this@DefaultUserComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         UserComponent.Model(

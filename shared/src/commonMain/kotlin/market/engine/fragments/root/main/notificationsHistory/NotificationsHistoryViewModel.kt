@@ -1,21 +1,26 @@
 package market.engine.fragments.root.main.notificationsHistory
 
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NotificationItem
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deleteReadNotifications
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 
-class NotificationsHistoryViewModel : CoreViewModel() {
+class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
-    private var _responseGetPage = MutableStateFlow<List<NotificationItem>?>(null)
-    val responseGetPage : StateFlow<List<NotificationItem>?> = _responseGetPage.asStateFlow()
+    private var _responseGetPage = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetPage",
+        emptyList(),
+        ListSerializer(NotificationItem.serializer())
+    )
+    val responseGetPage = _responseGetPage.state
 
     fun getPage() {
         refresh()

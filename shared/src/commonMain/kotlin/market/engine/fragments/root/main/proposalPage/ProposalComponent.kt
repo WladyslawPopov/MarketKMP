@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.proposalPage
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -34,7 +36,9 @@ class DefaultProposalComponent(
     val navigateBack: () -> Unit
 ) : ProposalComponent, JetpackComponentContext by componentContext {
 
-    private val proposalViewModel = ProposalViewModel(proposalType, offerId, this)
+    private val proposalViewModel = viewModel("proposalViewModel"){
+        ProposalViewModel(proposalType, offerId, this@DefaultProposalComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         ProposalComponent.Model(

@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
@@ -73,7 +75,12 @@ class DefaultMainComponent(
     componentContext: JetpackComponentContext,
 ) : MainComponent, JetpackComponentContext by componentContext {
 
-    val viewModel = MainViewModel(this)
+    val viewModel = viewModel("mainViewModel") {
+        MainViewModel(
+            this@DefaultMainComponent,
+        createSavedStateHandle()
+        )
+    }
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(

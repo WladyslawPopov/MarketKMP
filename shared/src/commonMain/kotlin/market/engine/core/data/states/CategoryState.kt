@@ -4,5 +4,5 @@ import market.engine.widgets.filterContents.categories.CategoryViewModel
 
 data class CategoryState(
     val openCategory: Boolean = false,
-    val categoryViewModel: CategoryViewModel = CategoryViewModel(),
+    val categoryViewModel: CategoryViewModel,
 )

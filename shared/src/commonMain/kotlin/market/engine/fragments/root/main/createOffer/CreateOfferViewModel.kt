@@ -1,19 +1,18 @@
 package market.engine.fragments.root.main.createOffer
 
+import androidx.lifecycle.SavedStateHandle
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
-import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -25,41 +24,36 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import market.engine.common.Platform
-import market.engine.common.getFileUpload
 import market.engine.core.data.baseFilters.SD
-import market.engine.core.data.constants.MAX_IMAGE_COUNT
-import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.PhotoSave
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.CategoryState
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getCurrentDate
-import market.engine.core.utils.printLogD
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.collections.plus
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 data class CreateOfferContentState(
     val appBarState: SimpleAppBarData = SimpleAppBarData(),
-    val categoryState: CategoryState = CategoryState(),
+    val categoryState: CategoryState,
 
     val catHistory : List<Category> = emptyList(),
     val textState : String = "",
@@ -87,174 +81,77 @@ data class CreateOfferContentState(
     )
 )
 
-class PhotoTempViewModel(val type: CreateOfferType) : CoreViewModel(){
-    private val _deleteImages = MutableStateFlow<List<JsonPrimitive>>(emptyList())
-    val deleteImages = _deleteImages.asStateFlow()
-
-    private val _responseImages = MutableStateFlow<List<PhotoTemp>>(emptyList())
-    val responseImages = _responseImages.asStateFlow()
-
-    @OptIn(ExperimentalUuidApi::class)
-    fun getImages(pickImagesRaw : PlatformFiles) {
-        viewModelScope.launch {
-            val photos = pickImagesRaw.map { file ->
-                PhotoTemp(
-                    file = file,
-                    id = Uuid.random().toString(),
-                    uri = file.path
-                )
-            }
-            _responseImages.value = buildList {
-                addAll(_responseImages.value)
-                photos.forEach {
-                    if (size < MAX_IMAGE_COUNT) {
-                        add(it)
-                    }
-                }
-            }
-        }
-    }
-
-    fun setImages(images: List<PhotoTemp>) {
-        _responseImages.value = images
-    }
-
-
-    fun setDeleteImages(item : PhotoTemp) {
-        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
-            if (item.url != null && item.id != null) {
-                _deleteImages.value += JsonPrimitive(item.id!!.last().toString())
-            }
-        }
-
-        _responseImages.update {
-            val newList = it.toMutableList()
-            newList.remove(item)
-            newList
-        }
-    }
-
-    fun rotatePhoto(item : PhotoTemp) {
-        _responseImages.update { list ->
-            list.map {
-                if (it.id == item.id) {
-                    item.copy()
-                } else {
-                    it.copy()
-                }
-            }
-        }
-    }
-
-    fun openPhoto(item : PhotoTemp) {
-        val i = item
-        printLogD("Open photo", i.toString())
-    }
-
-    fun uploadPhotoTemp(item : PhotoTemp, onSuccess : (PhotoTemp) -> Unit) {
-        viewModelScope.launch {
-            val res = uploadFile(item)
-
-            if (res.success != null) {
-                delay(1000)
-
-                if (res.success?.tempId?.isNotBlank() == true) {
-                    item.uri = res.success?.uri
-                    item.tempId = res.success?.tempId
-
-                    _responseImages.update { list ->
-                        list.map {
-                            if (it.id == item.id) {
-                                item.copy()
-                            } else {
-                                it.copy()
-                            }
-                        }
-                    }
-                }else{
-                    showToast(
-                        errorToastItem.copy(
-                            message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
-                        )
-                    )
-                    setDeleteImages(item)
-                }
-                withContext(Dispatchers.Main){
-                    onSuccess(item)
-                }
-            } else {
-                showToast(
-                    errorToastItem.copy(
-                        message = res.error?.humanMessage ?: getString(strings.failureUploadPhoto)
-                    )
-                )
-            }
-        }
-    }
-
-    private suspend fun uploadFile(photoTemp: PhotoTemp) : ServerResponse<PhotoTemp> {
-        try {
-            val res = withContext(Dispatchers.IO) {
-                getFileUpload(photoTemp)
-            }
-
-            return withContext(Dispatchers.Main) {
-                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
-                photoTemp.tempId = cleanedSuccess
-                ServerResponse(photoTemp)
-            }
-        } catch (e : ServerErrorException){
-            onError(e)
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = e)
-            }
-        }catch (e : Exception){
-            onError(ServerErrorException(e.message ?: "", ""))
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
-            }
-        }
-    }
-}
 
 class CreateOfferViewModel(
     val catPath : List<Long>?,
     val offerId : Long?,
     val type : CreateOfferType,
     val externalImages : List<String>?,
-    val component: CreateOfferComponent
-) : CoreViewModel() {
+    val component: CreateOfferComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     val categoryViewModel = CategoryViewModel(
-        isCreateOffer = true
+        isCreateOffer = true,
+        savedStateHandle = savedStateHandle
     )
 
-    private val _responseGetPage = MutableStateFlow<List<Fields>>(emptyList())
-    val responseGetPage = _responseGetPage.asStateFlow()
+    private val _responseGetPage = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetPage",
+        emptyList(),
+        ListSerializer(Fields.serializer())
+    )
+    val responseGetPage = _responseGetPage.state
 
-    private val _responsePostPage = MutableStateFlow<DynamicPayload<OperationResult>?>(null)
+    private val _responsePostPage = savedStateHandle.getSavedStateFlow<DynamicPayload<OperationResult>>(
+        viewModelScope,
+        "responsePostPage",
+        DynamicPayload(),
+        DynamicPayload.serializer(OperationResult.serializer())
+    )
 
-    private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
+    private val _responseCatHistory = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseCatHistory",
+        emptyList(),
+        ListSerializer(Category.serializer())
+    )
 
-    private val _isEditCat = MutableStateFlow(false)
+    private val _isEditCat = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isEditCat",
+        false,
+        Boolean.serializer()
+    )
 
-    private val _selectedDate = MutableStateFlow(_responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull)
-    val selectedDate = _selectedDate.asStateFlow()
+    private val _selectedDate = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectedDate",
+        _responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull ?: 0,
+        Long.serializer()
+    )
+    val selectedDate = _selectedDate.state
 
-    private val _newOfferId = MutableStateFlow<Long?>(null)
-    val newOfferId = _newOfferId.asStateFlow()
+    private val _newOfferId = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "newOfferId",
+        1L,
+        Long.serializer()
+    )
+    val newOfferId = _newOfferId.state
     
     val searchData = categoryViewModel.searchData
 
-    val photoTempViewModel = PhotoTempViewModel(type)
+    val photoTempViewModel = PhotoTempViewModel(type, savedStateHandle)
 
     val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
-        _responseGetPage,
-        _responseCatHistory,
-        _isEditCat,
+        _responseGetPage.state,
+        _responseCatHistory.state,
+        _isEditCat.state,
     )
     { dynamicPayload, catHistory, openCategory ->
-        val tempPhotos: ArrayList<PhotoTemp> = arrayListOf()
+        val tempPhotos: ArrayList<PhotoSave> = arrayListOf()
 
         when (type) {
             CreateOfferType.EDIT, CreateOfferType.COPY -> {
@@ -263,7 +160,7 @@ class CreateOfferViewModel(
                 photos.forEach { field ->
                     if (field.links != null) {
                         tempPhotos.add(
-                            PhotoTemp(
+                            PhotoSave(
                                 id = field.key,
                                 url = field.links.mid?.jsonPrimitive?.content,
                                 tempId = ""
@@ -279,7 +176,7 @@ class CreateOfferViewModel(
                 if (externalImages != null) {
                     externalImages.forEach {
                         tempPhotos.add(
-                            PhotoTemp(
+                            PhotoSave(
                                 url = it
                             )
                         )
@@ -305,7 +202,7 @@ class CreateOfferViewModel(
 
         if(type == CreateOfferType.CREATE) {
             dynamicPayload.find { it.key == "session_start" }?.data =
-                if (selectedDate.value != null) {
+                if (selectedDate.value != 0L) {
                     JsonPrimitive(2)
                 } else {
                     JsonPrimitive(0)
@@ -318,13 +215,16 @@ class CreateOfferViewModel(
                     component.onBackClicked()
                 },
                 listItems = listOf(
-                    NavigationItem(
-                        title = "",
+                    NavigationItemUI(
+                        NavigationItem(
+                            title = "",
+
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null
+                        ),
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
                         onClick = {
                             refresh()
                         }
@@ -341,7 +241,12 @@ class CreateOfferViewModel(
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        CreateOfferContentState()
+        CreateOfferContentState(
+            categoryState = CategoryState(
+                openCategory = _isEditCat.value,
+                categoryViewModel = categoryViewModel
+            )
+        )
     )
 
     init {
@@ -400,7 +305,6 @@ class CreateOfferViewModel(
         }
     }
 
-
     fun setCatHistory() {
         getCategoriesHistory(catPath?.firstOrNull())
     }
@@ -433,7 +337,7 @@ class CreateOfferViewModel(
                                 payload.fields.find {
                                     it.key == "session_start"
                                 }?.let { it.data = JsonPrimitive(2) }
-                                _selectedDate.value = field.data?.jsonPrimitive?.longOrNull
+                                _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 0
                             }else{
                                 payload.fields.find {
                                     it.key == "session_start"
@@ -558,7 +462,7 @@ class CreateOfferViewModel(
                         )
 
                         if (type != CreateOfferType.EDIT) {
-                            _newOfferId.value = payload.body?.jsonPrimitive?.longOrNull
+                            _newOfferId.value = payload.body?.jsonPrimitive?.longOrNull ?: 1
                             analyticsHelper.reportEvent("added_offer_success", eventParams)
                         } else {
                             analyticsHelper.reportEvent("edit_offer_success", eventParams)
@@ -647,7 +551,7 @@ class CreateOfferViewModel(
                 } else it.copy()
             }
         }
-        _selectedDate.value = data
+        _selectedDate.value = data ?: 0
     }
 
     fun onBackClicked(onBack: () -> Unit) {
@@ -720,12 +624,12 @@ class CreateOfferViewModel(
                     }
 
                     "session_start" -> {
-                        if (selectedDate == null) {
+                        if (selectedDate != 2L) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }
                     "future_time" ->{
-                        if (selectedDate != null) {
+                        if (selectedDate == 2L) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }

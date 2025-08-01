@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.user
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
@@ -8,15 +9,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
@@ -30,19 +31,30 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Reports
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
 
-class UserViewModel(val userId: Long, val component: UserComponent) : CoreViewModel() {
+class UserViewModel(val userId: Long, val component: UserComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
-    private val _userInfo = MutableStateFlow(User())
-    val userInfo : StateFlow<User> = _userInfo.asStateFlow()
+    private val _userInfo = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "user",
+        User(),
+        User.serializer()
+    )
+    val userInfo : StateFlow<User> = _userInfo.state
 
-    private val _statusList = MutableStateFlow<ArrayList<String>>(arrayListOf())
-    val statusList: StateFlow<ArrayList<String>> = _statusList.asStateFlow()
+    private val _statusList = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "statusList",
+        listOf(),
+        ListSerializer(String.serializer())
+    )
+    val statusList: StateFlow<List<String>> = _statusList.state
 
     val isVisibleUserPanel = mutableStateOf(true)
 
@@ -50,7 +62,7 @@ class UserViewModel(val userId: Long, val component: UserComponent) : CoreViewMo
 
     val userOperations : UserOperations by lazy { getKoin().get() }
 
-    val listingBaseViewModel = ListingBaseViewModel()
+    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
 
     private val listingData = listingBaseViewModel.listingData
 

@@ -1,83 +1,102 @@
 package market.engine.widgets.filterContents.categories
 
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.baseFilters.Filter
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.states.CategoryPageState
 import market.engine.core.network.networkObjects.Category
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-@Serializable
-data class CategoryPageState(
-    val catDef : String = "",
-    val catBtn : String = "",
-    val enabledBtn : Boolean = true,
-    val categoryWithoutCounter : Boolean = false,
-)
 
 class CategoryViewModel(
     val isFilters: Boolean = false,
     val isCreateOffer: Boolean = false,
-) : CoreViewModel() {
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     // State implementation
-    private val _searchData = MutableStateFlow(SD())
-    val searchData: StateFlow<SD> = _searchData.asStateFlow()
+    private val _searchData = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "searchData",
+        initialValue = SD(),
+        serializer = SD.serializer()
+    )
+    val searchData: StateFlow<SD> = _searchData.state
 
-    private val _filters = MutableStateFlow<List<Filter>>(emptyList())
-    val filters = _filters.asStateFlow()
+    private val _filters = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "filters",
+        initialValue = emptyList(),
+        serializer = ListSerializer(Filter.serializer())
+    )
+    val filters = _filters.state
 
-    private val _selectedId = MutableStateFlow(1L)
-    val selectedId: StateFlow<Long> = _selectedId.asStateFlow()
+    private val _selectedId = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "selectedId",
+        initialValue = 1L,
+        serializer = Long.serializer()
+    )
+    val selectedId: StateFlow<Long> = _selectedId.state
 
-    private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
+    private val _categories = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "categories",
+        initialValue = emptyList(),
+        serializer = ListSerializer(Category.serializer())
+    )
+    val categories: StateFlow<List<Category>> = _categories.state
+
+    private val _pageState = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "pageState",
+        initialValue = CategoryPageState(),
+        serializer = CategoryPageState.serializer()
+    )
+    val pageState = _pageState.state
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-
-    private val _pageState = MutableStateFlow(CategoryPageState())
-    val pageState = _pageState.asStateFlow()
-
-
     init {
         viewModelScope.launch {
             try {
-                _pageState.update {
+                var catDef = ""
+                var catBtn = ""
+                var enabledBtn = true
 
-                    var catDef = ""
-                    var catBtn = ""
-                    var enabledBtn = true
-
-                    when {
-                        isFilters -> {
-                            catDef = getString(strings.selectCategory)
-                            catBtn = getString(strings.actionAcceptFilters)
-                        }
-
-                        isCreateOffer -> {
-                            catDef = getString(strings.selectCategory)
-                            catBtn = getString(strings.continueLabel)
-                            enabledBtn = selectedId.value != 1L
-                        }
-
-                        else -> {
-                            catDef = getString(strings.categoryMain)
-                            catBtn = getString(strings.categoryEnter)
-                        }
+                when {
+                    isFilters -> {
+                        catDef = getString(strings.selectCategory)
+                        catBtn = getString(strings.actionAcceptFilters)
                     }
 
+                    isCreateOffer -> {
+                        catDef = getString(strings.selectCategory)
+                        catBtn = getString(strings.continueLabel)
+                        enabledBtn = selectedId.value != 1L
+                    }
+
+                    else -> {
+                        catDef = getString(strings.categoryMain)
+                        catBtn = getString(strings.categoryEnter)
+                    }
+                }
+
+                _pageState.update {
                     it.copy(
                         catDef = catDef,
                         catBtn = catBtn,

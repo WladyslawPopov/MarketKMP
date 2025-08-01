@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.offer
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -67,9 +69,15 @@ class DefaultOfferComponent(
     val navigateDynamicSettings: (type: String, offerId: Long?) -> Unit,
 ) : OfferComponent, JetpackComponentContext by componentContext {
 
-    val viewModel : OfferViewModel = OfferViewModel(
-        getKoin().get(), this, id, isSnapshot
-    )
+    val viewModel = viewModel("offerPageViewModel"){
+        OfferViewModel(
+            getKoin().get(),
+            this@DefaultOfferComponent,
+            id,
+            isSnapshot,
+            createSavedStateHandle()
+        )
+    }
 
     private val _model = MutableValue(
         OfferComponent.Model(

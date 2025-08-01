@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile.myOrders
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -37,11 +39,14 @@ class DefaultMyOrdersComponent(
     val navigateToBack: () -> Unit
 ) : MyOrdersComponent, JetpackComponentContext by componentContext {
 
-    private val viewModel : MyOrdersViewModel = MyOrdersViewModel(
-        orderSelected,
-        type,
-        this
-    )
+    private val viewModel = viewModel("myOrdersViewModel") {
+        MyOrdersViewModel(
+            orderSelected,
+            type,
+            this@DefaultMyOrdersComponent,
+            createSavedStateHandle()
+        )
+    }
 
     private val _model = MutableValue(
         MyOrdersComponent.Model(

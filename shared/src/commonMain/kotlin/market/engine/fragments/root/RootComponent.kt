@@ -1,7 +1,9 @@
 package market.engine.fragments.root
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.active
@@ -53,7 +55,9 @@ class DefaultRootComponent(
     componentContext: JetpackComponentContext,
 ) : RootComponent, JetpackComponentContext by componentContext {
 
-    val viewModel = RootVewModel(this)
+    val viewModel =  viewModel("rootViewModel") {
+        RootVewModel(this@DefaultRootComponent, createSavedStateHandle())
+    }
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {
         childStack(

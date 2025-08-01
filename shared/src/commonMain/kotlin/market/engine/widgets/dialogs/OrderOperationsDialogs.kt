@@ -8,15 +8,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.jsonPrimitive
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.repositories.OrderRepository
+import market.engine.core.repositories.OrderBaseViewModel
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.rows.InfoRow
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -25,17 +28,31 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OrderOperationsDialog(
-    orderRepository: OrderRepository
+    orderBaseViewModel: OrderBaseViewModel
 ) {
-    val customDialogState = orderRepository.customDialogState.collectAsState()
-    val messageText = orderRepository.messageText.collectAsState()
-    val order = orderRepository.order
-    val typeGroup = orderRepository.typeGroup
+    val customDialogState = orderBaseViewModel.customDialogState.collectAsState()
+    val messageTextState = orderBaseViewModel.messageText.collectAsState()
+    val messageText = remember { mutableStateOf(TextFieldValue(messageTextState.value)) }
+    val order = orderBaseViewModel.order
+    val typeGroup = orderBaseViewModel.typeGroup
     val typeDef = DealTypeGroup.BUY
 
     CustomDialog(
         containerColor = colors.primaryColor,
-        uiState = customDialogState.value
+        uiState = customDialogState.value,
+        onDismiss = {
+            orderBaseViewModel.clearDialogFields()
+        },
+        onSuccessful = when(customDialogState.value.typeDialog){
+            "order_details","show_report_to_me", "show_my_report" -> {
+                null
+            }
+            else -> {
+                {
+                    orderBaseViewModel.makeOperation(customDialogState.value.typeDialog)
+                }
+            }
+        }
     )
     { state ->
         when(state.typeDialog){
@@ -119,7 +136,8 @@ fun OrderOperationsDialog(
                 OutlinedTextInputField(
                     value = messageText.value,
                     onValueChange = {
-                        orderRepository.setMessageText(it)
+                        messageText.value = it
+                        orderBaseViewModel.setMessageText(it.text)
                     },
                     label = stringResource(strings.messageLabel),
                     maxSymbols = 2000,
@@ -129,7 +147,7 @@ fun OrderOperationsDialog(
             else -> {
                 if (state.fields.isNotEmpty()) {
                     SetUpDynamicFields(state.fields){
-                        orderRepository.setNewField(it)
+                        orderBaseViewModel.setNewField(it)
                     }
                 }
             }

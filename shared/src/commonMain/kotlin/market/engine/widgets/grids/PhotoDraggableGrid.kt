@@ -16,7 +16,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.PhotoSave
 import market.engine.fragments.root.main.createOffer.PhotoTempViewModel
 import market.engine.widgets.items.PhotoCard
 import sh.calvin.reorderable.ReorderableItem
@@ -24,7 +24,7 @@ import sh.calvin.reorderable.rememberReorderableLazyGridState
 
 @Composable
 fun PhotoDraggableGrid(
-    list: List<PhotoTemp>,
+    list: List<PhotoSave>,
     viewModel: PhotoTempViewModel,
 ) {
     val listState = rememberUpdatedState(list)

@@ -1,15 +1,16 @@
 package market.engine.fragments.root.main.createOrder
 
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -21,10 +22,11 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
@@ -35,13 +37,13 @@ import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
-
 
 data class CreateOrderState(
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
@@ -54,27 +56,56 @@ data class CreateOrderState(
 
 class CreateOrderViewModel(
     val basketItem:  Pair<Long, List<SelectedBasketItem>>,
-    val component: CreateOrderComponent
-): CoreViewModel() {
-
-    private var _responseGetOffers = MutableStateFlow<List<OfferItem>>(emptyList())
-    private var _responseGetAdditionalData = MutableStateFlow<AdditionalDataForNewOrder?>(null)
+    val component: CreateOrderComponent,
+    savedStateHandle: SavedStateHandle
+): CoreViewModel(savedStateHandle) {
 
     val userOperations : UserOperations by lazy { getKoin().get() }
     val offerOperations : OfferOperations by lazy { getKoin().get() }
 
-    val deliveryCardsViewModel = DeliveryCardsViewModel()
+    val deliveryCardsViewModel = DeliveryCardsViewModel(savedStateHandle)
 
-    private val _selectDeliveryMethod = MutableStateFlow(0)
-    private val _selectDealType = MutableStateFlow(0)
-    private val _selectPaymentType = MutableStateFlow(0)
+    private val _responseGetOffers = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetOffers",
+        emptyList(),
+        ListSerializer(OfferItem.serializer())
+    )
+
+    private val _responseGetAdditionalData = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetAdditionalData",
+        AdditionalDataForNewOrder(),
+        AdditionalDataForNewOrder.serializer()
+    )
+
+    private val _selectDeliveryMethod = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectDeliveryMethod",
+        0,
+        Int.serializer()
+    )
+
+    private val _selectDealType = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectDealType",
+        0,
+        Int.serializer()
+    )
+
+    private val _selectPaymentType = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectPaymentType",
+        0,
+        Int.serializer()
+    )
 
     val createOrderState : StateFlow<CreateOrderState> = combine(
-        _responseGetOffers,
-        _responseGetAdditionalData,
-        _selectDeliveryMethod,
-        _selectDealType,
-        _selectPaymentType
+        _responseGetOffers.state,
+        _responseGetAdditionalData.state,
+        _selectDeliveryMethod.state,
+        _selectDealType.state,
+        _selectPaymentType.state
     ){ responseGetOffers, responseGetAdditionalData, selectDeliveryMethod, selectDealType, selectPaymentType ->
         CreateOrderState(
             appBarData = SimpleAppBarData(
@@ -82,17 +113,20 @@ class CreateOrderViewModel(
                     component.onBackClicked()
                 },
                 listItems = listOf(
+                    NavigationItemUI(
                     NavigationItem(
-                        title = "",
+                            title = "",
+
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                        ),
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
                         onClick = {
                             refreshPage()
                         }
-                    ),
+                    )
                 )
             ),
             responseGetOffers = responseGetOffers,

@@ -1,16 +1,17 @@
 package market.engine.fragments.root.main.createSubscription
 
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
@@ -24,11 +25,13 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.states.CategoryState
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
@@ -37,24 +40,37 @@ data class CreateSubDataState(
     val appBar : SimpleAppBarData = SimpleAppBarData(),
     val fields : List<Fields> = emptyList(),
     val title : String = "",
-    val categoryState: CategoryState = CategoryState()
+    val categoryState: CategoryState
 )
 
 class CreateSubscriptionViewModel(
     val editId: Long?,
-    val component: CreateSubscriptionComponent
-) : CoreViewModel() {
+    val component: CreateSubscriptionComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
-    private val _responseGetFields = MutableStateFlow<List<Fields>>(emptyList())
+    private val _responseGetFields = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetFields",
+        emptyList(),
+        ListSerializer(Fields.serializer())
+    )
 
-    private val _openCat = MutableStateFlow(false)
+    private val _openCat = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "openCat",
+        false,
+        Boolean.serializer()
+    )
+
     val categoryViewModel = CategoryViewModel(
-        isFilters = true
+        isFilters = true,
+        savedStateHandle = savedStateHandle
     )
 
     val createSubContentState : StateFlow<CreateSubDataState> = combine(
-        _responseGetFields,
-        _openCat,
+        _responseGetFields.state,
+        _openCat.state,
     ) { getPage, openCat ->
         val defCat = getString(strings.selectCategory)
 
@@ -78,17 +94,20 @@ class CreateSubscriptionViewModel(
                     component.onBackClicked()
                 },
                 listItems = listOf(
-                    NavigationItem(
-                        title = "",
+                    NavigationItemUI(
+                        NavigationItem(
+                            title = "",
+
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                        ),
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
                         onClick = {
                             refreshPage()
                         }
-                    ),
+                    )
                 )
             ),
             fields = getPage,
@@ -100,8 +119,13 @@ class CreateSubscriptionViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = CreateSubDataState()
+        started = SharingStarted.Lazily,
+        initialValue = CreateSubDataState(
+            categoryState = CategoryState(
+                openCategory = _openCat.value,
+                categoryViewModel = categoryViewModel
+            )
+        )
     )
 
     init {
@@ -130,7 +154,7 @@ class CreateSubscriptionViewModel(
     fun clearCategory(){
         viewModelScope.launch {
             categoryViewModel.updateFromSearchData(SD())
-            _responseGetFields.update { page ->
+            _responseGetFields.asyncUpdate { page ->
                 page.map {
                     if(it.key == "category_id")
                         it.copy(

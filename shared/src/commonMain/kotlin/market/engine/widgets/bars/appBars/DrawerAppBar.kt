@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.buttons.MenuHamburgerButton
 
@@ -52,7 +52,7 @@ fun DrawerAppBar(
                     )
                 ) {
                     data.listItems.forEachIndexed { _, item ->
-                        if (item.isVisible) {
+                        if (item.data.isVisible) {
                             BadgedButton(item)
                         }
                     }

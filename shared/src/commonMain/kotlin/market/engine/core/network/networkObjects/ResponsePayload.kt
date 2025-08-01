@@ -15,7 +15,7 @@ data class AppResponse(
 
 @Serializable
 data class Payload<T>(
-    @SerialName("objects") val objects: ArrayList<T> = arrayListOf(),
+    @SerialName("objects") val objects: List<T> = emptyList(),
     @SerialName("total_count") val totalCount: Int = 0,
     @SerialName("is_more") val isMore: Boolean = false,
 )
@@ -25,7 +25,7 @@ data class BodyListPayload<T>(
     @SerialName("operation_result") val operationResult: BodyOperationResult<T>? = null,
     @SerialName("status") val status: String? = null,
     @SerialName("error_code") val errorCode: String? = null,
-    @SerialName("body") val bodyList: ArrayList<T> = arrayListOf(),
+    @SerialName("body") val bodyList: List<T> = emptyList(),
 )
 
 @Serializable
@@ -40,7 +40,7 @@ data class BodyPayload<T>(
 @Serializable
 data class BodyOperationResult<T>(
     @SerialName("about_me") val aboutMe: String? = null,
-    @SerialName("body") val body: ArrayList<T> = arrayListOf(),
+    @SerialName("body") val body: List<T> = emptyList(),
 )
 
 @Serializable

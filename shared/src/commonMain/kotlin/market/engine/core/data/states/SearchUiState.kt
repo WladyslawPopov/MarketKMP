@@ -1,22 +1,22 @@
 package market.engine.core.data.states
 
-import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.events.SearchEvents
 import market.engine.core.data.items.SearchHistoryItem
-import market.engine.core.data.items.Tab
+import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.items.TabWithIcon
 
 data class SearchUiState(
     val searchData: SD = SD(),
 
-    val searchString : TextFieldValue = TextFieldValue(""),
+    val searchString : String = "",
 
     val selectedTabIndex: Int = 0,
-    val tabs: List<Tab> = listOf(),
+    val tabs: List<TabWithIcon> = listOf(),
 
     val searchHistory: List<SearchHistoryItem> = emptyList(),
 
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val categoryState: CategoryState = CategoryState(),
+    val categoryState: CategoryState,
     val searchEvents: SearchEvents
 )

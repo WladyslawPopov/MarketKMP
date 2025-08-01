@@ -20,7 +20,8 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.PlatformWindowType
@@ -44,7 +45,7 @@ fun ProfileMyOrdersNavigation(
     typeGroup: DealTypeGroup,
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: List<NavigationItem>
+    publicProfileNavigationItems: List<NavigationItemUI>
 ) {
     CustomModalDrawer(
         modifier = modifier,
@@ -62,17 +63,19 @@ fun ProfileMyOrdersNavigation(
                 drawerState = drawerState,
                 data = SimpleAppBarData(
                     listItems = listOf(
+                        NavigationItemUI(
                         NavigationItem(
-                            title = "",
+                                title = "",
+                                hasNews = false,
+                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                                badgeCount = null,
+                            ),
                             icon = drawables.recycleIcon,
                             tint = colors.inactiveBottomNavIconColor,
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
                             onClick = {
                                 component.onRefreshOffers()
                             }
-                        ),
+                        )
                     )
                 ),
                 color = colors.transparent

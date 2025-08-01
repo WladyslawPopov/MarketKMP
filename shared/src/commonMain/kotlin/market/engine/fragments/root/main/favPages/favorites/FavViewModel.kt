@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.favPages.favorites
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -18,8 +19,6 @@ import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
@@ -31,7 +30,7 @@ import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -44,15 +43,17 @@ import org.jetbrains.compose.resources.getString
 class FavViewModel(
     val favType : FavScreenType,
     val idList : Long?,
-    component: FavoritesComponent
-) : CoreViewModel() {
+    component: FavoritesComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
     val listingBaseViewModel = ListingBaseViewModel(
         deleteSelectedItems = {
             deleteSelectsItems()
-        }
+        },
+        savedStateHandle = savedStateHandle
     )
 
     val listingData = listingBaseViewModel.listingData
@@ -72,6 +73,7 @@ class FavViewModel(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
         CategoryViewModel(
             isFilters = true,
+            savedStateHandle = savedStateHandle
         )
     )
 
@@ -84,7 +86,7 @@ class FavViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<OfferBaseViewModel>> = pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -94,11 +96,11 @@ class FavViewModel(
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
-                    OfferRepository(
+                    OfferBaseViewModel(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this, component),
-                        this
+                        savedStateHandle
                     )
                 }
             }
@@ -158,25 +160,15 @@ class FavViewModel(
                     add(
                         NavigationItem(
                             title = filterString,
-                            icon = drawables.filterIcon,
-                            tint = colors.black,
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
-                            }
-                        )
+                        ),
                     )
                     add(
                         NavigationItem(
                             title = sortString,
-                            icon = drawables.sortIcon,
-                            tint = colors.black,
                             hasNews = ld.sort != null,
                             badgeCount = null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
-                            }
                         )
                     )
                 }

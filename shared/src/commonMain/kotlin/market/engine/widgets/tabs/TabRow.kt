@@ -6,16 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.items.Tab
+import market.engine.core.data.items.TabWithIcon
 
 @Composable
 fun TabRow(
-    tabs: List<Tab>,
+    tabs: List<TabWithIcon>,
     containerColor: Color = colors.primaryColor,
     dividerColor: Color = colors.primaryColor,
     selectedTab: Int,
     modifier: Modifier = Modifier,
-    contentTab : @Composable (index : Int, tab : Tab) -> Unit
+    contentTab : @Composable (index : Int, tab : TabWithIcon) -> Unit
 ) {
     ScrollableTabRow(
         modifier = modifier,

@@ -1,6 +1,7 @@
 package market.engine.fragments.base
 
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,12 +36,13 @@ import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.shared.marketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
 
-open class CoreViewModel : ViewModel() {
+open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val db : marketDb by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
@@ -71,8 +73,14 @@ open class CoreViewModel : ViewModel() {
     val userRepository: UserRepository by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
 
-    private val _scrollState = MutableStateFlow(ScrollDataState())
-    val scrollState: StateFlow<ScrollDataState> = _scrollState
+    private val _scrollState = savedStateHandle.getSavedStateFlow(
+        scope = viewModelScope,
+        key = "scroll",
+        initialValue = ScrollDataState(),
+        serializer = ScrollDataState.serializer()
+    )
+
+    val scrollState: StateFlow<ScrollDataState> = _scrollState.state
 
     fun updateScroll(scrollDataState: ScrollDataState) {
         _scrollState.value = scrollDataState

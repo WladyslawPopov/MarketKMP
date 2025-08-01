@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.pages.ChildPages
@@ -43,11 +46,12 @@ fun SearchContent(
     searchPages : Value<ChildPages<*, SearchPagesComponents>>,
 ) {
     val focusManager = LocalFocusManager.current
-
     val searchEvents = uiSearchUiState.searchEvents
     val appBarData = uiSearchUiState.appBarData
     val openCategory = uiSearchUiState.categoryState.openCategory
-    val searchString = uiSearchUiState.searchString
+    val searchStringState = uiSearchUiState.searchString
+
+    val searchString = remember { mutableStateOf(TextFieldValue(searchStringState)) }
 
     EdgeToEdgeScaffold(
         modifier = Modifier.fillMaxSize(),
@@ -60,10 +64,11 @@ fun SearchContent(
                 ) {
                     SearchTextField(
                         !openCategory,
-                        searchString,
+                        searchString.value,
                         onValueChange = { newVal ->
+                            searchString.value = newVal
                             searchEvents.updateSearch(
-                                newVal
+                                newVal.text
                             )
                         },
                         goToListing = {

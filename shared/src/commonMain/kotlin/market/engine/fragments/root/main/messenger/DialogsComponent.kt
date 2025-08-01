@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.messenger
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -41,7 +43,9 @@ class DefaultDialogsComponent(
     message : String?,
 ) : DialogsComponent, JetpackComponentContext by componentContext {
 
-    private val dialogsViewModel : DialogsViewModel = DialogsViewModel(dialogId,message, this)
+    private val dialogsViewModel = viewModel("dialogsViewModel") {
+        DialogsViewModel(dialogId,message, this@DefaultDialogsComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         DialogsComponent.Model(

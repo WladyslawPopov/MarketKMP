@@ -32,7 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.SimpleTextButton
@@ -48,24 +48,24 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetBidsItem(
-    offerRepository : OfferRepository,
+    offerBaseViewModel : OfferBaseViewModel,
     updateItem : Long? = null,
 ) {
-    val offer by offerRepository.offerState.collectAsState()
+    val offer by offerBaseViewModel.offerState.collectAsState()
 
-    val events = offerRepository.events
+    val events = offerBaseViewModel.events
     val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        defOptions.value = offerRepository.getDefOperations()
+        defOptions.value = offerBaseViewModel.getDefOperations()
     }
 
-    val menuList = offerRepository.operationsList.collectAsState()
+    val menuList = offerBaseViewModel.menuList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.updateItem()
+            offerBaseViewModel.updateItem()
         }
     }
 
@@ -288,7 +288,7 @@ fun CabinetBidsItem(
                             backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite
                         ) {
-                            offerRepository.openMesDialog()
+                            offerBaseViewModel.openMesDialog()
                         }
                     }
                 }
@@ -369,6 +369,6 @@ fun CabinetBidsItem(
     }
 
     OfferOperationsDialogs(
-        offerRepository = offerRepository,
+        offerBaseViewModel = offerBaseViewModel,
     )
 }

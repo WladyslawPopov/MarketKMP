@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.PhotoSave
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.ilustrations.LoadImage
@@ -36,7 +36,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SuccessContent(
-    images: List<PhotoTemp>,
+    images: List<PhotoSave>,
     title : String,
     isActive : Boolean = true,
     futureTime : Long?,

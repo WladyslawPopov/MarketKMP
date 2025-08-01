@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,29 +19,21 @@ import androidx.compose.ui.zIndex
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.items.PhotoTemp
+import market.engine.core.data.items.PhotoSave
 import market.engine.fragments.root.main.createOffer.PhotoTempViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
 
 @Composable
 fun PhotoCard(
-    item: PhotoTemp,
+    item: PhotoSave,
     interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
     viewModel: PhotoTempViewModel,
 ) {
     val rotate = remember { mutableStateOf(item.rotate) }
 
-    val isLoading = remember{ mutableStateOf(item.tempId == null) }
-
-    LaunchedEffect(item.tempId){
-        if (item.tempId == null){
-            viewModel.uploadPhotoTemp(item){
-                isLoading.value = false
-            }
-        }
-    }
+    val isLoading = remember(item.tempId == null) { mutableStateOf(item.tempId == null) }
 
     Card(
         onClick = { viewModel.openPhoto(item) },

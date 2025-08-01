@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.profile.myOffers
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -43,7 +45,9 @@ class DefaultMyOffersComponent(
     val navigateToDynamicSettings: (String, Long?) -> Unit,
 ) : MyOffersComponent, JetpackComponentContext by componentContext {
 
-    private val viewModel : MyOffersViewModel = MyOffersViewModel(type, this)
+    private val viewModel = viewModel("MyOffersViewModel"){
+         MyOffersViewModel(type, this@DefaultMyOffersComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         MyOffersComponent.Model(

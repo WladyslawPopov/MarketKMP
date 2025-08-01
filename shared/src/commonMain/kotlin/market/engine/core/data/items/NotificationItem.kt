@@ -1,5 +1,8 @@
 package market.engine.core.data.items
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class NotificationItem (
     var id: String,
     var title: String,

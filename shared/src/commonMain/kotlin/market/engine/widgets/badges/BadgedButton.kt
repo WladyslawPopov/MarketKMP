@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.widgets.ilustrations.LoadImage
 import market.engine.widgets.tooltip.TooltipState
 import market.engine.widgets.tooltip.tooltip
@@ -26,25 +26,27 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun BadgedButton(
-    item: NavigationItem,
+    navigation: NavigationItemUI,
     selected: Boolean = false,
     colorBackground: Color = colors.transparent,
     tooltipState: TooltipState? = null,
 ) {
+    val item = navigation.data
+
     val modifier = if(tooltipState != null) {
         Modifier
             .tooltip(
                 state = tooltipState,
-                data = item.tooltipData,
+                data = navigation.tooltipData,
                 initialVisibility = true
             )
             .clip(CircleShape)
-            .clickable { item.onClick() }
+            .clickable { navigation.onClick() }
             .size(dimens.mediumIconSize)
     }else{
         Modifier
             .clip(CircleShape)
-            .clickable { item.onClick() }
+            .clickable { navigation.onClick() }
             .size(dimens.mediumIconSize)
     }
 
@@ -59,7 +61,7 @@ fun BadgedButton(
                 .clip(MaterialTheme.shapes.medium)
                 .background(colorBackground, MaterialTheme.shapes.medium)
                 .padding(dimens.smallSpacer)
-                .clickable { item.onClick() }
+                .clickable { navigation.onClick() }
         ) {
             if (item.imageString != null) {
                 Box(
@@ -79,17 +81,17 @@ fun BadgedButton(
                     modifier = modifier,
                     contentAlignment = Alignment.Center
                 ) {
-                    if (item.icon != null) {
+                    if (navigation.icon != null) {
                         Icon(
-                            painter = painterResource(item.icon!!),
+                            painter = painterResource(navigation.icon),
                             contentDescription = item.title,
-                            tint = if (!selected) item.tint else item.tintSelected,
+                            tint = if (!selected) navigation.tint else navigation.tintSelected,
                             modifier = Modifier.size(dimens.smallIconSize)
                         )
                     }
-                    if (item.image != null) {
+                    if (navigation.image != null) {
                         Image(
-                            painter = painterResource(item.image!!),
+                            painter = painterResource(navigation.image),
                             contentDescription = item.title,
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier.size(dimens.mediumIconSize)

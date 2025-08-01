@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.listing
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -49,7 +51,9 @@ class DefaultListingComponent(
     private val navigateToNewSubscription: (Long?) -> Unit,
 ) : ListingComponent, JetpackComponentContext by componentContext {
 
-    private val listingViewModel : ListingViewModel = ListingViewModel(this)
+    private val listingViewModel = viewModel("listingViewModel") {
+        ListingViewModel(this@DefaultListingComponent, createSavedStateHandle())
+    }
 
     private val navigator = PagesNavigation<SearchPagesConfig>()
 

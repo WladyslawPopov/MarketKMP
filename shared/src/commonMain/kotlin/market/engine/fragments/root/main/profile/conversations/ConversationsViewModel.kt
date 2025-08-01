@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.profile.conversations
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -19,13 +20,10 @@ import market.engine.core.data.filtersObjects.MsgFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.events.CabinetConversationsItemEvents
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.CabinetConversationsItemState
-import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations
@@ -35,7 +33,7 @@ import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
-class ConversationsViewModel(val component: ConversationsComponent): CoreViewModel() {
+class ConversationsViewModel(val component: ConversationsComponent, savedStateHandle: SavedStateHandle): CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Conversations> = PagingRepository()
 
@@ -44,7 +42,8 @@ class ConversationsViewModel(val component: ConversationsComponent): CoreViewMod
     val listingBaseViewModel = ListingBaseViewModel(
         deleteSelectedItems = {
             deleteSelectsItems()
-        }
+        },
+        savedStateHandle = savedStateHandle
     )
 
     val ld = listingBaseViewModel.listingData
@@ -108,25 +107,15 @@ class ConversationsViewModel(val component: ConversationsComponent): CoreViewMod
                     add(
                         NavigationItem(
                             title = filterString,
-                            icon = drawables.filterIcon,
-                            tint = colors.black,
                             hasNews = filters.find { it.interpretation?.isNotEmpty() == true } != null,
                             badgeCount = if (filters.isNotEmpty()) filters.size else null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.FILTERS)
-                            }
                         )
                     )
                     add(
                         NavigationItem(
                             title = sortString,
-                            icon = drawables.sortIcon,
-                            tint = colors.black,
                             hasNews = ld.value.data.sort != null,
                             badgeCount = null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
-                            }
                         )
                     )
                 }

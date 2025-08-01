@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.Fields
@@ -17,24 +18,24 @@ import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
 
+@Serializable
 data class CustomDialogState(
+    val title: String = "",
     val typeDialog: String = "",
-    val title: AnnotatedString = AnnotatedString(""),
-    var fields : List<Fields> = emptyList(),
-    val onDismiss: () -> Unit = {},
-    val onSuccessful: (() -> Unit) ?= null,
+    val fields: List<Fields> = emptyList(),
 )
 
 @Composable
 fun CustomDialog(
     uiState: CustomDialogState,
+    onDismiss: () -> Unit,
+    onSuccessful: (() -> Unit)? = null,
     containerColor: Color = colors.primaryColor,
+    annotatedString: AnnotatedString? = null,
     body: @Composable (uiState: CustomDialogState) -> Unit = {},
 ) {
     val showDialog = uiState.typeDialog
     val title = uiState.title
-    val onDismiss = uiState.onDismiss
-    val onSuccessful = uiState.onSuccessful
 
     if (showDialog != "") {
         AlertDialog(
@@ -43,7 +44,7 @@ fun CustomDialog(
             onDismissRequest = { onDismiss() },
             title = {
                 Text(
-                    title,
+                    annotatedString ?: AnnotatedString(title),
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                 )
             },

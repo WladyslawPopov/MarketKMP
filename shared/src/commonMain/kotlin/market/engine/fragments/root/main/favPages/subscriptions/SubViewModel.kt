@@ -1,6 +1,6 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
-import androidx.compose.ui.text.AnnotatedString
+import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -8,53 +8,56 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.events.SubItemEvents
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.states.SubItemState
-import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
-class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
+class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle)
 {
     private val subscriptionOperations: SubscriptionOperations = getKoin().get()
 
     private val pagingRepository: PagingRepository<Subscription> = PagingRepository()
 
-    private val _filterListingBtnItem = MutableStateFlow<List<FilterListingBtnItem>>(emptyList())
-    val filterListingBtnItem: StateFlow<List<FilterListingBtnItem>> = _filterListingBtnItem.asStateFlow()
-
-    val listingBaseViewModel = ListingBaseViewModel()
+    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
     val listingData = listingBaseViewModel.listingData
     val activeWindowType = listingBaseViewModel.activeWindowType
 
-    val deleteId = MutableStateFlow(1L)
-    val titleDialog = MutableStateFlow(AnnotatedString(""))
+    val deleteId = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "deleteId",
+        1L,
+        Long.serializer()
+    )
+
+    val titleDialog = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "titleDialog",
+        "",
+        String.serializer()
+    )
 
     val subOperations : SubscriptionOperations by lazy { getKoin().get() }
 
@@ -104,24 +107,6 @@ class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
                 )
             )
 
-            _filterListingBtnItem.value = listOf(
-                FilterListingBtnItem(
-                text = listingData.value.data.sort?.interpretation ?: "",
-                removeFilter = {
-                    listingBaseViewModel.setListingData(
-                        listingData.value.copy(
-                            data = listingData.value.data.copy(
-                                sort = null
-                            )
-                        )
-                    )
-                    refresh()
-                },
-                itemClick = {
-                    listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
-                }
-            ))
-
             listingBaseViewModel.setListItemsFilterBar(
                 buildList {
                     val createSbStr = getString(strings.createNewSubscriptionTitle)
@@ -129,23 +114,13 @@ class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
                     add(
                         NavigationItem(
                             title = createSbStr,
-                            icon = drawables.plusIcon,
-                            tint = colors.positiveGreen,
-                            onClick = {
-                                component.goToCreateNewSubscription()
-                            }
                         )
                     )
                     add(
                         NavigationItem(
                             title = sortString,
-                            icon = drawables.sortIcon,
-                            tint = colors.black,
                             hasNews = listingData.value.data.sort != null,
                             badgeCount = null,
-                            onClick = {
-                                listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.SORTING)
-                            }
                         )
                     )
                 }
@@ -247,7 +222,6 @@ class SubViewModel(component: SubscriptionsComponent) : CoreViewModel()
         }
     }
 
-
     fun closeDialog(){
         deleteId.value = 1L
     }
@@ -307,14 +281,16 @@ data class SubItemEventsImpl(
                             id = operation.id ?: "",
                             title = operation.name ?: "",
                             onClick = {
-                                when (operation.id)  {
-                                    "edit_subscription" ->{
+                                when (operation.id) {
+                                    "edit_subscription" -> {
                                         component.goToCreateNewSubscription(sub.id)
                                     }
-                                    "delete_subscription" ->{
-                                        viewModel.titleDialog.value = AnnotatedString(operation.name?:"")
+
+                                    "delete_subscription" -> {
+                                        viewModel.titleDialog.value = operation.name ?: ""
                                         viewModel.deleteId.value = sub.id
                                     }
+
                                     else -> {
                                         viewModel.postOperationFields(
                                             sub.id,

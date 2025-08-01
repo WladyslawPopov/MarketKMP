@@ -164,7 +164,7 @@ fun ListingContent(
                 noFound = noFound,
                 topBar = {
                     SimpleAppBar(
-                        data = uiState.appBarData,
+                        data = uiState,
                         color = if (!listingState.areBarsVisible.value)
                             colors.primaryColor.copy(alphaBars)
                         else

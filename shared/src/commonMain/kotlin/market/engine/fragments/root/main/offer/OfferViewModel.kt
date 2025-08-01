@@ -1,10 +1,12 @@
 package market.engine.fragments.root.main.offer
 
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
@@ -18,7 +20,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
-import market.engine.core.data.states.SimpleAppBarData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
@@ -31,7 +32,7 @@ import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
@@ -40,9 +41,8 @@ import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.toString
 
+@Serializable
 data class OfferViewState(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val offerRepository: OfferRepository,
     val statusList: List<String> = emptyList(),
     val images: List<String> = emptyList(),
     val columns: StaggeredGridCells = StaggeredGridCells.Fixed(1),
@@ -60,8 +60,9 @@ class OfferViewModel(
     private val dataBase: marketDb,
     private val component: OfferComponent,
     val offerId : Long = 1,
-    val isSnapshot : Boolean = false
-) : CoreViewModel()
+    val isSnapshot : Boolean = false,
+    private val savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle)
 {
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
     val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
@@ -90,15 +91,17 @@ class OfferViewModel(
 
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
 
-    private val _responseOfferView: MutableStateFlow<OfferViewState> = MutableStateFlow(
-        OfferViewState(
-        offerRepository = OfferRepository(
-                Offer(),
-                ListingData(),
-                events = offerRepositoryEvents, this@OfferViewModel
-            )
-        )
+    val offerBaseViewModel = OfferBaseViewModel(
+        offer = Offer(),
+        listingData = ListingData(),
+        events = offerRepositoryEvents,
+        savedStateHandle = savedStateHandle
     )
+
+    private val _responseOfferView: MutableStateFlow<OfferViewState> = MutableStateFlow(
+        OfferViewState()
+    )
+
     val responseOfferView: StateFlow<OfferViewState> = _responseOfferView.asStateFlow()
 
     init {
@@ -112,7 +115,7 @@ class OfferViewModel(
 
     fun editNote(){
         viewModelScope.launch {
-            responseOfferView.value.offerRepository.operationsList.value.find { it.id == "edit_note" }?.onClick()
+            offerBaseViewModel.menuList.value.find { it.id == "edit_note" }?.onClick()
         }
     }
 
@@ -171,12 +174,7 @@ class OfferViewModel(
                     setLoading(false)
 
                     data?.let { offer ->
-                        val offerRepository = OfferRepository(
-                            offer,
-                            ListingData(),
-                            events = offerRepositoryEvents,
-                            this@OfferViewModel
-                        )
+
                         getCategoriesHistory(offer.catpath)
                         val initTimer =
                             ((offer.session?.end?.toLongOrNull()
@@ -237,7 +235,7 @@ class OfferViewModel(
                         }
 
                         if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
-                            startTimerUpdateBids(offerRepository.offerState.value)
+                            startTimerUpdateBids(offerBaseViewModel.offerState.value)
                         }
 
                         if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
@@ -259,7 +257,6 @@ class OfferViewModel(
                         val counts = (1..offer.currentQuantity).map { it.toString() }
 
                         _responseOfferView.value = OfferViewState(
-                            offerRepository = offerRepository,
                             statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
                             columns = columns,
                             images = images,
@@ -276,6 +273,8 @@ class OfferViewModel(
                                 it.name ?: ""
                             } ?: "",
                         )
+
+                        offerBaseViewModel.setNewOfferData(offer.parseToOfferItem())
 
                         updateUserState(offer.sellerData?.id ?: 1)
                     }
@@ -428,8 +427,8 @@ class OfferViewModel(
             }
             withContext(Dispatchers.Main) {
                 if (user != null) {
-                    responseOfferView.value.offerRepository.setNewOfferData(
-                        responseOfferView.value.offerRepository.offerState.value.copy(
+                    offerBaseViewModel.setNewOfferData(
+                        offerBaseViewModel.offerState.value.copy(
                             seller = user,
                         )
                     )
@@ -456,8 +455,8 @@ class OfferViewModel(
                 withContext(Dispatchers.Main) {
                     response.success?.body?.let { body ->
                         if (body.isChanged) {
-                            responseOfferView.value.offerRepository.setNewOfferData(
-                                responseOfferView.value.offerRepository.offerState.value.copy(
+                            offerBaseViewModel.setNewOfferData(
+                                offerBaseViewModel.offerState.value.copy(
                                     bids = body.bids,
                                     version = JsonPrimitive(body.currentVersion),
                                     price = body.currentPrice ?: "",
@@ -649,7 +648,7 @@ class OfferViewModel(
     }
 
     fun scrollToBids(){
-        if(responseOfferView.value.offerRepository.offerState.value.bids?.isNotEmpty() == true) {
+        if(offerBaseViewModel.offerState.value.bids?.isNotEmpty() == true) {
             _scrollPosition.value = goToBids
         }
     }
@@ -794,6 +793,6 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun updateBidsInfo(item: OfferItem) {
-        viewModel.updateBidsInfo(viewModel.responseOfferView.value.offerRepository.offerState.value)
+        viewModel.updateBidsInfo(viewModel.offerBaseViewModel.offerState.value)
     }
 }

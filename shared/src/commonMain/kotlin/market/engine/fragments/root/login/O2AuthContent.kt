@@ -14,6 +14,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -24,22 +25,24 @@ import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.fragments.root.dynamicSettings.Auth2ContentViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun O2AuthContent(
-    auth2ContentState: Auth2ContentState,
+    viewModel: Auth2ContentViewModel,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
+    val auth2ContentState by viewModel.auth2ContentState.collectAsState()
     val userEmail = auth2ContentState.obfuscatedIdentity
     val humanMessage = auth2ContentState.humanMessage
     val leftTime = auth2ContentState.lastRequestByIdentity
 
-    val leftTimer = auth2ContentState.leftTimerState.collectAsState()
-    val codeState = auth2ContentState.codeState.collectAsState()
+    val leftTimer = viewModel.leftTimerState.collectAsState()
+    val codeState = viewModel.codeState.collectAsState()
 
     Column(
         modifier = modifier.pointerInput(Unit) {
@@ -86,7 +89,7 @@ fun O2AuthContent(
                     value = codeState.value,
                     onValueChange = {
                         if (it.text.length <= 4)
-                            auth2ContentState.onCodeChange(it)
+                            viewModel.onCodeChange(it)
                         else
                             focusManager.clearFocus()
                     },
@@ -117,7 +120,7 @@ fun O2AuthContent(
                 stringResource(strings.submitO2AuthLabel),
                 enabled = leftTimer.value == 0 || leftTime == null,
             ) {
-                auth2ContentState.onCodeSubmit()
+                viewModel.onCodeSubmit()
             }
 
             if (leftTimer.value > 0 && leftTime != null){

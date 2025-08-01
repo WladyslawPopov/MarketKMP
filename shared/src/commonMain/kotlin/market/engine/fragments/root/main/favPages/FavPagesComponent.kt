@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.favPages
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
@@ -46,7 +48,9 @@ class DefaultFavPagesComponent(
     componentContext: JetpackComponentContext,
 ) : FavPagesComponent, JetpackComponentContext by componentContext {
 
-    val viewModel = FavPagesViewModel(this)
+    val viewModel = viewModel("FavPagesViewModel") {
+        FavPagesViewModel(this@DefaultFavPagesComponent, createSavedStateHandle())
+    }
 
     private val navigation = PagesNavigation<FavPagesConfig>()
 

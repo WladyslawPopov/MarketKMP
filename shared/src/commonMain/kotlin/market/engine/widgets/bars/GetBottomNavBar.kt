@@ -13,12 +13,12 @@ import androidx.compose.ui.draw.clip
 import market.engine.core.data.constants.alphaBars
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.widgets.badges.BadgedButton
 
 @Composable
 fun GetBottomNavBar(
-    listItems: List<NavigationItem>,
+    listItems: List<NavigationItemUI>,
     currentScreen: Int,
 ){
     NavigationBar(
@@ -41,7 +41,7 @@ fun GetBottomNavBar(
                     label = {
                         if(isSelected) {
                             Text(
-                                text = item.title,
+                                text = item.data.title,
                                 fontSize = dimens.smallText,
                                 maxLines = 1,
                                 style = MaterialTheme.typography.labelSmall

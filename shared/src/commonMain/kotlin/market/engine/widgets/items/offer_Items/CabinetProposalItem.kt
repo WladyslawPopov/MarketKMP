@@ -32,7 +32,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.types.ProposalType
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.ilustrations.LoadImage
@@ -47,23 +47,23 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetProposalItem(
-    offerRepository : OfferRepository,
+    offerBaseViewModel : OfferBaseViewModel,
     updateItem : Long? = null,
 ) {
-    val offer by offerRepository.offerState.collectAsState()
-    val events = offerRepository.events
+    val offer by offerBaseViewModel.offerState.collectAsState()
+    val events = offerBaseViewModel.events
 
-    val menuList = offerRepository.operationsList.collectAsState()
+    val menuList = offerBaseViewModel.menuList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
     val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        defOptions.value = offerRepository.getDefOperations()
+        defOptions.value = offerBaseViewModel.getDefOperations()
     }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.updateItem()
+            offerBaseViewModel.updateItem()
         }
     }
 
@@ -301,7 +301,7 @@ fun CabinetProposalItem(
                             textColor = colors.alwaysWhite,
                             modifier = Modifier.weight(1f, false)
                         ) {
-                            offerRepository.openMesDialog()
+                            offerBaseViewModel.openMesDialog()
                         }
                     }
                 }
@@ -310,6 +310,6 @@ fun CabinetProposalItem(
     }
 
     OfferOperationsDialogs(
-        offerRepository
+        offerBaseViewModel
     )
 }

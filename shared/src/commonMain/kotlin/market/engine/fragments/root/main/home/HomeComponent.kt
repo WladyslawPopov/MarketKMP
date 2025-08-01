@@ -8,6 +8,8 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.utils.deleteReadNotifications
+import androidx.lifecycle.createSavedStateHandle
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 
 
 interface HomeComponent {
@@ -42,7 +44,9 @@ class DefaultHomeComponent(
     val navigateToNotificationHistorySelected: () -> Unit,
 ) : HomeComponent, JetpackComponentContext by componentContext {
 
-    private val homeViewModel: HomeViewModel = HomeViewModel(this)
+    private val homeViewModel: HomeViewModel = viewModel("homeViewModel") {
+        HomeViewModel(this@DefaultHomeComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         HomeComponent.Model(
@@ -55,10 +59,6 @@ class DefaultHomeComponent(
 
     init {
         lifecycle.doOnResume {
-            if (homeViewModel.uiState.value.promoOffers1.isEmpty()){
-                homeViewModel.updateModel()
-            }
-
             deleteReadNotifications()
             homeViewModel.updatePage()
         }

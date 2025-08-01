@@ -52,7 +52,7 @@ fun MyOrderItem(
     val maxNotExpandedItems = 2
     val order = data.order
 
-    val orderRepository = data.orderRepository
+    val orderRepository = data.orderBaseViewModel
     val events = orderRepository.events
     val typeGroup = orderRepository.typeGroup
 

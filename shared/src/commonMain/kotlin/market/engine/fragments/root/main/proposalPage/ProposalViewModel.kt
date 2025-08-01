@@ -5,14 +5,16 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.constants.countProposalMax
 import market.engine.core.data.constants.errorToastItem
@@ -32,30 +34,51 @@ import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getOfferImagePreview
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
+@Serializable
+data class ProposalItem(
+    val userId: Long,
+    val fields: List<Fields>,
+)
+
 class ProposalViewModel(
     val type: ProposalType,
     val offerId: Long,
-    val component: ProposalComponent
-): CoreViewModel() {
+    val component: ProposalComponent,
+    savedStateHandle: SavedStateHandle
+): CoreViewModel(savedStateHandle) {
 
     val offerOperations : OfferOperations by lazy { getKoin().get() }
 
-    private var _responseGetOffer = MutableStateFlow(Offer())
-    val responseGetOffer : StateFlow<Offer> = _responseGetOffer.asStateFlow()
+    private var _responseGetOffer = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetOffer",
+        Offer(),
+        Offer.serializer()
+    )
+    val responseGetOffer : StateFlow<Offer> = _responseGetOffer.state
 
-    private val _body = MutableStateFlow<BodyListPayload<Proposals>?>(null)
-    val body = _body.asStateFlow()
+    private val _body = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "body",
+        BodyListPayload(),
+        BodyListPayload.serializer(Proposals.serializer())
+    )
+    val body = _body.state
 
-    private val _responseFields = MutableStateFlow(emptyList<Pair<Long, List<Fields>>>())
-    val responseFields = _responseFields.asStateFlow()
+    private val _responseFields = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseFields",
+        emptyList(),
+        ListSerializer(ProposalItem.serializer())
+    )
+    val responseFields = _responseFields.state
 
-
-
-    private val _subtitle  = MutableStateFlow(AnnotatedString(""))
+    private val _subtitle = MutableStateFlow(AnnotatedString(""))
     val subtitle = _subtitle.asStateFlow()
 
     private val _mesHeaderItem = MutableStateFlow(MesHeaderItem())
@@ -202,7 +225,7 @@ class ProposalViewModel(
             val error = buffer.error
             withContext(Dispatchers.Main) {
                 if (payload != null) {
-                    _responseFields.value += (buyerId ?: 0L) to payload.fields
+                    _responseFields.value += ProposalItem(buyerId ?: 0L , payload.fields)
                 } else {
                     if (error != null) {
                         onError(error)
@@ -217,7 +240,7 @@ class ProposalViewModel(
         viewModelScope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
 
-            responseFields.value.find { it.first == buyerId }?.second?.forEach { field ->
+            responseFields.value.find { it.userId == buyerId }?.fields?.forEach { field ->
                 if (field.data != null){
                     bodyProposals[field.key ?: ""] = field.data!!
                 }
@@ -289,8 +312,8 @@ class ProposalViewModel(
 
                             _responseFields.update { field ->
                                 field.map {
-                                    if (it.first == buyerId) {
-                                        it.copy(second = payload.recipe?.fields ?: payload.fields)
+                                    if (it.userId == buyerId) {
+                                        it.copy(fields = payload.recipe?.fields ?: payload.fields)
                                     } else {
                                         it.copy()
                                     }
@@ -314,9 +337,9 @@ class ProposalViewModel(
     fun onValueChange(newField: Fields, id: Long) {
         _responseFields.update { list ->
             list.map { oldField ->
-                if (oldField.first == id) {
+                if (oldField.userId == id) {
                     oldField.copy(
-                        second = oldField.second.map {
+                        fields = oldField.fields.map {
                             if (it.key == newField.key) {
                                 newField.copy()
                             }else {

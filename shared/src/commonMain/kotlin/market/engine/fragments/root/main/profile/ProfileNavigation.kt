@@ -20,7 +20,7 @@ import market.engine.common.backAnimation
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
@@ -146,7 +146,7 @@ sealed class ChildProfile {
 fun ProfileNavigation(
     modifier: Modifier = Modifier,
     childStack: Value<ChildStack<*, ChildProfile>>,
-    publicProfileNavigationItems: List<NavigationItem>
+    publicProfileNavigationItems: List<NavigationItemUI>
 ) {
     val stack by childStack.subscribeAsState()
 

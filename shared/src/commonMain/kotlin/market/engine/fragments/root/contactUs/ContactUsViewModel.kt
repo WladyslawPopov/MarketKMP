@@ -1,16 +1,16 @@
 package market.engine.fragments.root.contactUs
 
+import androidx.lifecycle.SavedStateHandle
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.getFileUpload
@@ -23,16 +23,30 @@ import market.engine.core.network.ServerResponse
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-class ContactUsViewModel(val component: ContactUsComponent) : CoreViewModel() {
+class ContactUsViewModel(
+    val component: ContactUsComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
-    private val _responseGetFields = MutableStateFlow<List<Fields>>(emptyList())
-    val responseGetFields = _responseGetFields.asStateFlow()
+    private val _responseGetFields = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetFields",
+        emptyList(),
+        ListSerializer(Fields.serializer()),
+    )
+    val responseGetFields = _responseGetFields.state
 
-    private val _dataImage = MutableStateFlow("")
-    val dataImage: StateFlow<String> = _dataImage.asStateFlow()
+    private val _dataImage = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "dataImage",
+        "",
+        String.serializer(),
+    )
+    val dataImage: StateFlow<String> = _dataImage.state
 
     init {
         getFields()

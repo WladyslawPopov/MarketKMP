@@ -39,7 +39,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.MenuItem
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.OfferBaseViewModel
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
@@ -56,23 +56,23 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetOfferItem(
-    offerRepository: OfferRepository,
+    offerBaseViewModel: OfferBaseViewModel,
     updateItem: Long?,
     selected : Boolean = false,
     onSelected : ((Long) -> Unit)? = null
 ) {
-    val offer by offerRepository.offerState.collectAsState()
+    val offer by offerBaseViewModel.offerState.collectAsState()
 
-    val events = offerRepository.events
+    val events = offerBaseViewModel.events
     val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
 
-    LaunchedEffect(offerRepository) {
-        defOptions.value = offerRepository.getDefOperations()
+    LaunchedEffect(offerBaseViewModel) {
+        defOptions.value = offerBaseViewModel.getDefOperations()
     }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.updateItem()
+            offerBaseViewModel.updateItem()
         }
     }
 
@@ -84,8 +84,8 @@ fun CabinetOfferItem(
 
     val openPromoMenu = remember { mutableStateOf(false) }
 
-    val menuList = offerRepository.operationsList.collectAsState()
-    val menuPromotionsList = offerRepository.promoList.collectAsState()
+    val menuList = offerBaseViewModel.menuList.collectAsState()
+    val menuPromotionsList = offerBaseViewModel.promoList.collectAsState()
 
     AnimatedVisibility(offer.session != null, enter = fadeIn(), exit = fadeOut()) {
         if (offer.session != null) {
@@ -481,6 +481,6 @@ fun CabinetOfferItem(
     }
 
     OfferOperationsDialogs(
-        offerRepository = offerRepository,
+        offerBaseViewModel = offerBaseViewModel,
     )
 }

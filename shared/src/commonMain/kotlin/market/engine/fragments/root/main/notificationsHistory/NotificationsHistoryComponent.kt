@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.notificationsHistory
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -28,7 +30,9 @@ class DefaultNotificationsHistoryComponent(
     val navigateDeepLink: (DeepLink) -> Unit,
 ) : NotificationsHistoryComponent, JetpackComponentContext by componentContext {
 
-    private val viewModel = NotificationsHistoryViewModel()
+    private val viewModel = viewModel("notificationsHistoryViewModel"){
+        NotificationsHistoryViewModel(createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         NotificationsHistoryComponent.Model(

@@ -24,7 +24,8 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ProposalType
 import market.engine.fragments.base.EdgeToEdgeScaffold
@@ -62,7 +63,7 @@ fun ProposalContent(
     val initFields = viewModel.responseFields.collectAsState()
 
     val noFound : (@Composable () -> Unit)? = remember(proposalState.value) {
-        if (proposalState.value != null && proposalState.value?.bodyList?.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
+        if (proposalState.value.bodyList.isNotEmpty() && proposalState.value.bodyList.firstOrNull()?.proposals == null && type == ProposalType.ACT_ON_PROPOSAL) {
             {
                 NoItemsFoundLayout(
                     icon = drawables.proposalIcon,
@@ -95,13 +96,15 @@ fun ProposalContent(
             SimpleAppBar(
                 data = SimpleAppBarData(
                     listItems = listOf(
-                        NavigationItem(
-                            title = "",
+                        NavigationItemUI(
+                            NavigationItem(
+                                title = "",
+                                hasNews = false,
+                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                                badgeCount = null,
+                            ),
                             icon = drawables.recycleIcon,
                             tint = colors.inactiveBottomNavIconColor,
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
                             onClick = viewModel::update
                         )
                     ),
@@ -159,12 +162,12 @@ fun ProposalContent(
                 }
             }
 
-            items(proposalState.value?.bodyList ?: emptyList()){ body ->
+            items(proposalState.value.bodyList){ body ->
                 ProposalsItemContent(
                     offer,
                     body,
                     type,
-                    initFields.value.find { it.first == (body.buyerInfo?.id ?: 0L) }?.second ?: emptyList(),
+                    initFields.value.find { it.userId == (body.buyerInfo?.id ?: 0L) }?.fields ?: emptyList(),
                     isLoading,
                     onValueChange = {
                         viewModel.onValueChange(it, body.buyerInfo?.id ?: 0L)

@@ -1,163 +1,88 @@
 package market.engine.fragments.root.login
 
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.lifecycle.SavedStateHandle
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.states.Auth2ContentData
 import market.engine.core.network.networkObjects.UserPayload
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.dynamicSettings.Auth2ContentViewModel
 import org.jetbrains.compose.resources.getString
 
 data class LoginContentState(
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val email : TextFieldValue = TextFieldValue(),
-    val password : TextFieldValue = TextFieldValue(),
-    val captcha : TextFieldValue = TextFieldValue(),
+    val email : String = "",
+    val password : String = "",
+    val captcha : String = "",
     val captchaImage : String? = null,
     val captchaKey : String? = null,
-
-    val auth2ContentState: Auth2ContentState = Auth2ContentState(),
 )
 
+@Serializable
 data class CaptchaState(
     val captchaImage : String? = null,
     val captchaKey : String? = null,
-    val captcha : TextFieldValue = TextFieldValue(),
+    val captcha : String = "",
 )
 
-data class Auth2ContentState(
-    val user: Long = 1L,
-    val obfuscatedIdentity: String?= null,
-    val lastRequestByIdentity: Int?= null,
-    val humanMessage: String? = null,
-    private val viewModel: LoginViewModel? = null
-)
-{
-    private val _leftTimerState = MutableStateFlow(0)
-    val leftTimerState = _leftTimerState.asStateFlow()
+class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
-    private val _codeState = MutableStateFlow(TextFieldValue())
-    val codeState = _codeState.asStateFlow()
+    private val emailTextValue = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "emailTextValue",
+        "",
+        String.serializer()
+    )
+    private val passwordTextValue = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "passwordTextValue",
+        "",
+        String.serializer()
+    )
+    private val captchaState = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "captchaState",
+        CaptchaState(),
+        CaptchaState.serializer()
+    )
 
-    init {
-        if (lastRequestByIdentity != null) {
-            startTimer(lastRequestByIdentity)
-        }
-    }
+    private val _openContent = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "openContent",
+        false,
+        Boolean.serializer()
+    )
 
-    fun startTimer(leftTimer : Int){
-        _leftTimerState.value = leftTimer
-        viewModel?.viewModelScope?.launch {
-            while (_leftTimerState.value > 0){
-                delay(1000)
-                _leftTimerState.value--
+    val auth2ContentViewModel = Auth2ContentViewModel(
+        Auth2ContentData(),
+        { component.onBack() },
+        savedStateHandle
+    )
 
-                if(_leftTimerState.value == 0){
-                    viewModel.changeO2AuthState(humanMessage, null)
-                }
-            }
-        }
-    }
-
-    fun onCodeChange(value : TextFieldValue){
-        _codeState.value = value
-        if(value.text.length == 4){
-            onCodeSubmit()
-        }
-    }
-
-    fun onCodeSubmit(){
-        viewModel?.run {
-            setLoading(true)
-            viewModelScope.launch {
-                try {
-                    val body = HashMap<String, String>()
-                    body["user_id"] = user.toString()
-                    if (codeState.value.text.isNotBlank()) {
-                        body["code"] = codeState.value.text
-                    }
-                    val res = withContext(Dispatchers.IO) {
-                        apiService.postAuthByCode(body)
-                    }
-                    val serializer = UserPayload.serializer()
-                    val payload: UserPayload =
-                        deserializePayload(res.payload, serializer)
-
-                    withContext(Dispatchers.Main) {
-                        if (payload.result == "SUCCESS") {
-                            userRepository.setToken(payload.user, payload.token ?: "")
-                            updateUserInfo()
-                            showToast(
-                                successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
-                                )
-                            )
-
-                            val events = mapOf(
-                                "login_type" to "email",
-                                "login_result" to "success",
-                                "login_email" to body["identity"]
-                            )
-                            analyticsHelper.reportEvent("login_success", events)
-                            delay(1000)
-                            component.onBack()
-                        } else {
-                            if (lastRequestByIdentity != null) {
-                                showToast(
-                                    errorToastItem.copy(
-                                        message = res.humanMessage ?: getString(strings.errorLogin)
-                                    )
-                                )
-                            }
-                            changeO2AuthState(res.humanMessage, payload.lastRequestByIdentity)
-                        }
-                    }
-                }catch (e : ServerErrorException){
-                    onError(e)
-                }
-                catch (e : Exception){
-                    onError(ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString()))
-                }finally {
-                    setLoading(false)
-                }
-            }
-        }
-    }
-}
-
-class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
-
-    private val emailTextValue = MutableStateFlow(TextFieldValue())
-    private val passwordTextValue = MutableStateFlow(TextFieldValue())
-    private val captchaState = MutableStateFlow(CaptchaState())
-
-    private val auth2ContentState = MutableStateFlow(Auth2ContentState())
-
-    private val _openContent = MutableStateFlow(false)
-    val openContent = _openContent.asStateFlow()
+    val openContent = _openContent.state
 
     val loginContentState: StateFlow<LoginContentState> = combine(
-        emailTextValue,
-        passwordTextValue,
-        captchaState,
-        auth2ContentState
-    ){ email, password, captcha, auth2ContentState ->
+        emailTextValue.state,
+        passwordTextValue.state,
+        captchaState.state
+    ){ email, password, captcha ->
         LoginContentState(
             appBarData = SimpleAppBarData(
                 onBackClick = {
@@ -169,7 +94,6 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
             captcha = captcha.captcha,
             captchaImage = captcha.captchaImage,
             captchaKey = captcha.captchaKey,
-            auth2ContentState = auth2ContentState
         )
     }.stateIn(
         viewModelScope,
@@ -194,41 +118,11 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
         }
     }
 
-    fun setCaptchaTextValue(value : TextFieldValue) {
-        captchaState.update {
-            it.copy(
-                captcha = value
-            )
-        }
-    }
-
-    fun setEmailTextValue(value : TextFieldValue) {
-        auth2ContentState.update {
-            it.copy(
-                user = 1
-            )
-        }
-        emailTextValue.value = value
-    }
-
-    fun setPasswordTextValue(value : TextFieldValue) {
-        passwordTextValue.value = value
-    }
-
-    fun changeO2AuthState(humanMessage: String?, lastRequestByIdentity: Int?){
-        auth2ContentState.update {
-            it.copy(
-                humanMessage = humanMessage,
-                lastRequestByIdentity = lastRequestByIdentity
-            )
-        }
-    }
-
     fun postAuth() {
-        if (auth2ContentState.value.user == 1L) {
-            val email = emailTextValue.value.text
-            val password = passwordTextValue.value.text
-            val captcha = captchaState.value.captcha.text
+        if (auth2ContentViewModel.auth2ContentState.value.user == 1L) {
+            val email = emailTextValue.value
+            val password = passwordTextValue.value
+            val captcha = captchaState.value.captcha
             val captKey = captchaState.value.captchaKey
 
             val body = HashMap<String, String>()
@@ -284,15 +178,14 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
                                     )
                                     analyticsHelper.reportEvent("login_fail_need_code", events)
 
-                                    auth2ContentState.update {
-                                        it.copy(
+                                    auth2ContentViewModel.updateAuthData(
+                                        auth2ContentViewModel.auth2ContentState.value.copy(
                                             user = payload.user,
                                             obfuscatedIdentity = payload.obfuscatedIdentity,
                                             lastRequestByIdentity = payload.lastRequestByIdentity,
                                             humanMessage = response.humanMessage,
-                                            viewModel = this@LoginViewModel
                                         )
-                                    }
+                                    )
 
                                     _openContent.value = true
                                 }
@@ -419,6 +312,27 @@ class LoginViewModel(val component: LoginComponent) : CoreViewModel() {
 
     fun closeAuth2Content(){
         _openContent.value = false
+    }
+
+    fun setCaptchaTextValue(value : String) {
+        captchaState.update {
+            it.copy(
+                captcha = value
+            )
+        }
+    }
+
+    fun setEmailTextValue(value : String) {
+        auth2ContentViewModel.updateAuthData(
+            auth2ContentViewModel.auth2ContentState.value.copy(
+                user = 1
+            )
+        )
+        emailTextValue.value = value
+    }
+
+    fun setPasswordTextValue(value : String) {
+        passwordTextValue.value = value
     }
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()

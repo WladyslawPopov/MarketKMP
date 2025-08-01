@@ -1,7 +1,9 @@
 package market.engine.fragments.root.verifyPage
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -23,12 +25,15 @@ class DefaultVerificationComponent(
     componentContext: JetpackComponentContext,
 ) : VerificationComponent, JetpackComponentContext by componentContext
 {
-    private  val verificationViewModel : VerificationViewModel = VerificationViewModel(
-        owner = owner,
-        code = code,
-        settingsType = settingsType,
-        component = this
-    )
+    private  val verificationViewModel = viewModel("verificationViewModel"){
+        VerificationViewModel(
+            owner = owner,
+            code = code,
+            settingsType = settingsType,
+            component = this@DefaultVerificationComponent,
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
 
     private val _model = MutableValue(
         VerificationComponent.Model(

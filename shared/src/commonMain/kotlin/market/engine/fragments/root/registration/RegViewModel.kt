@@ -1,14 +1,14 @@
 package market.engine.fragments.root.registration
 
+import androidx.lifecycle.SavedStateHandle
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
@@ -16,15 +16,26 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-class RegViewModel : CoreViewModel() {
-    private val _responseGetRegFields = MutableStateFlow<List<Fields>>(emptyList())
-    val responseGetRegFields= _responseGetRegFields.asStateFlow()
+class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
+    private val _responseGetRegFields = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetRegFields",
+        emptyList(),
+        ListSerializer(Fields.serializer())
+    )
+    val responseGetRegFields= _responseGetRegFields.state
 
-    private val _showSuccessReg = MutableStateFlow(false)
-    val showSuccessReg = _showSuccessReg.asStateFlow()
+    private val _showSuccessReg = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "showSuccessReg",
+        false,
+        Boolean.serializer()
+    )
+    val showSuccessReg = _showSuccessReg.state
 
     init {
         getRegFields()

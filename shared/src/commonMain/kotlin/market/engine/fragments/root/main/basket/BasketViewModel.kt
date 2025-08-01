@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.basket
 
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -10,9 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -24,15 +26,18 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.BasketGroupUiState
 import market.engine.core.data.states.BasketUiState
-import market.engine.core.data.states.MenuData
 import market.engine.core.data.states.SelectedBasketList
-import market.engine.core.data.states.SimpleAppBarData
+import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.states.BasketItem
+import market.engine.core.data.states.ShowBasketItem
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
@@ -40,6 +45,7 @@ import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
@@ -47,30 +53,57 @@ import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
 
 
-class BasketViewModel(component: BasketComponent): CoreViewModel() {
+class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHandle): CoreViewModel(savedStateHandle) {
 
-    private val responseGetUserCart = MutableStateFlow<List<Pair<User?, List<OfferItem?>>>>(emptyList())
-    private val selectedOffers = MutableStateFlow<List<SelectedBasketList>>(emptyList())
-    private val showExpanded = MutableStateFlow<List<Pair<Long, Int>>>(emptyList())
+    private val responseGetUserCart = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "responseGetUserCart",
+        emptyList(),
+        ListSerializer(BasketItem.serializer())
+    )
+
+    private val selectedOffers = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "selectedOffers",
+        emptyList(),
+        ListSerializer(SelectedBasketList.serializer())
+    )
+    private val showExpanded = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "showExpanded",
+        emptyList(),
+        ListSerializer(ShowBasketItem.serializer())
+    )
 
     private val basketsEvents = BasketEventsImpl(this, component)
+
     private val _isMenuVisibility = MutableStateFlow(false)
-    private val _subtitle = MutableStateFlow("")
-    private val _deleteIds = MutableStateFlow(emptyList<Long>())
+
+    private val _subtitle = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "subtitle",
+        "",
+        String.serializer()
+    )
+    private val _deleteIds = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "deleteIds",
+        emptyList(),
+        ListSerializer(Long.serializer())
+    )
 
     private val userOperations : UserOperations by lazy { getKoin().get() }
 
     val uiDataState: StateFlow<List<BasketGroupUiState>> = combine(
-        responseGetUserCart,
-        selectedOffers,
-        showExpanded
+        responseGetUserCart.state,
+        selectedOffers.state,
+        showExpanded.state
     ) { userBasket, selected, expanded ->
-        userBasket.mapNotNull { (user, offers) ->
-            if (user == null) return@mapNotNull null
+        userBasket.map { (user, offers) ->
 
             val selectedForUser = selected.find { it.userId == user.id }?.selectedOffers ?: emptyList()
-            val expandedCount = expanded.find { it.first == user.id }?.second ?: minExpandedElement
-            val buyableOffersCount = offers.count { it?.safeDeal == true }
+            val expandedCount = expanded.find { it.userId == user.id }?.index ?: minExpandedElement
+            val buyableOffersCount = offers.count { it.safeDeal }
 
             BasketGroupUiState(
                 user = user,
@@ -87,9 +120,9 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
     )
 
     val uiState: StateFlow<BasketUiState> = combine(
-        _subtitle,
-        _deleteIds,
-                _isMenuVisibility
+        _subtitle.state,
+        _deleteIds.state,
+        _isMenuVisibility
     ) { subtitle, deleteIds, isMenuVisibility ->
         val menuString = getString(strings.menuTitle)
         val clearBasketString = getString(strings.actionClearBasket)
@@ -97,27 +130,32 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
         BasketUiState(
             appBarData = SimpleAppBarData(
                 listItems = listOf(
+                    NavigationItemUI(
                     NavigationItem(
-                        title = "",
+                            title = "",
+
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
+                        ),
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
-                        hasNews = false,
-                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                        badgeCount = null,
                         onClick = {
                             refresh()
                         }
                     ),
+                    NavigationItemUI(
                     NavigationItem(
-                        title = menuString,
+                            title = menuString,
+                            hasNews = false,
+                            badgeCount = null
+                        ),
                         icon = drawables.menuIcon,
                         tint = colors.black,
-                        hasNews = false,
-                        badgeCount = null,
                         onClick = {
-                           _isMenuVisibility.value = true
+                            refresh()
                         }
-                    ),
+                    )
                 ),
                 menuData = MenuData(
                     menuItems = listOf(
@@ -126,7 +164,7 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
                             title = clearBasketString,
                             icon = drawables.deleteIcon,
                             onClick = {
-                                clearBasket{
+                                clearBasket {
                                     refresh()
                                 }
                             }
@@ -134,7 +172,7 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
                     ),
                     isMenuVisible = isMenuVisibility,
                     closeMenu = {
-                       _isMenuVisibility.value = false
+                        _isMenuVisibility.value = false
                     }
                 ),
             ),
@@ -200,30 +238,30 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
                     val payload : BodyListPayload<UserBody> = deserializePayload(response.payload, serializer)
 
                     val groupedBySeller = payload.bodyList.groupBy { it.sellerId }
-                        val result = groupedBySeller.map { (sellerId, items) ->
-                            val sellerUser: User? = getUser(sellerId)
+                    val basketItem = groupedBySeller.map { (sellerId, items) ->
+                        val sellerUser: User? = getUser(sellerId)
 
-                            selectedOffers.value += SelectedBasketList(sellerId, listOf())
-                            showExpanded.value += Pair(sellerId, minExpandedElement)
+                        selectedOffers.value += SelectedBasketList(sellerId, listOf())
+                        showExpanded.value += ShowBasketItem(sellerId, minExpandedElement)
 
-                            val basketItems: List<OfferItem?> = items.map { item ->
-                                OfferItem(
-                                    id = item.offerId,
-                                    title = item.offerTitle ?: "",
-                                    images = listOf(item.offerImage ?: ""),
-                                    isWatchedByMe = item.isWatchedByMe == true,
-                                    quantity = item.quantity,
-                                    currentQuantity = item.availableQuantity,
-                                    price = item.offerPrice ?: "",
-                                    seller = User(id = item.sellerId),
-                                    location = item.freeLocation ?: "",
-                                    safeDeal = item.isBuyable == true,
-                                    state = "active",
-                                )
-                            }
-                            sellerUser to basketItems
+                        val basketItems: List<OfferItem> = items.map { item ->
+                            OfferItem(
+                                id = item.offerId,
+                                title = item.offerTitle ?: "",
+                                images = listOf(item.offerImage ?: ""),
+                                isWatchedByMe = item.isWatchedByMe == true,
+                                quantity = item.quantity,
+                                currentQuantity = item.availableQuantity,
+                                price = item.offerPrice ?: "",
+                                seller = User(id = item.sellerId),
+                                location = item.freeLocation ?: "",
+                                safeDeal = item.isBuyable == true,
+                                state = "active",
+                            )
                         }
-                    responseGetUserCart.value = result
+                        BasketItem(sellerUser ?: User(), basketItems)
+                    }
+                    responseGetUserCart.value = basketItem
                 }catch (_ : Exception){
                     throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                 }
@@ -243,15 +281,15 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
     }
 
     fun clickExpanded(userId: Long, currentOffersSize: Int) {
-        val exItem = showExpanded.value.find { it.first == userId }
+        val exItem = showExpanded.value.find { it.userId == userId }
 
         val newList = showExpanded.value.toMutableList()
         exItem?.let {
             newList.remove(it)
-            val newItem = if (exItem.second == minExpandedElement) {
-                Pair(userId, currentOffersSize)
+            val newItem = if (exItem.index == minExpandedElement) {
+                ShowBasketItem(userId, currentOffersSize)
             } else {
-                Pair(userId, minExpandedElement)
+                ShowBasketItem(userId, minExpandedElement)
             }
             newList.add(newItem)
             showExpanded.value = newList
@@ -365,12 +403,12 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
         val body = hashMapOf<String, JsonElement>()
         body["offer_ids"] = jsonArray
 
-        val curItem = responseGetUserCart.value.find { pair ->
-            pair.second.find { it?.id == deleteIds.firstOrNull() } != null
+        val curItem = responseGetUserCart.value.find { item ->
+            item.offerList.find { it.id == deleteIds.firstOrNull() } != null
         }
 
-        val userId = curItem?.first?.id ?: 1L
-        val lotData = curItem?.second?.find { it?.id == deleteIds.firstOrNull() }
+        val userId = curItem?.user?.id ?: 1L
+        val lotData = curItem?.offerList?.find { it.id == deleteIds.firstOrNull() }
 
         viewModelScope.launch {
             val res = withContext(Dispatchers.IO) {
@@ -485,13 +523,13 @@ class BasketViewModel(component: BasketComponent): CoreViewModel() {
                             )
                         )
                         responseGetUserCart.update { userCart ->
-                            userCart.map { pair ->
-                                pair.copy(
-                                    second = pair.second.map { item ->
-                                        if (item?.id == offer.id) {
-                                            item.copy(isWatchedByMe = !item.isWatchedByMe)
+                            userCart.map { item ->
+                                item.copy(
+                                    offerList = item.offerList.map {
+                                        if (it.id == offer.id) {
+                                            it.copy(isWatchedByMe = !it.isWatchedByMe)
                                         } else {
-                                            item
+                                            it
                                         }
                                     }
                                 )

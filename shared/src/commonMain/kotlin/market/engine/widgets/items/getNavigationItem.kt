@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItem
+import market.engine.core.data.items.NavigationItemUI
 import market.engine.widgets.badges.getBadge
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun getNavigationItem(
-    item: NavigationItem,
+    item: NavigationItemUI,
     label: @Composable () -> Unit,
     isSelected: Boolean = false,
     badgeColor: Color = colors.negativeRed,
@@ -46,9 +46,9 @@ fun getNavigationItem(
                         modifier = Modifier.size(dimens.smallIconSize),
                     )
                 }
-                item.imageString != null -> {
+                item.data.imageString != null -> {
                     LoadImage(
-                        item.imageString,
+                        item.data.imageString,
                         isShowLoading = false,
                         isShowEmpty = false,
                         modifier = Modifier.size(dimens.mediumIconSize),
@@ -58,7 +58,7 @@ fun getNavigationItem(
             }
         },
         badge = {
-            getBadge(item.badgeCount, item.hasNews, color = badgeColor)
+            getBadge(item.data.badgeCount, item.data.hasNews, color = badgeColor)
         },
         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
         colors = NavigationDrawerItemDefaults.colors(

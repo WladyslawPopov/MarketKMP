@@ -1,7 +1,9 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
+import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -39,7 +41,9 @@ class DefaultSubscriptionsComponent(
     val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, JetpackComponentContext by componentContext {
 
-    private val subViewModel : SubViewModel = SubViewModel(this)
+    private val subViewModel = viewModel("subViewModel"){
+        SubViewModel(this@DefaultSubscriptionsComponent, createSavedStateHandle())
+    }
 
     private val _model = MutableValue(
         SubscriptionsComponent.Model(
