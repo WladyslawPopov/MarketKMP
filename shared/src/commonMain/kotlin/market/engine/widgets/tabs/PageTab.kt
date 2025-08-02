@@ -24,13 +24,13 @@ import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.items.TabWithIcon
+import market.engine.core.data.items.Tab
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun PageTab(
-    tab: TabWithIcon,
+    tab: Tab,
     selectedTab: Int,
     currentIndex: Int,
     textStyle: TextStyle = MaterialTheme.typography.labelMedium,

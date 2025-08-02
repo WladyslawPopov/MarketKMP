@@ -20,7 +20,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -28,7 +28,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ProfileNavContent(
-    list: List<NavigationItemUI>,
+    list: List<NavigationItem>,
     activeTitle: String? = null,
     contentPadding: PaddingValues = PaddingValues(dimens.smallPadding),
     goToSettings: ((String) -> Unit)? = null,
@@ -52,7 +52,7 @@ fun ProfileNavContent(
         }
 
         itemsIndexed(list) { _, item ->
-            if (item.data.isVisible) {
+            if (item.isVisible) {
                 getNavigationItem(
                     item,
                     label = {
@@ -63,14 +63,14 @@ fun ProfileNavContent(
                         ) {
                             val builder = buildAnnotatedString {
                                 if (item.icon != drawables.balanceIcon){
-                                    append(item.data.title)
+                                    append(item.title)
                                 }else{
                                     val color = when{
                                         (UserData.userInfo?.balance?:0.0) > 0 -> colors.positiveGreen
                                         (UserData.userInfo?.balance?:0.0) < 0 -> colors.negativeRed
                                         else -> colors.black
                                     }
-                                    append(item.data.title)
+                                    append(item.title)
                                     withStyle(
                                         SpanStyle(
                                             color = color,
@@ -91,9 +91,9 @@ fun ProfileNavContent(
                                 fontSize = MaterialTheme.typography.titleMedium.fontSize,
                                 lineHeight = dimens.largeText,
                             )
-                            if (item.data.subtitle != null) {
+                            if (item.subtitle != null) {
                                 Text(
-                                    item.data.subtitle,
+                                    item.subtitle,
                                     color = colors.grayText,
                                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                     lineHeight = dimens.largeText
@@ -101,7 +101,7 @@ fun ProfileNavContent(
                             }
                         }
                     },
-                    isSelected = item.data.title == activeTitle
+                    isSelected = item.title == activeTitle
                 ){
                     item.onClick()
                 }

@@ -10,13 +10,11 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
@@ -33,7 +31,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.SimpleAppBarData
@@ -45,7 +42,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.repositories.OfferBaseViewModel
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.parseToOfferItem
@@ -85,7 +82,7 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
         listingData
     }
 
-    val pagingDataFlow: Flow<PagingData<OfferBaseViewModel>> = pagingParamsFlow.flatMapLatest{ listingData ->
+    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow.flatMapLatest{ listingData ->
         pagingRepository.getListing(
             listingData,
             apiService,
@@ -115,19 +112,16 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
                     }
                 }
 
-                OfferBaseViewModel(
+                OfferRepository(
                     offer,
                     listingData,
                     events = OfferRepositoryEventsImpl(this, component),
+                    this,
                     savedStateHandle
                 )
             }
         }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        PagingData.empty()
-    ).cachedIn(viewModelScope)
+    }.cachedIn(viewModelScope)
 
     fun init(ld: ListingData) {
         viewModelScope.launch {
@@ -189,24 +183,20 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
                     component.goBack()
                 },
                 listItems = listOf(
-                    NavigationItemUI(
-                        NavigationItem(
-                            title = "",
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
-                        ),
+                    NavigationItem(
+                        title = "",
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = { refresh() }
                     ),
-                    NavigationItemUI(
-                        NavigationItem(
-                            title = subs,
-                            hasNews = false,
-                            badgeCount = null,
-                            isVisible = (searchData.searchCategoryID != 1L || searchData.userSearch || searchData.searchString != ""),
-                        ),
+                    NavigationItem(
+                        title = subs,
+                        hasNews = false,
+                        badgeCount = null,
+                        isVisible = (searchData.searchCategoryID != 1L || searchData.userSearch || searchData.searchString != ""),
                         icon = drawables.favoritesIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = {
@@ -224,12 +214,10 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
                             }
                         }
                     ),
-                    NavigationItemUI(
-                        NavigationItem(
-                            title = searchTitle,
-                            hasNews = false,
-                            badgeCount = null,
-                        ),
+                    NavigationItem(
+                        title = searchTitle,
+                        hasNews = false,
+                        badgeCount = null,
                         icon = drawables.searchIcon,
                         tint = colors.black,
                         onClick = { listingBaseVM.changeOpenSearch(true) }

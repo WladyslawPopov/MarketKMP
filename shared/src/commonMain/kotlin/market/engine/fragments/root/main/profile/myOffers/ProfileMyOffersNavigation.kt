@@ -20,7 +20,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.PlatformWindowType
@@ -41,7 +40,7 @@ data class MyOfferConfig(
 fun ProfileMyOffersNavigation(
     component: ProfileChildrenComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: List<NavigationItemUI>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     CustomModalDrawer(
         modifier = modifier,
@@ -59,13 +58,11 @@ fun ProfileMyOffersNavigation(
                 drawerState = drawerState,
                 data = SimpleAppBarData(
                     listItems = listOf(
-                        NavigationItemUI(
-                            NavigationItem(
-                                title = "",
-                                hasNews = false,
-                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                                badgeCount = null,
-                            ),
+                        NavigationItem(
+                            title = "",
+                            hasNews = false,
+                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                            badgeCount = null,
                             icon = drawables.recycleIcon,
                             tint = colors.inactiveBottomNavIconColor,
                             onClick = {

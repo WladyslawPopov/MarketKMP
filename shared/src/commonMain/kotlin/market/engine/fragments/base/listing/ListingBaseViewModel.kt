@@ -2,6 +2,7 @@ package market.engine.fragments.base.listing
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -21,7 +22,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.FilterListingBtnItem
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.Tab
@@ -29,7 +29,6 @@ import market.engine.core.data.states.CategoryState
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.core.data.states.SearchUiState
 import market.engine.core.data.items.SimpleAppBarData
-import market.engine.core.data.items.TabWithIcon
 import market.engine.core.data.states.SwipeTabsBarState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
@@ -156,12 +155,8 @@ class ListingBaseViewModel(
     )
     val isReversingPaging : StateFlow<Boolean> = _isReversingPaging.state
 
-    private val _listItemsNavigationFilterBar = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
-        key = "listItemsNavigationFilterBar",
-        initialValue = emptyList(),
-        serializer = ListSerializer(NavigationItem.serializer())
-    )
+    private val _listItemsNavigationFilterBar = MutableStateFlow<List<NavigationItem>>(emptyList())
+
     private val _searchString = savedStateHandle.getSavedStateFlow(
         scope = viewModelScope,
         key = "searchString",
@@ -172,7 +167,7 @@ class ListingBaseViewModel(
     val filterBarUiState : StateFlow<FilterBarUiState> = combine(
         _listingType.state,
         _listingData.state,
-        _listItemsNavigationFilterBar.state
+        _listItemsNavigationFilterBar
     )
     { listingType, listingData, listItemsNavigation ->
         val ld = listingData.data
@@ -359,10 +354,10 @@ class ListingBaseViewModel(
                 selectedTabIndex = changeSearchTab,
                 tabs = buildList {
                     add(
-                        TabWithIcon(searchHistory)
+                        Tab(searchHistory)
                     )
                     if (UserData.token != "") {
-                        add(TabWithIcon(subTitle))
+                        add(Tab(subTitle))
                     }
                 },
                 appBarData = SimpleAppBarData(
@@ -370,12 +365,10 @@ class ListingBaseViewModel(
                         changeOpenSearch(false)
                     },
                     listItems = listOf(
-                        NavigationItemUI(
-                            data = NavigationItem(
-                                title = searchTitle,
-                                hasNews = false,
-                                badgeCount = null,
-                            ),
+                        NavigationItem(
+                            title = searchTitle,
+                            hasNews = false,
+                            badgeCount = null,
                             icon = drawables.searchIcon,
                             tint = colors.black,
                             onClick = {

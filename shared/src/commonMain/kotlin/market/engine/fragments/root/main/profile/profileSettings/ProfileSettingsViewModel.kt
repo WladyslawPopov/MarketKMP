@@ -17,7 +17,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.network.networkObjects.Choices
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.getSavedStateFlow
@@ -34,62 +33,50 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
     )
     val genderSelects : StateFlow<List<Choices>> = _genderSelects.state
 
-    val sellerSettingsItems = mutableListOf<NavigationItemUI>()
-    val addressItems = mutableListOf<NavigationItemUI>()
-    val blackListItems = mutableListOf<NavigationItemUI>()
+    val sellerSettingsItems = mutableListOf<NavigationItem>()
+    val addressItems = mutableListOf<NavigationItem>()
+    val blackListItems = mutableListOf<NavigationItem>()
 
     init {
         viewModelScope.launch {
             sellerSettingsItems.addAll(listOf(
-                NavigationItemUI(
-                    data = NavigationItem(
-                        title = getString(strings.pageAboutMeParameterName),
-                    ),
+                NavigationItem(
+                    title = getString(strings.pageAboutMeParameterName),
                     icon = drawables.infoIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_about_me")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.vacationTitle),
-                    ),
+                NavigationItem(
+                    title = getString(strings.vacationTitle),
                     icon = drawables.vacationIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_vacation")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.messageToBuyersLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.messageToBuyersLabel),
                     icon = drawables.dialogIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_message_to_buyer")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.settingsBiddingStepsLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.settingsBiddingStepsLabel),
                     icon = drawables.listIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_bidding_step")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.settingsAutoFeedbacksLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.settingsAutoFeedbacksLabel),
                     icon = drawables.timerListIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_auto_feedback")
                     }
                 ),
-                NavigationItemUI(
                 NavigationItem(
-                        title = getString(strings.settingsWatermarkLabel),
-                    ),
+                    title = getString(strings.settingsWatermarkLabel),
                     icon = drawables.watermarkIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_watermark")
@@ -98,19 +85,15 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
             ))
 
             addressItems.addAll(listOf(
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.outgoingAddressLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.outgoingAddressLabel),
                     icon = drawables.locationIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_outgoing_address")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.addressCardsTitle),
-                    ),
+                NavigationItem(
+                    title = getString(strings.addressCardsTitle),
                     icon = drawables.emptyOffersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_address_cards")
@@ -119,37 +102,29 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
             ))
 
             blackListItems.addAll(listOf(
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.settingsBlackListSellersLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.settingsBlackListSellersLabel),
                     icon = drawables.blackSellersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("add_to_seller_blacklist")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.settingsBlackListBuyersLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.settingsBlackListBuyersLabel),
                     icon = drawables.blackBuyersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("add_to_buyer_blacklist")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.settingsWhiteListBuyersLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.settingsWhiteListBuyersLabel),
                     icon = drawables.whiteBuyersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("add_to_whitelist")
                     }
                 ),
-                NavigationItemUI(
-                    NavigationItem(
-                        title = getString(strings.settingsBlockRatingLabel),
-                    ),
+                NavigationItem(
+                    title = getString(strings.settingsBlockRatingLabel),
                     icon = drawables.blockRatingIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_block_rating")

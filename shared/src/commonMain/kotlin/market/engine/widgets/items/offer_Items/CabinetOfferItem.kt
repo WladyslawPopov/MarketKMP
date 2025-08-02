@@ -38,8 +38,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.MenuItem
-import market.engine.core.repositories.OfferBaseViewModel
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
@@ -56,23 +55,19 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetOfferItem(
-    offerBaseViewModel: OfferBaseViewModel,
+    offerRepository: OfferRepository,
     updateItem: Long?,
     selected : Boolean = false,
     onSelected : ((Long) -> Unit)? = null
 ) {
-    val offer by offerBaseViewModel.offerState.collectAsState()
+    val offer by offerRepository.offerState.collectAsState()
 
-    val events = offerBaseViewModel.events
-    val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
-
-    LaunchedEffect(offerBaseViewModel) {
-        defOptions.value = offerBaseViewModel.getDefOperations()
-    }
+    val events = offerRepository.events
+    val defOptions = offerRepository.getDefOperations()
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerBaseViewModel.updateItem()
+            offerRepository.updateItem()
         }
     }
 
@@ -84,8 +79,8 @@ fun CabinetOfferItem(
 
     val openPromoMenu = remember { mutableStateOf(false) }
 
-    val menuList = offerBaseViewModel.menuList.collectAsState()
-    val menuPromotionsList = offerBaseViewModel.promoList.collectAsState()
+    val menuList = offerRepository.menuList.collectAsState()
+    val menuPromotionsList = offerRepository.promoList.collectAsState()
 
     AnimatedVisibility(offer.session != null, enter = fadeIn(), exit = fadeOut()) {
         if (offer.session != null) {
@@ -98,7 +93,7 @@ fun CabinetOfferItem(
             ) {
                 HeaderOfferBar(
                     offer = offer,
-                    defOptions = defOptions.value,
+                    defOptions = defOptions,
                     selected = selected,
                     onSelected = onSelected,
                 )
@@ -481,6 +476,6 @@ fun CabinetOfferItem(
     }
 
     OfferOperationsDialogs(
-        offerBaseViewModel = offerBaseViewModel,
+        offerRepository = offerRepository,
     )
 }

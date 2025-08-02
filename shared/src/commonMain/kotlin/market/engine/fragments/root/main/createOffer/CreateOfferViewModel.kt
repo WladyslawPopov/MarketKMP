@@ -30,7 +30,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.PhotoSave
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.CategoryState
@@ -215,14 +214,11 @@ class CreateOfferViewModel(
                     component.onBackClicked()
                 },
                 listItems = listOf(
-                    NavigationItemUI(
-                        NavigationItem(
-                            title = "",
-
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null
-                        ),
+                    NavigationItem(
+                        title = "",
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = {

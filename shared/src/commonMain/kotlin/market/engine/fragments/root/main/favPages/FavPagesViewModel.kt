@@ -6,6 +6,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,7 +21,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.Tab
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
@@ -45,13 +45,30 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
 
     private val offersListOperations : OffersListOperations = getKoin().get()
 
-    private val _favoritesTabList = savedStateHandle.getSavedStateFlow(
+    private val _tabsDataList = savedStateHandle.getSavedStateFlow(
         viewModelScope,
         "favoritesTabList",
         emptyList(),
-        ListSerializer(Tab.serializer())
+        ListSerializer(FavoriteListItem.serializer())
     )
-    val favoritesTabList = _favoritesTabList.state
+
+    val favoritesTabList = _tabsDataList.state.map { listItems ->
+        listItems.map { item ->
+            Tab(
+                id = item.id,
+                title = item.title ?: "",
+                image = item.images.firstOrNull(),
+                isPined = item.markedAsPrimary,
+                onClick = {
+                    selectPage(listItems.indexOf(item))
+                }
+            )
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        emptyList()
+    )
 
     private val _initPosition = savedStateHandle.getSavedStateFlow(
         viewModelScope,
@@ -84,7 +101,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     )
 
     val favPagesState : StateFlow<FavPagesState> = combine(
-        _favoritesTabList.state,
+        _tabsDataList.state,
         _initPosition.state,
         _isDragMode.state,
         _isMenuVisible.state
@@ -95,25 +112,21 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
             favTabList[currentTab].id > 1000 else false
 
         val listItems = listOf(
-            NavigationItemUI(
-                NavigationItem(
-                    title = "",
-                    hasNews = false,
-                    isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                    badgeCount = null,
-                ),
+            NavigationItem(
+                title = "",
+                hasNews = false,
+                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                badgeCount = null,
                 icon = drawables.recycleIcon,
                 tint = colors.inactiveBottomNavIconColor,
                 onClick = {
                     getFavTabList()
                 }
             ),
-            NavigationItemUI(
             NavigationItem(
-                    title = getString(strings.createNewOffersListLabel),
-                    isVisible = !isDragMode,
-                    badgeCount = null,
-                ),
+                title = getString(strings.createNewOffersListLabel),
+                isVisible = !isDragMode,
+                badgeCount = null,
                 icon = drawables.addFolderIcon,
                 tint = colors.steelBlue,
                 tooltipData =
@@ -130,13 +143,11 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                     makeOperation("create_blank_offer_list", UserData.login)
                 }
             ),
-            NavigationItemUI(
-                NavigationItem(
-                    title = getString(strings.menuTitle),
-                    hasNews = false,
-                    isVisible = isVisibleMenu && !isDragMode,
-                    badgeCount = null,
-                ),
+            NavigationItem(
+                title = getString(strings.menuTitle),
+                hasNews = false,
+                isVisible = isVisibleMenu && !isDragMode,
+                badgeCount = null,
                 icon = drawables.menuIcon,
                 tint = colors.inactiveBottomNavIconColor,
                 onClick = {
@@ -168,6 +179,14 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
 
     init {
         getFavTabList()
+
+        viewModelScope.launch {
+            favoritesTabList.collect { updatedList ->
+                withContext(Dispatchers.Main){
+                    component.updateNavigationPages()
+                }
+            }
+        }
     }
 
     fun getFavTabList() {
@@ -199,7 +218,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
 
             withContext(Dispatchers.Main) {
                 val res = data.success
-                val buf = arrayListOf<FavoriteListItem>()
+                val buf = mutableListOf<FavoriteListItem>()
                 buf.addAll(res ?: emptyList())
 
                 newList.addAll(buf)
@@ -214,17 +233,8 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 newList.sortBy { it.position }
                 newList.sortBy { !it.markedAsPrimary }
 
-                if (newList != _favoritesTabList.value) {
-                    _favoritesTabList.value = newList.map {
-                        Tab(
-                            id = it.id,
-                            title = it.title ?: "",
-                            image = it.images.firstOrNull(),
-                            isPined = it.markedAsPrimary,
-                        )
-                    }
-
-                    component.updateNavigationPages()
+                if (newList != _tabsDataList.value) {
+                    _tabsDataList.value = newList.toList()
                 }
             }
         }
@@ -233,7 +243,14 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     fun updateFavTabList(list: List<Tab>){
         viewModelScope.launch {
             try {
-                _favoritesTabList.value = list
+                _tabsDataList.value = list.map { item ->
+                    FavoriteListItem(
+                        id = item.id,
+                        title = item.title,
+                        images = item.image?.let { listOf(it) } ?: emptyList(),
+                        markedAsPrimary = item.isPined,
+                    )
+                }
 
                 withContext(Dispatchers.Unconfined) {
                     list.forEachIndexed { index, it ->
@@ -346,7 +363,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                     type,
                     "offers_lists",
                     onSuccess = {
-                        _favoritesTabList.update { tabs ->
+                        _tabsDataList.update { tabs ->
                             tabs.filter { it.id != id }
                         }
                         getFavTabList()

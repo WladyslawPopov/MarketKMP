@@ -19,7 +19,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.repositories.OrderBaseViewModel
+import market.engine.core.repositories.OrderRapository
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.rows.InfoRow
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -28,20 +28,20 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OrderOperationsDialog(
-    orderBaseViewModel: OrderBaseViewModel
+    orderRapository: OrderRapository
 ) {
-    val customDialogState = orderBaseViewModel.customDialogState.collectAsState()
-    val messageTextState = orderBaseViewModel.messageText.collectAsState()
+    val customDialogState = orderRapository.customDialogState.collectAsState()
+    val messageTextState = orderRapository.messageText.collectAsState()
     val messageText = remember { mutableStateOf(TextFieldValue(messageTextState.value)) }
-    val order = orderBaseViewModel.order
-    val typeGroup = orderBaseViewModel.typeGroup
+    val order = orderRapository.order
+    val typeGroup = orderRapository.typeGroup
     val typeDef = DealTypeGroup.BUY
 
     CustomDialog(
         containerColor = colors.primaryColor,
         uiState = customDialogState.value,
         onDismiss = {
-            orderBaseViewModel.clearDialogFields()
+            orderRapository.clearDialogFields()
         },
         onSuccessful = when(customDialogState.value.typeDialog){
             "order_details","show_report_to_me", "show_my_report" -> {
@@ -49,7 +49,7 @@ fun OrderOperationsDialog(
             }
             else -> {
                 {
-                    orderBaseViewModel.makeOperation(customDialogState.value.typeDialog)
+                    orderRapository.makeOperation(customDialogState.value.typeDialog)
                 }
             }
         }
@@ -137,7 +137,7 @@ fun OrderOperationsDialog(
                     value = messageText.value,
                     onValueChange = {
                         messageText.value = it
-                        orderBaseViewModel.setMessageText(it.text)
+                        orderRapository.setMessageText(it.text)
                     },
                     label = stringResource(strings.messageLabel),
                     maxSymbols = 2000,
@@ -147,7 +147,7 @@ fun OrderOperationsDialog(
             else -> {
                 if (state.fields.isNotEmpty()) {
                     SetUpDynamicFields(state.fields){
-                        orderBaseViewModel.setNewField(it)
+                        orderRapository.setNewField(it)
                     }
                 }
             }

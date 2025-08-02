@@ -6,11 +6,9 @@ import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.filtersObjects.DealFilters
@@ -25,7 +23,7 @@ import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
-import market.engine.core.repositories.OrderBaseViewModel
+import market.engine.core.repositories.OrderRapository
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -71,20 +69,17 @@ class MyOrdersViewModel(
                 pagingData.map { order ->
                     MyOrderItemState(
                         order = order,
-                        orderBaseViewModel = OrderBaseViewModel(
+                        orderRapository = OrderRapository(
                             order,
                             type,
                             MyOrderItemEventsImpl(this, order, component),
+                            this,
                             savedStateHandle
                         )
                     )
                 }
             }
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            PagingData.empty()
-        ).cachedIn(viewModelScope)
+        }.cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {

@@ -8,11 +8,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,12 +45,13 @@ import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
 
 
-class OrderBaseViewModel(
+class OrderRapository(
     val order : Order,
     val type : DealType,
     val events: OrderItemEvents,
-    savedStateHandle: SavedStateHandle
-) : CoreViewModel(savedStateHandle) {
+    val core: CoreViewModel,
+    savedStateHandle: SavedStateHandle,
+) {
     val typeGroup = if (type in arrayOf(
             DealType.BUY_ARCHIVE,
             DealType.BUY_IN_WORK
@@ -62,7 +61,7 @@ class OrderBaseViewModel(
     val orderOperations : OrderOperations by lazy { getKoin().get() }
 
     private val _customDialogState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        core.viewModelScope,
         "customDialogState",
         CustomDialogState(),
         CustomDialogState.serializer()
@@ -72,88 +71,83 @@ class OrderBaseViewModel(
 
 
     private val _operationsList = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        core.viewModelScope,
         "operationsList",
         emptyList(),
         ListSerializer(Operations.serializer())
     )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val menuList = _operationsList.state.flatMapLatest { operations ->
-
+    val menuList = _operationsList.state.map { operations ->
         val commentText = getString(strings.defaultCommentReport)
+        operations.map { operation ->
+            MenuItem(
+                id = operation.id ?: "",
+                title = operation.name ?: "",
+                onClick = {
+                    operation.run {
+                        when {
+                            !isDataless -> {
+                                core.getOperationFields(
+                                    order.id,
+                                    id ?: "",
+                                    "orders",
+                                )
+                                { t, fields ->
 
-        flowOf(
-            operations.map { operation ->
-                MenuItem(
-                    id = operation.id ?: "",
-                    title = operation.name ?: "",
-                    onClick = {
-                        operation.run {
-                            when {
-                                !isDataless -> {
-                                    getOperationFields(
-                                        order.id,
-                                        id ?: "",
-                                        "orders",
-                                    )
-                                    { t, fields ->
-
-                                        val fieldFeedbackType =
-                                            fields.find { it.key == "feedback_type" }
-                                        if (fieldFeedbackType != null) {
-                                            fields.find { it.key == "comment" }?.let {
-                                                fieldFeedbackType.data = JsonPrimitive(1)
-                                                it.data = JsonPrimitive(commentText)
-                                            }
+                                    val fieldFeedbackType =
+                                        fields.find { it.key == "feedback_type" }
+                                    if (fieldFeedbackType != null) {
+                                        fields.find { it.key == "comment" }?.let {
+                                            fieldFeedbackType.data = JsonPrimitive(1)
+                                            it.data = JsonPrimitive(commentText)
                                         }
-
-                                        _customDialogState.value = CustomDialogState(
-                                            title = t,
-                                            typeDialog = id ?: "",
-                                            fields = fields
-                                        )
                                     }
-                                }
 
-                                else -> {
-                                    postOperationFields(
-                                        order.id,
-                                        id ?: "",
-                                        "orders",
-                                        onSuccess = {
-                                            val eventParameters = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-
-                                            analyticsHelper.reportEvent(
-                                                operation.id ?: "",
-                                                eventParameters
-                                            )
-                                            getOperations()
-                                            setUpdateItem(order.id)
-                                        },
-                                        errorCallback = {
-
-                                        }
+                                    _customDialogState.value = CustomDialogState(
+                                        title = t,
+                                        typeDialog = id ?: "",
+                                        fields = fields
                                     )
                                 }
                             }
+
+                            else -> {
+                                core.postOperationFields(
+                                    order.id,
+                                    id ?: "",
+                                    "orders",
+                                    onSuccess = {
+                                        val eventParameters = mapOf(
+                                            "order_id" to order.id,
+                                            "seller_id" to order.sellerData?.id,
+                                            "buyer_id" to order.buyerData?.id
+                                        )
+
+                                        core.analyticsHelper.reportEvent(
+                                            operation.id ?: "",
+                                            eventParameters
+                                        )
+                                        getOperations()
+                                        core.setUpdateItem(order.id)
+                                    },
+                                    errorCallback = {
+
+                                    }
+                                )
+                            }
                         }
                     }
-                )
-            }
-        )
+                }
+            )
+        }
     }.stateIn(
-        viewModelScope,
+        core.viewModelScope,
         SharingStarted.Eagerly,
         emptyList()
     )
 
     private val _messageText = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        core.viewModelScope,
         "messageText",
         "",
         String.serializer()
@@ -190,7 +184,7 @@ class OrderBaseViewModel(
                 .build()
 
             val res = withContext(Dispatchers.IO) {
-                apiService.getPage(url)
+                core.apiService.getPage(url)
             }
             return withContext(Dispatchers.Main) {
                 ld.data.filters.find { it.key == "id" }?.value = ""
@@ -207,10 +201,10 @@ class OrderBaseViewModel(
                 }
             }
         } catch (exception: ServerErrorException) {
-            onError(exception)
+            core.onError(exception)
             null
         } catch (exception: Exception) {
-            onError(
+            core.onError(
                 ServerErrorException(
                     errorCode = exception.message.toString(),
                     humanMessage = exception.message.toString()
@@ -222,7 +216,7 @@ class OrderBaseViewModel(
 
     fun updateItem(oldOrder: Order) {
         getOperations()
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             val buf = withContext(Dispatchers.IO) {
                 getItem(oldOrder.id)
             }
@@ -242,13 +236,13 @@ class OrderBaseViewModel(
                 }else {
                     oldOrder.owner = 1L
                 }
-                setUpdateItem(null)
+                core.setUpdateItem(null)
             }
         }
     }
 
     fun getOperations() {
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             getOrderOperations(order.id) { listOperations ->
                 _operationsList.value = listOperations
             }
@@ -256,7 +250,7 @@ class OrderBaseViewModel(
     }
 
     fun getOrderOperations(orderId : Long, onSuccess: (List<Operations>) -> Unit){
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             val res = withContext(Dispatchers.IO) { orderOperations.getOperationsOrder(orderId) }
             withContext(Dispatchers.Main){
                 val buf = res.success?.filter {
@@ -274,11 +268,11 @@ class OrderBaseViewModel(
     }
 
     fun copyTrackId() {
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             val idString = getString(strings.idCopied)
             clipBoardEvent(order.trackId.toString())
 
-            showToast(
+            core.showToast(
                 ToastItem(
                     isVisible = true,
                     message = idString,
@@ -289,11 +283,11 @@ class OrderBaseViewModel(
     }
 
     fun copyOrderId() {
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             val idString = getString(strings.idCopied)
             clipBoardEvent(order.id.toString())
 
-            showToast(
+            core.showToast(
                 ToastItem(
                     isVisible = true,
                     message = idString,
@@ -308,7 +302,7 @@ class OrderBaseViewModel(
     }
 
     fun sendMessage() {
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             val userName = if (typeGroup != DealTypeGroup.BUY) {
                 order.sellerData?.login ?: ""
             } else {
@@ -318,7 +312,7 @@ class OrderBaseViewModel(
             val conversationTitle = getString(strings.createConversationLabel)
             val aboutOrder = getString(strings.aboutOrderLabel)
 
-            postOperationAdditionalData(
+            core.postOperationAdditionalData(
                 order.id,
                 "checking_conversation_existence",
                 "orders",
@@ -369,7 +363,7 @@ class OrderBaseViewModel(
     }
 
     fun openOrderDetails() {
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             _customDialogState.value = CustomDialogState(
                 title = getString(strings.paymentAndDeliveryLabel),
                 typeDialog = "order_details",
@@ -380,7 +374,7 @@ class OrderBaseViewModel(
     fun makeOperation(type : String){
         when(type){
             "write_to_partner" -> {
-                postOperationAdditionalData(
+                core.postOperationAdditionalData(
                     order.id,
                     "write_to_partner",
                     "orders",
@@ -400,7 +394,7 @@ class OrderBaseViewModel(
                     }
                 }
 
-                postOperationFields(
+                core.postOperationFields(
                     order.id,
                     type,
                     "orders",
@@ -408,7 +402,7 @@ class OrderBaseViewModel(
                     onSuccess = {
                         clearDialogFields()
                         getOperations()
-                        setUpdateItem(order.id)
+                        core.setUpdateItem(order.id)
                     },
                     errorCallback = { errFields ->
                         if (errFields != null) {
@@ -426,7 +420,7 @@ class OrderBaseViewModel(
 
     fun showReportDialog(type : String){
         run {
-            viewModelScope.launch {
+            core.viewModelScope.launch {
                 val def = getString(strings.toMeFeedbacksLabel)
 
                 val eventParameters = mapOf(
@@ -436,9 +430,9 @@ class OrderBaseViewModel(
                 )
 
                 if (type == def) {
-                    analyticsHelper.reportEvent("click_review_to_seller", eventParameters)
+                    core.analyticsHelper.reportEvent("click_review_to_seller", eventParameters)
                 } else {
-                    analyticsHelper.reportEvent("click_review_to_buyer", eventParameters)
+                    core.analyticsHelper.reportEvent("click_review_to_buyer", eventParameters)
                 }
 
                 _customDialogState.value = CustomDialogState(

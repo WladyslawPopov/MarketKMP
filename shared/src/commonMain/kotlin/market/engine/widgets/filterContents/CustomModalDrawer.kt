@@ -17,14 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.root.main.profile.ProfileDrawer
 
 @Composable
 fun CustomModalDrawer(
     modifier : Modifier = Modifier,
     title : String,
-    publicProfileNavigationItems: List<NavigationItemUI>,
+    publicProfileNavigationItems: List<NavigationItem>,
     content : @Composable (Modifier, DrawerState) -> Unit,
 ) {
     val drawerState = rememberDrawerState(initialValue = if(isBigScreen.value) DrawerValue.Open else DrawerValue.Closed)

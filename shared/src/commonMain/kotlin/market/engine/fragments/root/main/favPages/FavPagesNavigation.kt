@@ -24,10 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.MenuItem
-import market.engine.core.data.items.Tab
-import market.engine.core.data.items.TabWithIcon
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.SetUpDynamicFields
@@ -60,7 +57,9 @@ fun FavPagesNavigation(
 
     val pages by component.componentsPages.subscribeAsState()
 
-    val favTabListState = viewModel.favoritesTabList.collectAsState()
+    val favTabListState by viewModel.favoritesTabList.collectAsState()
+
+    val favTabList = remember(favTabListState) { mutableStateOf(favTabListState) }
 
     val isDragMode = uiState.isDragMode
     val appBarState = uiState.appState
@@ -115,30 +114,12 @@ fun FavPagesNavigation(
                         val menuList = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
 
                         ReorderTabRow(
-                            tabs = favTabListState.value.map {
-                                TabWithIcon(
-                                    id = it.id,
-                                    title = it.title,
-                                    image = it.image,
-                                    isPined = it.isPined,
-                                    icon = if(it.isPined) drawables.pinIcon else null
-                                )
-                            },
+                            tabs = favTabList.value,
                             selectedTab = pages.selectedIndex,
                             isDragMode = isDragMode,
                             menuList = menuList.value,
                             onTabsReordered = { newList ->
-                                viewModel.updateFavTabList(newList.map {
-                                    Tab(
-                                        id = it.id,
-                                        title = it.title,
-                                        image = it.image,
-                                        isPined = it.isPined,
-                                    )
-                                })
-                            },
-                            onClick = {
-                                viewModel.selectPage(favTabListState.value.indexOf(favTabListState.value.find { it.id == activeFavTabId.value }))
+                                favTabList.value = newList
                             },
                             onLongClick = { id ->
                                 viewModel.viewModelScope.launch {
@@ -200,8 +181,8 @@ fun FavPagesNavigation(
                         .blur(dimens.extraLargePadding)
                         .pointerInput(Unit) {
                             detectTapGestures {
-                                component.updateNavigationPages()
                                 viewModel.closeDragMode()
+                                viewModel.updateFavTabList(favTabList.value)
                             }
                         }
                 )

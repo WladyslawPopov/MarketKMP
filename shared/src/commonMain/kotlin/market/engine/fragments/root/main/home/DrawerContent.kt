@@ -32,7 +32,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.dialogs.LogoutDialog
 import market.engine.widgets.items.getNavigationItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -43,7 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 fun DrawerContent(
     drawerState: DrawerState,
     goToLogin: () -> Unit = {},
-    list : List<NavigationItemUI>,
+    list : List<NavigationItem>,
 ) {
     val isShowDialog = remember { mutableStateOf(false) }
 
@@ -100,7 +100,7 @@ fun DrawerContent(
             }
 
             items(list) { item ->
-                if (item.data.isVisible) {
+                if (item.isVisible) {
                     getNavigationItem(
                         item,
                         label = {
@@ -110,14 +110,14 @@ fun DrawerContent(
                                 horizontalAlignment = Alignment.Start
                             ) {
                                 Text(
-                                    item.data.title,
+                                    item.title,
                                     color = colors.black,
                                     fontSize = MaterialTheme.typography.titleSmall.fontSize,
                                     lineHeight = dimens.largeText
                                 )
-                                if (item.data.subtitle != null) {
+                                if (item.subtitle != null) {
                                     Text(
-                                        item.data.subtitle,
+                                        item.subtitle,
                                         color = colors.grayText,
                                         fontSize = MaterialTheme.typography.labelSmall.fontSize,
                                         lineHeight = dimens.largeText

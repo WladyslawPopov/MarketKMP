@@ -9,11 +9,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
@@ -92,11 +90,7 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
                 listingBaseViewModel.setTotalCount(it)
             }
         )
-    }.stateIn(
-        viewModelScope,
-        started = SharingStarted.Lazily,
-        PagingData.empty()
-    ).cachedIn(viewModelScope)
+    }.cachedIn(viewModelScope)
 
     private fun initializeUserData(user: User) {
         viewModelScope.launch {

@@ -24,7 +24,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.buttons.NavigationArrowButton
@@ -146,12 +145,10 @@ fun CategoryContent(
                     }
 
                     val item = remember(category) {
-                        NavigationItemUI(
-                            NavigationItem(
-                                title = category.name ?: pageState.catDef,
-                                badgeCount = if (!pageState.categoryWithoutCounter)
-                                    category.estimatedActiveOffersCount else null,
-                            ),
+                        NavigationItem(
+                            title = category.name ?: pageState.catDef,
+                            badgeCount = if (!pageState.categoryWithoutCounter)
+                                category.estimatedActiveOffersCount else null,
                             image = icon,
                             onClick = {
                                 viewModel.selectCategory(category)

@@ -22,7 +22,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
@@ -113,14 +112,11 @@ class CreateOrderViewModel(
                     component.onBackClicked()
                 },
                 listItems = listOf(
-                    NavigationItemUI(
                     NavigationItem(
-                            title = "",
-
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
-                        ),
+                        title = "",
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = {

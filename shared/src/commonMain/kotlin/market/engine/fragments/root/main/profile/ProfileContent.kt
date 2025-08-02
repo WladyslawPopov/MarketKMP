@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.NavigationItem
 import market.engine.fragments.base.EdgeToEdgeScaffold
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -18,7 +18,7 @@ import market.engine.fragments.base.EdgeToEdgeScaffold
 fun ProfileContent(
     component: ProfileComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: List<NavigationItemUI>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val viewModel = component.model.value.profileViewModel
     val isLoading by viewModel.isShowProgress.collectAsState()

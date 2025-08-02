@@ -27,7 +27,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.TopCategory
 import market.engine.core.data.states.HomeUiState
@@ -99,51 +98,43 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
             unreadNotificationsCount = getUnreadNotificationsCount(),
             appBarData = SimpleAppBarData(
                 listItems = listOf(
-                    NavigationItemUI(
-                        data = NavigationItem(
-                            title = "",
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
-                        ),
+                    NavigationItem(
+                        title = "",
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = { updateModel() }
                     ),
-                    NavigationItemUI(
-                        data = NavigationItem(
-                            title = proposalString,
-                            hasNews = false,
-                            badgeCount = userInfo?.countUnreadPriceProposals,
-                            isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
-                        ),
+                    NavigationItem(
+                        title = proposalString,
+                        hasNews = false,
+                        badgeCount = userInfo?.countUnreadPriceProposals,
+                        isVisible = (userInfo?.countUnreadPriceProposals ?: 0) > 0,
                         icon = drawables.currencyIcon,
                         tint = colors.titleTextColor,
                         onClick = {
                             component.goToMyProposals()
                         }
                     ),
-                    NavigationItemUI(
-                        data = NavigationItem(
-                            title = messageString,
-                            hasNews = false,
-                            badgeCount = if ((userInfo?.countUnreadMessages
-                                    ?: 0) > 0
-                            ) (userInfo?.countUnreadMessages ?: 0) else null,
-                        ),
+                    NavigationItem(
+                        title = messageString,
+                        hasNews = false,
+                        badgeCount = if ((userInfo?.countUnreadMessages
+                                ?: 0) > 0
+                        ) (userInfo?.countUnreadMessages ?: 0) else null,
                         icon = drawables.mail,
                         tint = colors.brightBlue,
                         onClick = {
                             component.goToMessenger()
                         }
                     ),
-                    NavigationItemUI(
-                        data = NavigationItem(
-                            title = notificationString,
-                            isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
-                            hasNews = false,
-                            badgeCount = getUnreadNotificationsCount(),
-                        ),
+                    NavigationItem(
+                        title = notificationString,
+                        isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
+                        hasNews = false,
+                        badgeCount = getUnreadNotificationsCount(),
                         icon = drawables.notification,
                         tint = colors.titleTextColor,
                         onClick = {
@@ -180,78 +171,66 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                 )
             ),
             drawerList = listOf(
-                NavigationItemUI(
-                    data = NavigationItem(
-                        title = getString(strings.top100Title),
-                        hasNews = false,
-                        badgeCount = null,
-                    ),
+                NavigationItem(
+                    title = getString(strings.top100Title),
+                    hasNews = false,
+                    badgeCount = null,
                     icon = drawables.top100Icon,
                     tint = colors.black,
                     onClick = {
                         openUrl("${SAPI.SERVER_BASE}rating_game")
                     }
                 ),
-                NavigationItemUI(
-                    data = NavigationItem(
-                        title = getString(strings.helpTitle),
-                        subtitle = getString(strings.helpSubtitle),
-                        hasNews = false,
-                        badgeCount = null,
-                    ),
+                NavigationItem(
+                    title = getString(strings.helpTitle),
+                    subtitle = getString(strings.helpSubtitle),
+                    hasNews = false,
+                    badgeCount = null,
                     icon = drawables.helpIcon,
                     tint = colors.black,
                     onClick = {
                         openUrl("${SAPI.SERVER_BASE}help/general")
                     }
                 ),
-                NavigationItemUI(
-                    data = NavigationItem(
-                        title = getString(strings.contactUsTitle),
-                        subtitle = getString(strings.contactUsSubtitle),
-                        hasNews = false,
-                        badgeCount = null,
-                    ),
+                NavigationItem(
+                    title = getString(strings.contactUsTitle),
+                    subtitle = getString(strings.contactUsSubtitle),
+                    hasNews = false,
+                    badgeCount = null,
                     icon = drawables.contactUsIcon,
                     tint = colors.black,
                     onClick = {
                         component.goToContactUs()
                     }
                 ),
-                NavigationItemUI(
-                    data = NavigationItem(
-                        title = getString(strings.aboutUsTitle),
-                        subtitle = getString(strings.aboutUsSubtitle),
-                        hasNews = false,
-                        badgeCount = null,
-                    ),
+                NavigationItem(
+                    title = getString(strings.aboutUsTitle),
+                    subtitle = getString(strings.aboutUsSubtitle),
+                    hasNews = false,
+                    badgeCount = null,
                     icon = drawables.infoIcon,
                     tint = colors.black,
                     onClick = {
                         openUrl("${SAPI.SERVER_BASE}staticpage/doc/about_us")
                     }
                 ),
-                NavigationItemUI(
-                    data = NavigationItem(
-                        title = getString(strings.reviewsTitle),
-                        subtitle = getString(strings.reviewsSubtitle),
-                        hasNews = false,
-                        badgeCount = null,
-                        isVisible = SAPI.REVIEW_URL != "",
-                    ),
+                NavigationItem(
+                    title = getString(strings.reviewsTitle),
+                    subtitle = getString(strings.reviewsSubtitle),
+                    hasNews = false,
+                    badgeCount = null,
+                    isVisible = SAPI.REVIEW_URL != "",
                     icon = drawables.starIcon,
                     tint = colors.black,
                     onClick = {
                         openUrl(SAPI.REVIEW_URL)
                     }
                 ),
-                NavigationItemUI(
                 NavigationItem(
-                        title = getString(strings.settingsTitleApp),
-                        subtitle = getString(strings.settingsSubtitleApp),
-                        hasNews = false,
-                        badgeCount = null,
-                    ),
+                    title = getString(strings.settingsTitleApp),
+                    subtitle = getString(strings.settingsSubtitleApp),
+                    hasNews = false,
+                    badgeCount = null,
                     icon = drawables.settingsIcon,
                     tint = colors.black,
                     onClick = {

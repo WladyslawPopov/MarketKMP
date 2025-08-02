@@ -31,8 +31,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.data.items.MenuItem
-import market.engine.core.repositories.OfferBaseViewModel
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.SimpleTextButton
@@ -48,24 +47,20 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetBidsItem(
-    offerBaseViewModel : OfferBaseViewModel,
+    offerRepository : OfferRepository,
     updateItem : Long? = null,
 ) {
-    val offer by offerBaseViewModel.offerState.collectAsState()
+    val offer by offerRepository.offerState.collectAsState()
 
-    val events = offerBaseViewModel.events
-    val defOptions = remember { mutableStateOf<List<MenuItem>>(emptyList()) }
+    val events = offerRepository.events
+    val defOptions = offerRepository.getDefOperations()
 
-    LaunchedEffect(Unit) {
-        defOptions.value = offerBaseViewModel.getDefOperations()
-    }
-
-    val menuList = offerBaseViewModel.menuList.collectAsState()
+    val menuList = offerRepository.menuList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerBaseViewModel.updateItem()
+            offerRepository.updateItem()
         }
     }
 
@@ -88,7 +83,7 @@ fun CabinetBidsItem(
             ) {
                 HeaderOfferBar(
                     offer = offer,
-                    defOptions = defOptions.value,
+                    defOptions = defOptions,
                 )
 
                 Row(
@@ -288,7 +283,7 @@ fun CabinetBidsItem(
                             backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite
                         ) {
-                            offerBaseViewModel.openMesDialog()
+                            offerRepository.openMesDialog()
                         }
                     }
                 }
@@ -369,6 +364,6 @@ fun CabinetBidsItem(
     }
 
     OfferOperationsDialogs(
-        offerBaseViewModel = offerBaseViewModel,
+        offerRepository = offerRepository,
     )
 }

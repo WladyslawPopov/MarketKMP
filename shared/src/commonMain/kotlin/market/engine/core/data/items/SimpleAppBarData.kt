@@ -6,5 +6,5 @@ import androidx.compose.runtime.Immutable
 data class SimpleAppBarData(
     val menuData: MenuData = MenuData(),
     val onBackClick: (() -> Unit)? = null,
-    val listItems: List<NavigationItemUI> = emptyList(),
+    val listItems: List<NavigationItem> = emptyList(),
 )

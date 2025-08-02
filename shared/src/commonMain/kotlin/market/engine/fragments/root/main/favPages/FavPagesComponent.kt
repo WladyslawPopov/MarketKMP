@@ -35,9 +35,7 @@ interface FavPagesComponent {
     )
 
     fun selectPage(p: Int)
-
     fun updateNavigationPages()
-
     fun onRefresh()
 }
 
@@ -64,6 +62,7 @@ class DefaultFavPagesComponent(
     )
 
     override val model = initialModel
+
 
     override fun updateNavigationPages(){
         val tabs = viewModel.favoritesTabList.value

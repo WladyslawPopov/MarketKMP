@@ -22,7 +22,7 @@ import androidx.compose.ui.text.withStyle
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.repositories.OfferBaseViewModel
+import market.engine.core.repositories.OfferRepository
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.widgets.textFields.OutlinedTextInputField
 import market.engine.widgets.texts.SeparatorLabel
@@ -30,24 +30,24 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OfferOperationsDialogs(
-    offerBaseViewModel: OfferBaseViewModel,
+    offerRepository: OfferRepository,
     valuesPickerState: PickerState? = null,
     offerCounts : List<String> = emptyList(),
 ) {
-    val customDialogState by offerBaseViewModel.customDialogState.collectAsState()
-    val myMaximalBid by offerBaseViewModel.myMaximalBid.collectAsState()
-    val messageTextState by offerBaseViewModel.messageText.collectAsState()
+    val customDialogState by offerRepository.customDialogState.collectAsState()
+    val myMaximalBid by offerRepository.myMaximalBid.collectAsState()
+    val messageTextState by offerRepository.messageText.collectAsState()
     val messageText = remember { mutableStateOf(TextFieldValue(messageTextState)) }
 
     CustomDialog(
         containerColor = colors.primaryColor,
-        annotatedString = offerBaseViewModel.annotatedTitle.value,
+        annotatedString = offerRepository.annotatedTitle.value,
         uiState = customDialogState,
         onDismiss = {
-            offerBaseViewModel.clearDialogFields()
+            offerRepository.clearDialogFields()
         },
         onSuccessful = {
-            offerBaseViewModel.makeOperations()
+            offerRepository.makeOperations()
         },
     )
     { state->
@@ -57,7 +57,7 @@ fun OfferOperationsDialogs(
                     value = messageText.value,
                     onValueChange = {
                         messageText.value = it
-                        offerBaseViewModel.setMessageText(it.text)
+                        offerRepository.setMessageText(it.text)
                     },
                     label = stringResource(strings.messageLabel),
                     maxSymbols = 2000,
@@ -69,10 +69,10 @@ fun OfferOperationsDialogs(
                     showDialog = state.typeDialog != "",
                     isSelectableDates = true,
                     onDismiss = {
-                        offerBaseViewModel.clearDialogFields()
+                        offerRepository.clearDialogFields()
                     },
                     onSucceed = { futureTimeInSeconds ->
-                        offerBaseViewModel.setFutureTimeInSeconds(futureTimeInSeconds.toString())
+                        offerRepository.setFutureTimeInSeconds(futureTimeInSeconds.toString())
                     }
                 )
             }
@@ -139,7 +139,7 @@ fun OfferOperationsDialogs(
                 Column {
                     if (state.fields.isNotEmpty()) {
                         SetUpDynamicFields(state.fields){
-                            offerBaseViewModel.setNewField(it)
+                            offerRepository.setNewField(it)
                         }
                     }
                 }

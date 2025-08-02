@@ -12,14 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.BadgedButton
 
 @Composable
 fun RailNavBar(
     modifier: Modifier = Modifier,
     currentScreen: Int,
-    listItems: List<NavigationItemUI>,
+    listItems: List<NavigationItem>,
 ){
     NavigationRail(
         modifier = modifier
@@ -46,7 +46,7 @@ fun RailNavBar(
                 label = {
                     if(isSelected) {
                         Text(
-                            text = item.data.title,
+                            text = item.title,
                             fontSize = dimens.smallText,
                             maxLines = 1,
                             style = MaterialTheme.typography.labelSmall

@@ -137,7 +137,7 @@ fun MyProposalsContent(
                     contentPadding = contentPadding,
                     content = { offer ->
                         CabinetProposalItem(
-                            offerBaseViewModel = offer,
+                            offerRepository = offer,
                             updateItem = updateItem
                         )
                     }

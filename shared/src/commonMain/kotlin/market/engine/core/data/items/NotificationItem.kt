@@ -4,13 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NotificationItem (
-    var id: String,
-    var title: String,
-    var body: String,
-    var data: String,
-    var type: String,
-    var timeCreated: Long,
-    var unreadCount: Int,
-    var unreadIds: List<String>,
-    var isRead: Boolean,
+    val id: String,
+    val title: String,
+    val body: String,
+    val data: String,
+    val type: String,
+    val timeCreated: Long,
+    val unreadCount: Int,
+    val unreadIds: List<String>,
+    val isRead: Boolean,
 )

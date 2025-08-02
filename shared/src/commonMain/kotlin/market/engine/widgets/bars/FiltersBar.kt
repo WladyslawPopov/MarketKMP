@@ -24,7 +24,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.items.ActiveFilterListingItem
@@ -43,9 +42,8 @@ fun FiltersBar(
 
     val swipeTabsBarState = uiFilterBarUiState.swipeTabsBarState
     val listNavigation = uiFilterBarUiState.listNavigation.map {
-        NavigationItemUI(
-            data = it,
-            icon = when(it.title){
+        it.copy(
+            icon = when (it.title) {
                 filterString -> drawables.filterIcon
                 sortString -> drawables.sortIcon
                 chooseAction -> if (listingType == 0) drawables.iconWidget else drawables.iconSliderHorizontal
@@ -127,7 +125,7 @@ fun FiltersBar(
                     )
                 ) {
                     listNavigation.forEach { item ->
-                        if (item.data.isVisible) {
+                        if (item.isVisible) {
                             BadgedButton(item, colorBackground = colors.grayLayout)
                         }
                     }

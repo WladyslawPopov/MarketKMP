@@ -18,30 +18,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.serialization.Serializable
 import market.engine.common.backAnimation
 import market.engine.core.data.compositions.LocalBottomBarHeight
-import market.engine.core.data.globalData.ThemeResources.colors
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
-import market.engine.core.data.items.NavigationItemUI
-import market.engine.core.data.types.CreateOfferType
-import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.utils.getCurrentDate
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
 import market.engine.fragments.root.main.favPages.FavoritesNavigation
-import market.engine.fragments.root.main.profile.ProfileConfig
 import market.engine.fragments.root.main.profile.ProfileNavigation
 import market.engine.widgets.bars.GetBottomNavBar
 import market.engine.widgets.bars.RailNavBar
 import market.engine.widgets.dialogs.LogoutDialog
-import org.jetbrains.compose.resources.stringResource
 
 
 sealed class ChildMain {
@@ -72,123 +60,10 @@ fun MainNavigation(
 
     val model = component.model.subscribeAsState()
     val viewModel = model.value.viewModel
-    val showLogoutDialog = viewModel.showLogoutDialog.collectAsState()
-    val showBottomBar = viewModel.showBottomBar.collectAsState()
-
-    val publicProfileNavigationItemsState = viewModel.publicProfileNavigationItems.collectAsState()
-
-    val createNewOfferTitle = stringResource(strings.createNewOfferTitle)
-    val myBidsTitle = stringResource(strings.myBidsTitle)
-    val proposalTitle = stringResource(strings.proposalTitle)
-    val myPurchasesTitle = stringResource(strings.myPurchasesTitle)
-    val myOffersTitle = stringResource(strings.myOffersTitle)
-    val mySalesTitle = stringResource(strings.mySalesTitle)
-    val messageTitle = stringResource(strings.messageTitle)
-    val myProfileTitle = stringResource(strings.myProfileTitle)
-    val settingsProfileTitle = stringResource(strings.settingsProfileTitle)
-    val myBalanceTitle = stringResource(strings.myBalanceTitle)
-    val logoutTitle = stringResource(strings.logoutTitle)
-
-    val publicProfileNavigationItems = publicProfileNavigationItemsState.value.map {
-        NavigationItemUI(
-            data = it,
-            icon = when (it.title) {
-                createNewOfferTitle -> drawables.newLotIcon
-                myBidsTitle -> drawables.bidsIcon
-                proposalTitle -> drawables.proposalIcon
-                myPurchasesTitle -> drawables.purchasesIcon
-                myOffersTitle -> drawables.tagIcon
-                mySalesTitle -> drawables.salesIcon
-                messageTitle -> drawables.dialogIcon
-                myProfileTitle -> drawables.profileIcon
-                settingsProfileTitle -> drawables.settingsIcon
-                myBalanceTitle -> drawables.balanceIcon
-                logoutTitle -> drawables.logoutIcon
-                else -> {
-                    null
-                }
-            },
-            tint = when(it.title){
-                createNewOfferTitle -> colors.actionItemColors
-                myBidsTitle -> colors.actionItemColors
-                else -> colors.black
-            },
-            onClick = {
-                val profileNavigation = component.modelNavigation.value.profileNavigation
-                when (it.title) {
-                    createNewOfferTitle -> profileNavigation.pushNew(
-                        ProfileConfig.CreateOfferScreen(
-                            null,
-                            null,
-                            CreateOfferType.CREATE,
-                            null
-                        )
-                    )
-                    myBidsTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.MyBidsScreen
-                    )
-                    proposalTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.MyProposalsScreen
-                    )
-                    myPurchasesTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
-                    )
-                    myOffersTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOffersScreen
-                    )
-                    mySalesTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
-                    )
-                    messageTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.ConversationsScreen()
-                    )
-                    myProfileTitle -> profileNavigation.pushNew(
-                        ProfileConfig.UserScreen(
-                            UserData.login,
-                            getCurrentDate(),
-                            false
-                        )
-                    )
-                    settingsProfileTitle -> profileNavigation.replaceCurrent(
-                        ProfileConfig.ProfileSettingsScreen
-                    )
-                    logoutTitle -> viewModel.setLogoutDialog(true)
-                }
-            }
-        )
-    }
-    val bottomListState = viewModel.bottomList.collectAsState()
-    val homeTitle = stringResource(strings.homeTitle)
-    val searchTitle = stringResource(strings.searchTitle)
-    val basketTitle = stringResource(strings.basketTitle)
-    val favoritesTitle = stringResource(strings.favoritesTitle)
-    val profileTitleBottom = stringResource(strings.profileTitleBottom)
-
-    val bottomList = bottomListState.value.map {
-        NavigationItemUI(
-            data = it,
-            icon = when (it.title) {
-                homeTitle -> drawables.home
-                searchTitle -> drawables.search
-                basketTitle -> drawables.basketIcon
-                favoritesTitle -> drawables.favoritesIcon
-                profileTitleBottom -> drawables.profileIcon
-                else -> {
-                    drawables.infoIcon
-                }
-            },
-            tint = colors.black,
-            onClick = {
-                when (it.title) {
-                    homeTitle -> viewModel.debouncedNavigate(MainConfig.Home)
-                    searchTitle -> viewModel.debouncedNavigate(MainConfig.Search)
-                    basketTitle -> viewModel.debouncedNavigate(MainConfig.Basket)
-                    favoritesTitle -> viewModel.debouncedNavigate(MainConfig.Favorites)
-                    profileTitleBottom -> viewModel.debouncedNavigate(MainConfig.Profile)
-                }
-            }
-        )
-    }
+    val showLogoutDialog by viewModel.showLogoutDialog.collectAsState()
+    val showBottomBar by viewModel.showBottomBar.collectAsState()
+    val bottomList by viewModel.bottomList.collectAsState()
+    val profileNavigationItems by viewModel.publicProfileNavigationItems.collectAsState()
 
     var bottomBarHeight by mutableStateOf(LocalBottomBarHeight.current)
     val density = LocalDensity.current
@@ -205,7 +80,7 @@ fun MainNavigation(
             ) { child ->
                 Box {
                     Row {
-                        if (!showBottomBar.value) {
+                        if (!showBottomBar) {
                             RailNavBar(
                                 listItems = bottomList,
                                 currentScreen = currentScreen
@@ -234,12 +109,12 @@ fun MainNavigation(
                                 ProfileNavigation(
                                     Modifier.weight(1f),
                                     component.childProfileStack,
-                                    publicProfileNavigationItems
+                                    profileNavigationItems
                                 )
                         }
                     }
 
-                    if (showBottomBar.value) {
+                    if (showBottomBar) {
                         Column(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -256,7 +131,7 @@ fun MainNavigation(
                     }
 
                     LogoutDialog(
-                        showLogoutDialog = showLogoutDialog.value,
+                        showLogoutDialog = showLogoutDialog,
                         onDismiss = { viewModel.setLogoutDialog(false) },
                         goToLogin = {
                             viewModel.setLogoutDialog(false)

@@ -25,7 +25,6 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
@@ -48,7 +47,7 @@ import org.jetbrains.compose.resources.stringResource
 fun ConversationsContent(
     component: ConversationsComponent,
     modifier: Modifier,
-    publicProfileNavigationItems: List<NavigationItemUI>
+    publicProfileNavigationItems: List<NavigationItem>
 ) {
     val model by component.model.subscribeAsState()
     val viewModel = model.viewModel
@@ -128,13 +127,11 @@ fun ConversationsContent(
                     drawerState = drawerState,
                     data = SimpleAppBarData(
                         listItems = listOf(
-                            NavigationItemUI(
-                                NavigationItem(
-                                    title = "",
-                                    hasNews = false,
-                                    isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                                    badgeCount = null,
-                                ),
+                            NavigationItem(
+                                title = "",
+                                hasNews = false,
+                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                                badgeCount = null,
                                 icon = drawables.recycleIcon,
                                 tint = colors.inactiveBottomNavIconColor,
                                 onClick = {

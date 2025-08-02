@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,7 +35,6 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
@@ -84,48 +84,43 @@ class DynamicSettingsViewModel(
     val blocList = _blocList.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val dynamicSettingsUIState = _dynamicSettingsState.state.flatMapLatest { data ->
-        flowOf(
-            DynamicSettingsUIState(
-                data = data,
-                errorMessage = if (data.errorMessage?.isNotEmpty() == true) {
-                    Pair(
-                        buildAnnotatedString {
-                            append(getString(strings.yourCurrentLogin))
-                            append("  ")
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.titleTextColor,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append(UserData.userInfo?.login.toString())
-                            }
-                        },
-                        data.errorMessage
-                    )
-                }else{
-                    null
-                },
-                appBarState = SimpleAppBarData(
-                    onBackClick = {
-                        goBack()
+    val dynamicSettingsUIState = _dynamicSettingsState.state.map { data ->
+        DynamicSettingsUIState(
+            data = data,
+            errorMessage = if (data.errorMessage?.isNotEmpty() == true) {
+                Pair(
+                    buildAnnotatedString {
+                        append(getString(strings.yourCurrentLogin))
+                        append("  ")
+                        withStyle(
+                            SpanStyle(
+                                color = colors.titleTextColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
+                            append(UserData.userInfo?.login.toString())
+                        }
                     },
-                    listItems = listOf(
-                        NavigationItemUI(
-                            NavigationItem(
-                                title = "",
-
-                                hasNews = false,
-                                isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                                badgeCount = null,
-                            ),
-                            icon = drawables.recycleIcon,
-                            tint = colors.inactiveBottomNavIconColor,
-                            onClick = {
-                                setUpPage()
-                            }
-                        )
+                    data.errorMessage
+                )
+            }else{
+                null
+            },
+            appBarState = SimpleAppBarData(
+                onBackClick = {
+                    goBack()
+                },
+                listItems = listOf(
+                    NavigationItem(
+                        title = "",
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
+                        icon = drawables.recycleIcon,
+                        tint = colors.inactiveBottomNavIconColor,
+                        onClick = {
+                            setUpPage()
+                        }
                     )
                 )
             )

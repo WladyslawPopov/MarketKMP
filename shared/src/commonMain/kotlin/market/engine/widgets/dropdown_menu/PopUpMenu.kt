@@ -1,5 +1,6 @@
 package market.engine.widgets.dropdown_menu
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
@@ -9,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -32,33 +34,37 @@ fun PopUpMenu(
         containerColor = colors.white,
         offset = DpOffset(0.dp, 0.dp)
     ) {
-        menuList.forEach { menu ->
-            DropdownMenuItem(
-                leadingIcon = {
-                    menu.icon?.let{
-                        Icon(
-                            painterResource(it),
-                            contentDescription = stringResource(strings.shareOffer),
-                            modifier = Modifier.size(dimens.smallIconSize),
-                            tint = colors.steelBlue
+        Column(
+            horizontalAlignment = Alignment.Start
+        ) {
+            menuList.forEach { menu ->
+                DropdownMenuItem(
+                    leadingIcon = menu.icon?.let {
+                        {
+                            Icon(
+                                painterResource(it),
+                                contentDescription = stringResource(strings.shareOffer),
+                                modifier = Modifier.size(dimens.smallIconSize),
+                                tint = colors.steelBlue
+                            )
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = menu.title,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.black
                         )
+                    },
+                    onClick = {
+                        menu.onClick()
+                        onClosed()
                     }
-                },
-                text = {
-                    Text(
-                        text = menu.title,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.black
-                    )
-                },
-                onClick = {
-                    menu.onClick()
-                    onClosed()
-                }
-            )
+                )
 
-            if (menuList.indexOf(menu) != menuList.lastIndex)
-                HorizontalDivider(Modifier)
+                if (menuList.indexOf(menu) != menuList.lastIndex)
+                    HorizontalDivider(Modifier)
+            }
         }
     }
 }

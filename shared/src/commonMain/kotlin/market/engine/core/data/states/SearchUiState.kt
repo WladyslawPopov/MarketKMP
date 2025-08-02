@@ -4,7 +4,7 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.events.SearchEvents
 import market.engine.core.data.items.SearchHistoryItem
 import market.engine.core.data.items.SimpleAppBarData
-import market.engine.core.data.items.TabWithIcon
+import market.engine.core.data.items.Tab
 
 data class SearchUiState(
     val searchData: SD = SD(),
@@ -12,7 +12,7 @@ data class SearchUiState(
     val searchString : String = "",
 
     val selectedTabIndex: Int = 0,
-    val tabs: List<TabWithIcon> = listOf(),
+    val tabs: List<Tab> = listOf(),
 
     val searchHistory: List<SearchHistoryItem> = emptyList(),
 

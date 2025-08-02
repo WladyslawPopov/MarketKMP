@@ -29,7 +29,6 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.states.BasketGroupUiState
@@ -130,26 +129,21 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
         BasketUiState(
             appBarData = SimpleAppBarData(
                 listItems = listOf(
-                    NavigationItemUI(
                     NavigationItem(
-                            title = "",
-
-                            hasNews = false,
-                            isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
-                            badgeCount = null,
-                        ),
+                        title = "",
+                        hasNews = false,
+                        isVisible = (Platform().getPlatform() == PlatformWindowType.DESKTOP),
+                        badgeCount = null,
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = {
                             refresh()
                         }
                     ),
-                    NavigationItemUI(
                     NavigationItem(
-                            title = menuString,
-                            hasNews = false,
-                            badgeCount = null
-                        ),
+                        title = menuString,
+                        hasNews = false,
+                        badgeCount = null,
                         icon = drawables.menuIcon,
                         tint = colors.black,
                         onClick = {

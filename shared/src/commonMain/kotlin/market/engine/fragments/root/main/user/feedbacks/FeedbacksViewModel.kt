@@ -7,10 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
@@ -78,11 +76,7 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long, savedStat
                 listingBaseViewModel.setTotalCount(it)
             }
         )
-    }.stateIn(
-        viewModelScope,
-        started = SharingStarted.Eagerly,
-        PagingData.empty()
-    ).cachedIn(viewModelScope)
+    }.cachedIn(viewModelScope)
 
     fun refreshListing(){
         refresh()

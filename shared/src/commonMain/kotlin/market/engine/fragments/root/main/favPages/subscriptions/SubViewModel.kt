@@ -8,11 +8,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.serializer
@@ -65,6 +63,26 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
         listingData,
         updatePage
     ) { listingData, _ ->
+
+        listingBaseViewModel.setListItemsFilterBar(
+            buildList {
+                val createSbStr = getString(strings.createNewSubscriptionTitle)
+                val sortString = getString(strings.sort)
+                add(
+                    NavigationItem(
+                        title = createSbStr,
+                    )
+                )
+                add(
+                    NavigationItem(
+                        title = sortString,
+                        hasNews = listingData.data.sort != null,
+                        badgeCount = null,
+                    )
+                )
+            }
+        )
+
         resetScroll()
         listingData
     }
@@ -90,11 +108,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
                     )
                 }
             }
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            PagingData.empty()
-        ).cachedIn(viewModelScope)
+        }.cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {
@@ -105,25 +119,6 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
                         objServer = "subscriptions",
                     )
                 )
-            )
-
-            listingBaseViewModel.setListItemsFilterBar(
-                buildList {
-                    val createSbStr = getString(strings.createNewSubscriptionTitle)
-                    val sortString = getString(strings.sort)
-                    add(
-                        NavigationItem(
-                            title = createSbStr,
-                        )
-                    )
-                    add(
-                        NavigationItem(
-                            title = sortString,
-                            hasNews = listingData.value.data.sort != null,
-                            badgeCount = null,
-                        )
-                    )
-                }
             )
         }
     }

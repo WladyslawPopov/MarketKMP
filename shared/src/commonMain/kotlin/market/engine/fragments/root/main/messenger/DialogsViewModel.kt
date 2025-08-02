@@ -47,7 +47,6 @@ import market.engine.core.data.items.MenuItem
 import market.engine.core.data.items.MenuData
 import market.engine.core.data.items.MesHeaderItem
 import market.engine.core.data.items.NavigationItem
-import market.engine.core.data.items.NavigationItemUI
 import market.engine.core.data.items.PhotoSave
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.states.MessengerBarState
@@ -348,24 +347,20 @@ class DialogsViewModel(
                     }
                 ),
                 listItems = listOf(
-                    NavigationItemUI(
-                        NavigationItem(
-                            title = "",
-                            hasNews = false,
-                            badgeCount = null,
-                        ),
+                    NavigationItem(
+                        title = "",
+                        hasNews = false,
+                        badgeCount = null,
                         icon = drawables.recycleIcon,
                         tint = colors.inactiveBottomNavIconColor,
                         onClick = {
                             updatePage()
                         }
                     ),
-                    NavigationItemUI(
-                        NavigationItem(
-                            title = getString(strings.menuTitle),
-                            hasNews = false,
-                            badgeCount = null,
-                        ),
+                    NavigationItem(
+                        title = getString(strings.menuTitle),
+                        hasNews = false,
+                        badgeCount = null,
                         icon = drawables.menuIcon,
                         tint = colors.black,
                         onClick = {
@@ -403,8 +398,6 @@ class DialogsViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagingDataFlow: Flow<PagingData<DialogsData>> = pagingParamsFlow.flatMapLatest { pair ->
-
-
         val conversation = pair.first
         val listingData = pair.second
 
@@ -474,11 +467,7 @@ class DialogsViewModel(
                     }
                 }
         }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        PagingData.empty()
-    ).cachedIn(viewModelScope)
+    }.cachedIn(viewModelScope)
 
     init {
         update()

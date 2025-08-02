@@ -8,11 +8,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import market.engine.core.data.baseFilters.LD
@@ -78,11 +76,7 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
                     )
                 }
             }
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            PagingData.empty()
-        ).cachedIn(viewModelScope)
+        }.cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {

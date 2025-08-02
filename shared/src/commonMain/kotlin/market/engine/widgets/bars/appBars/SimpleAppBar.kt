@@ -58,7 +58,7 @@ fun SimpleAppBar(
                     )
                 ) {
                     data.listItems.forEachIndexed { _, item ->
-                        if (item.data.isVisible) {
+                        if (item.isVisible) {
                             BadgedButton(item)
                         }
                     }

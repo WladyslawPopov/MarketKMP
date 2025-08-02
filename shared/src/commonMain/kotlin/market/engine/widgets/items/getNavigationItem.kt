@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.items.NavigationItemUI
+import market.engine.core.data.items.NavigationItem
 import market.engine.widgets.badges.getBadge
 import market.engine.widgets.ilustrations.LoadImage
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun getNavigationItem(
-    item: NavigationItemUI,
+    item: NavigationItem,
     label: @Composable () -> Unit,
     isSelected: Boolean = false,
     badgeColor: Color = colors.negativeRed,
@@ -33,7 +33,7 @@ fun getNavigationItem(
             when{
                 item.icon != null -> {
                     Icon(
-                        painter = painterResource(item.icon!!),
+                        painter = painterResource(item.icon),
                         contentDescription = "",
                         modifier = Modifier.size(dimens.smallIconSize),
                         tint = item.tint
@@ -41,14 +41,14 @@ fun getNavigationItem(
                 }
                 item.image != null -> {
                     Image(
-                        painter = painterResource(item.image!!),
+                        painter = painterResource(item.image),
                         contentDescription = "",
                         modifier = Modifier.size(dimens.smallIconSize),
                     )
                 }
-                item.data.imageString != null -> {
+                item.imageString != null -> {
                     LoadImage(
-                        item.data.imageString,
+                        item.imageString,
                         isShowLoading = false,
                         isShowEmpty = false,
                         modifier = Modifier.size(dimens.mediumIconSize),
@@ -58,7 +58,7 @@ fun getNavigationItem(
             }
         },
         badge = {
-            getBadge(item.data.badgeCount, item.data.hasNews, color = badgeColor)
+            getBadge(item.badgeCount, item.hasNews, color = badgeColor)
         },
         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
         colors = NavigationDrawerItemDefaults.colors(

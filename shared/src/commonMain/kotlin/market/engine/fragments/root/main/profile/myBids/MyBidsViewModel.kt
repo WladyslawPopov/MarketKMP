@@ -6,11 +6,9 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
@@ -26,7 +24,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.repositories.OfferBaseViewModel
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -60,7 +58,7 @@ class MyBidsViewModel(
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<OfferBaseViewModel>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -70,19 +68,16 @@ class MyBidsViewModel(
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
-                    OfferBaseViewModel(
+                    OfferRepository(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this@MyBidsViewModel, component),
+                        this,
                         savedStateHandle
                     )
                 }
             }
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            PagingData.empty()
-        ).cachedIn(viewModelScope)
+        }.cachedIn(viewModelScope)
 
     init {
         viewModelScope.launch {

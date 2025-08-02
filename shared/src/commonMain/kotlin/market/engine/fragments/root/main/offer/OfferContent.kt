@@ -28,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -123,21 +122,11 @@ fun OfferContent(
 
     val scrollPos by viewModel.scrollPosition.collectAsState()
 
-    val offerRepository = viewModel.offerBaseViewModel
+    val offerRepository = viewModel.offerRepository
 
-    val remainingTime = viewModel.remainingTime.collectAsState()
+    val remainingTime by viewModel.remainingTime.collectAsState()
 
-    val isMenuVisible = offerRepository.isMenuVisible.collectAsState()
-
-    val menuItems = produceState(initialValue = emptyList(), isMenuVisible.value) {
-        if (isMenuVisible.value) {
-            value = offerRepository.getDefOperations()
-        }
-    }
-
-    val listItems = produceState(initialValue = emptyList(), offerRepository.menuList.value) {
-        value = offerRepository.getAppBarOfferList()
-    }
+    val isMenuVisible by offerRepository.isMenuVisible.collectAsState()
 
     val toastItem by viewModel.toastItem.collectAsState()
 
@@ -206,11 +195,18 @@ fun OfferContent(
         }
     }
 
-    val appbarData = remember(isMenuVisible.value, menuItems.value, listItems.value) {
+    val promoList by offerRepository.promoList.collectAsState()
+    val operationsList by offerRepository.menuList.collectAsState()
+
+    val listNavigation = remember(operationsList) { offerRepository.getAppBarOfferList() }
+
+    val menuOfferDef = offerRepository.getDefOperations()
+
+    val appbarData = remember(isMenuVisible, listNavigation) {
         SimpleAppBarData(
             menuData = MenuData(
-                isMenuVisible = isMenuVisible.value,
-                menuItems = menuItems.value,
+                isMenuVisible = isMenuVisible,
+                menuItems = menuOfferDef,
                 closeMenu = {
                     offerRepository.closeMenu()
                 }
@@ -222,7 +218,7 @@ fun OfferContent(
                     component.onBackClick()
                 }
             },
-            listItems = listItems.value,
+            listItems = listNavigation,
         )
     }
 
@@ -535,9 +531,6 @@ fun OfferContent(
                             }
 
                             item {
-                                val promoList by offerRepository.promoList.collectAsState()
-                                val operationsList by offerRepository.menuList.collectAsState()
-
                                 //action seller mode and active promo options
                                 if (offerState != OfferStates.SNAPSHOT && UserData.token != "") {
                                     Column(
@@ -667,7 +660,7 @@ fun OfferContent(
 
                                     TimeOfferSession(
                                         offer,
-                                        remainingTime.value,
+                                        remainingTime,
                                         offerState,
                                     )
 

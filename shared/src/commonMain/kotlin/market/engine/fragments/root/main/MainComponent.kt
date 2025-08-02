@@ -75,13 +75,6 @@ class DefaultMainComponent(
     componentContext: JetpackComponentContext,
 ) : MainComponent, JetpackComponentContext by componentContext {
 
-    val viewModel = viewModel("mainViewModel") {
-        MainViewModel(
-            this@DefaultMainComponent,
-        createSavedStateHandle()
-        )
-    }
-
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(
             mainNavigation = StackNavigation(),
@@ -93,6 +86,13 @@ class DefaultMainComponent(
         )
     )
     override val modelNavigation = _modelNavigation
+
+    val viewModel = viewModel("mainViewModel") {
+        MainViewModel(
+            this@DefaultMainComponent,
+        createSavedStateHandle()
+        )
+    }
 
     private val _model = MutableValue(
         MainComponent.Model(

@@ -26,7 +26,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.repositories.OfferBaseViewModel
+import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.buttons.SmallIconButton
@@ -38,15 +38,15 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PublicOfferItemGrid(
-    offerBaseViewModel: OfferBaseViewModel,
+    offerRepository: OfferRepository,
     updateItem : Long?
 ) {
-    val offer by offerBaseViewModel.offerState.collectAsState()
-    val events = offerBaseViewModel.events
+    val offer by offerRepository.offerState.collectAsState()
+    val events = offerRepository.events
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id){
-            offerBaseViewModel.updateItem()
+            offerRepository.updateItem()
         }
     }
 
@@ -117,7 +117,7 @@ fun PublicOfferItemGrid(
                         modifierIconSize = Modifier.size(dimens.smallIconSize),
                         modifier = Modifier.align(Alignment.Top).weight(0.2f)
                     ){
-                        offerBaseViewModel.addToFavorites()
+                        offerRepository.addToFavorites()
                     }
                 }
 
