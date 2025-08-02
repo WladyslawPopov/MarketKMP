@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.constants.countProposalMax
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
@@ -225,6 +226,7 @@ class ProposalViewModel(
             val error = buffer.error
             withContext(Dispatchers.Main) {
                 if (payload != null) {
+                    payload.fields.find { it.widgetType == "select" }?.data = JsonPrimitive(if(buyerId != null) 0 else 2)
                     _responseFields.value += ProposalItem(buyerId ?: 0L , payload.fields)
                 } else {
                     if (error != null) {

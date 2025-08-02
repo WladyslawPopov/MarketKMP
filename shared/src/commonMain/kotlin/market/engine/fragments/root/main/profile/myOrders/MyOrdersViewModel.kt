@@ -4,12 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.paging.map
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.filtersObjects.DealFilters
 import market.engine.core.data.baseFilters.ListingData
@@ -162,14 +164,26 @@ data class MyOrderItemEventsImpl(
     val component: MyOrdersComponent
 ) : OrderItemEvents {
     override fun onGoToUser(id: Long) {
-        component.goToUser(id)
+        viewModel.viewModelScope.launch {
+            withContext(Dispatchers.Main){
+                component.goToUser(id)
+            }
+        }
     }
 
     override fun onGoToOffer(offer: Offer) {
-        component.goToOffer(offer)
+        viewModel.viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                component.goToOffer(offer)
+            }
+        }
     }
 
     override fun goToDialog(dialogId: Long?) {
-        component.goToMessenger(dialogId)
+        viewModel.viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                component.goToMessenger(dialogId)
+            }
+        }
     }
 }
