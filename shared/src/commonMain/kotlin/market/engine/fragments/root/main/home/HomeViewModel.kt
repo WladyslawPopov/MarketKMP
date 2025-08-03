@@ -329,7 +329,11 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     }
 
     fun getUnreadNotificationsCount() : Int? {
-        val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
-        return if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
+        return try {
+            val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
+            if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
+        }catch (_ : Exception){
+            null
+        }
     }
 }

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 
 plugins {
@@ -12,7 +13,7 @@ plugins {
 
 sqldelight {
     databases {
-        create("marketDb") {
+        create("AuctionMarketDb") {
             packageName.set("market.engine.shared")
             schemaOutputDirectory.set(file("src/main/sqldelight"))
             migrationOutputDirectory.set(file("src/main/sqldelight/migrations"))

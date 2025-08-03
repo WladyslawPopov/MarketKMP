@@ -37,14 +37,14 @@ import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getSavedStateFlow
-import market.engine.shared.marketDb
+import market.engine.shared.AuctionMarketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
 
 open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-    val db : marketDb by lazy { getKoin().get() }
+    val db : AuctionMarketDb by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
     val apiService by lazy {  getKoin().get<APIService>() }
 
