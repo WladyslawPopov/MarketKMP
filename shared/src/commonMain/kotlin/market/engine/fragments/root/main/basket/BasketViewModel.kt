@@ -44,6 +44,7 @@ import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -566,24 +567,36 @@ data class BasketEventsImpl(
         }
     }
     override fun onQuantityChanged(offerId: Long, newQuantity: Int) {
-        val body = HashMap<String, JsonElement>()
-        body["offer_id"] = JsonPrimitive(offerId)
-        body["quantity"] = JsonPrimitive(newQuantity)
-        viewModel.addOfferToBasket(body, newQuantity, offerId)
+        viewModel.getMainTread {
+            val body = HashMap<String, JsonElement>()
+            body["offer_id"] = JsonPrimitive(offerId)
+            body["quantity"] = JsonPrimitive(newQuantity)
+            viewModel.addOfferToBasket(body, newQuantity, offerId)
+        }
     }
     override fun onAddToFavorites(offer: OfferItem) {
-        viewModel.addToFavorites(offer)
+        viewModel.getMainTread {
+            viewModel.addToFavorites(offer)
+        }
     }
     override fun onDeleteOffersRequest(ids: List<Long>) {
-        viewModel.setDeleteItems(ids)
+        viewModel.getMainTread {
+            viewModel.setDeleteItems(ids)
+        }
     }
     override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
-        component.goToCreateOrder(Pair(userId, selectedOffers))
+        viewModel.getMainTread {
+            component.goToCreateOrder(Pair(userId, selectedOffers))
+        }
     }
     override fun onGoToUser(userId: Long) {
-        component.goToUser(userId)
+        viewModel.getMainTread {
+            component.goToUser(userId)
+        }
     }
     override fun onGoToOffer(offerId: Long) {
-        component.goToOffer(offerId)
+        viewModel.getMainTread {
+            component.goToOffer(offerId)
+        }
     }
 }

@@ -26,6 +26,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent
@@ -72,8 +73,7 @@ class MyBidsViewModel(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this@MyBidsViewModel, component),
-                        this,
-                        savedStateHandle
+                        this
                     )
                 }
             }
@@ -161,19 +161,27 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun goToDialog(id: Long?) {
-        component.goToDialog(id)
+        viewModel.getMainTread {
+            component.goToDialog(id)
+        }
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
-        component.goToPurchases()
+        viewModel.getMainTread {
+            component.goToPurchases()
+        }
     }
 
     override fun goToUserPage(sellerId: Long) {
-        component.goToUser(sellerId)
+        viewModel.getMainTread {
+            component.goToUser(sellerId)
+        }
     }
 
     override fun openCabinetOffer(offer: OfferItem) {
-        component.goToOffer(offer)
+        viewModel.getMainTread {
+            component.goToOffer(offer)
+        }
     }
 
     override fun scrollToBids() {}

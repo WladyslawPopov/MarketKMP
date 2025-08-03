@@ -11,6 +11,7 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -147,11 +148,7 @@ class DefaultRootComponent(
         private val navigation = StackNavigation<RootConfig>()
 
         val goToLogin: (reset : Boolean) -> Unit = { isReset ->
-            if (!isReset) {
-                navigation.pushNew(RootConfig.Login())
-            }else{
-                navigation.replaceAll(RootConfig.Login(true))
-            }
+            navigation.pushNew(RootConfig.Login())
         }
 
         val goToContactUs : (selectedType: String?) -> Unit = {

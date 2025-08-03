@@ -30,6 +30,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
@@ -98,8 +99,7 @@ class FavViewModel(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this, component),
-                        this,
-                        savedStateHandle
+                        this
                     )
                 }
             }
@@ -225,14 +225,18 @@ data class OfferRepositoryEventsImpl(
         id: Long,
         externalImages: List<String>?
     ) {
-        component.goToCreateOffer(type, id)
+        viewModel.getMainTread {
+            component.goToCreateOffer(type, id)
+        }
     }
 
     override fun goToProposalPage(
         offerId: Long,
         type: ProposalType
     ) {
-        component.goToProposal(type, offerId)
+        viewModel.getMainTread {
+            component.goToProposal(type, offerId)
+        }
     }
 
     override fun openCabinetOffer(offer: OfferItem) {
@@ -243,16 +247,22 @@ data class OfferRepositoryEventsImpl(
                 viewModel.listingBaseViewModel.addSelectItem(offer.id)
             }
         } else {
-            component.goToOffer(offer)
+            viewModel.getMainTread {
+                component.goToOffer(offer)
+            }
         }
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        goToDynamicSettings(type, id, null)
+        viewModel.getMainTread {
+            goToDynamicSettings(type, id, null)
+        }
     }
 
     override fun goToLogin() {
-        goToLogin(false)
+        viewModel.getMainTread {
+            goToLogin(false)
+        }
     }
     override fun scrollToBids() {}
     override fun refreshPage() {}

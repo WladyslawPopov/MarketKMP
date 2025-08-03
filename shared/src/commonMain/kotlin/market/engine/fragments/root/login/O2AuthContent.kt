@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -25,24 +27,23 @@ import androidx.compose.ui.text.input.TextFieldValue
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.fragments.root.dynamicSettings.Auth2ContentViewModel
 import market.engine.widgets.buttons.AcceptedPageButton
 import market.engine.widgets.textFields.OutlinedTextInputField
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun O2AuthContent(
-    viewModel: Auth2ContentViewModel,
+    viewModel: Auth2ContentRepository,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
     val auth2ContentState by viewModel.auth2ContentState.collectAsState()
-    val userEmail = auth2ContentState.obfuscatedIdentity
-    val humanMessage = auth2ContentState.humanMessage
-    val leftTime = auth2ContentState.lastRequestByIdentity
+    val userEmail = remember(auth2ContentState) { auth2ContentState.obfuscatedIdentity }
+    val humanMessage = remember(auth2ContentState) {  auth2ContentState.humanMessage }
 
-    val leftTimer = viewModel.leftTimerState.collectAsState()
-    val codeState = viewModel.codeState.collectAsState()
+    val leftTimer by viewModel.leftTimerState.collectAsState()
+    val codeState by viewModel.codeState.collectAsState()
+    val codeText = remember { mutableStateOf(TextFieldValue(codeState)) }
 
     Column(
         modifier = modifier.pointerInput(Unit) {
@@ -84,14 +85,16 @@ fun O2AuthContent(
                 enabled = false
             )
 
-            if(leftTime != null) {
+            if(leftTimer > 0) {
                 OutlinedTextField(
-                    value = codeState.value,
+                    value = codeText.value,
                     onValueChange = {
-                        if (it.text.length <= 4)
-                            viewModel.onCodeChange(it)
-                        else
+                        if (it.text.length <= 4) {
+                            codeText.value = it
+                            viewModel.onCodeChange(it.text)
+                        }else {
                             focusManager.clearFocus()
+                        }
                     },
                     prefix = {
                         Text(
@@ -118,17 +121,17 @@ fun O2AuthContent(
 
             AcceptedPageButton(
                 stringResource(strings.submitO2AuthLabel),
-                enabled = leftTimer.value == 0 || leftTime == null,
+                enabled = leftTimer == 0,
             ) {
                 viewModel.onCodeSubmit()
             }
 
-            if (leftTimer.value > 0 && leftTime != null){
+            if (leftTimer > 0){
                 Text(
                     buildString {
                         append(stringResource(strings.leftTimeLabel))
                         append(" ")
-                        append(leftTimer.value.toString())
+                        append(leftTimer.toString())
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.positiveGreen

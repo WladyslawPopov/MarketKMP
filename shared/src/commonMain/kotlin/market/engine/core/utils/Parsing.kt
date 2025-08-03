@@ -6,6 +6,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.util.fastForEach
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -21,6 +26,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.Value
+import market.engine.fragments.base.CoreViewModel
 import market.engine.shared.AuctionMarketDb
 import market.engine.shared.NotificationsHistory
 import org.jetbrains.compose.resources.DrawableResource
@@ -322,6 +328,22 @@ fun OfferItem.setNewParams(offer: Offer) : OfferItem {
         whoPaysForDelivery = offer.whoPaysForDelivery,
         antisniper = offer.antisniper
     )
+}
+
+fun CoreViewModel.getMainTread(content : suspend () -> Unit): Job {
+    return viewModelScope.launch {
+        withContext(Dispatchers.Main) {
+            content()
+        }
+    }
+}
+
+fun CoreViewModel.getIoTread(content : suspend () -> Unit): Job {
+    return viewModelScope.launch {
+        withContext(Dispatchers.IO) {
+            content()
+        }
+    }
 }
 
 fun Offer.parseToOfferItem() : OfferItem {

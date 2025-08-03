@@ -33,6 +33,7 @@ import market.engine.core.data.states.HomeUiState
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.printLogD
@@ -115,7 +116,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                         icon = drawables.currencyIcon,
                         tint = colors.titleTextColor,
                         onClick = {
-                            component.goToMyProposals()
+                            getMainTread {
+                                component.goToMyProposals()
+                            }
                         }
                     ),
                     NavigationItem(
@@ -127,7 +130,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                         icon = drawables.mail,
                         tint = colors.brightBlue,
                         onClick = {
-                            component.goToMessenger()
+                            getMainTread {
+                                component.goToMessenger()
+                            }
                         }
                     ),
                     NavigationItem(
@@ -138,7 +143,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                         icon = drawables.notification,
                         tint = colors.titleTextColor,
                         onClick = {
-                            component.goToNotificationHistory()
+                            getMainTread {
+                                component.goToNotificationHistory()
+                            }
                         }
                     ),
                 )
@@ -200,7 +207,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.contactUsIcon,
                     tint = colors.black,
                     onClick = {
-                        component.goToContactUs()
+                        getMainTread {
+                            component.goToContactUs()
+                        }
                     }
                 ),
                 NavigationItem(
@@ -234,7 +243,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.settingsIcon,
                     tint = colors.black,
                     onClick = {
-                        component.goToAppSettings()
+                        getMainTread {
+                            component.goToAppSettings()
+                        }
                     }
                 )
             )
@@ -302,7 +313,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
     fun goToAllPromo() {
         ld.data.filters = ListingFilters.getEmpty()
-        viewModelScope.launch {
+        getMainTread {
             val allPromo = getString(strings.allPromoOffersBtn)
 
             ld.data.filters.find { filter ->
@@ -313,9 +324,8 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
             }?.interpretation = allPromo
 
             ld.searchData.clear(allPromo)
-            withContext(Dispatchers.Main) {
-                component.goToNewSearch(ld, false)
-            }
+
+            component.goToNewSearch(ld, false)
         }
     }
 
@@ -324,8 +334,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         ld.searchData.searchParentID = category.parentId
         ld.searchData.searchCategoryName = category.name
         ld.searchData.searchParentName = category.parentName
-
-        component.goToNewSearch(ld, false)
+        getMainTread {
+            component.goToNewSearch(ld, false)
+        }
     }
 
     fun getUnreadNotificationsCount() : Int? {

@@ -2,10 +2,14 @@ package market.engine.core.utils
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
@@ -23,11 +27,14 @@ class SavedStateFlow<T>(
     val state = _state.asStateFlow()
 
     init {
-        _state
-            .onEach { newValue ->
-                savedStateHandle.encodeToJson(key, serializer, newValue)
-            }
-            .launchIn(scope)
+        scope.launch {
+            _state
+                .collectLatest { newValue ->
+                    withContext(Dispatchers.Main){
+                        savedStateHandle.encodeToJson(key, serializer, newValue)
+                    }
+                }
+        }
     }
 
     var value: T

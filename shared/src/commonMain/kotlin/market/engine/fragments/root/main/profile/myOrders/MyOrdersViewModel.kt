@@ -27,6 +27,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.OrderRapository
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
@@ -164,18 +165,14 @@ data class MyOrderItemEventsImpl(
     val component: MyOrdersComponent
 ) : OrderItemEvents {
     override fun onGoToUser(id: Long) {
-        viewModel.viewModelScope.launch {
-            withContext(Dispatchers.Main){
-                component.goToUser(id)
-            }
+        viewModel.getMainTread {
+            component.goToUser(id)
         }
     }
 
     override fun onGoToOffer(offer: Offer) {
-        viewModel.viewModelScope.launch {
-            withContext(Dispatchers.Main) {
-                component.goToOffer(offer)
-            }
+        viewModel.getMainTread {
+            component.goToOffer(offer)
         }
     }
 

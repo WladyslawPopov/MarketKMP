@@ -27,6 +27,7 @@ import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -322,7 +323,9 @@ data class SubItemEventsImpl(
     }
 
     override fun onItemClick() {
-        component.goToListing(sub)
+        viewModel.getMainTread {
+            component.goToListing(sub)
+        }
     }
 }
 

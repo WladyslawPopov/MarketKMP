@@ -65,22 +65,22 @@ class DefaultProfileComponent(
         when (currentPage) {
             "conversations" -> {
                 val mes = if(content != currentPage)content else null
-                navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(mes))
+                navigationProfile.pushNew(ProfileConfig.ConversationsScreen(mes))
             }
             "purchases" -> {
-                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
+                navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
             }
             "sales" -> {
-                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
+                navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
             }
             "proposals" -> {
-                navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
+                navigationProfile.pushNew(ProfileConfig.MyProposalsScreen)
             }
             else -> {
                 if(isBigScreen.value){
-                    navigationProfile.replaceAll(ProfileConfig.MyOffersScreen)
+                    navigationProfile.pushNew(ProfileConfig.MyOffersScreen)
                 }else{
-                    navigationProfile.replaceAll(ProfileConfig.ProfileScreen(content))
+                    navigationProfile.pushNew(ProfileConfig.ProfileScreen(content))
                 }
             }
         }

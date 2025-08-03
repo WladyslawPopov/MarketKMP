@@ -3,9 +3,11 @@ package market.engine.fragments.root.main
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.serializer
 import market.engine.common.Platform
@@ -21,6 +23,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
@@ -49,12 +52,14 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     var lastNavigationClickTime = 0L
 
     init {
-        viewModelScope.launch {
-            snapshotFlow { UserData.userInfo }
-                .collect { newInfo ->
-                    updateNavLists()
-                }
-        }
+        try {
+            viewModelScope.launch {
+                snapshotFlow { UserData.userInfo }
+                    .collectLatest { newInfo ->
+                        updateNavLists()
+                    }
+            }
+        }catch (_ : Exception) {}
     }
 
     fun checkShowBar() : Boolean {
@@ -67,10 +72,10 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     }
 
     fun updateNavLists() {
-        viewModelScope.launch {
+
             val userInfo = UserData.userInfo
             val profileNavigation = component.modelNavigation.value.profileNavigation
-
+        getMainTread {
             _bottomList.value = listOf(
                 NavigationItem(
                     title = getString(strings.homeTitle),
@@ -131,6 +136,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     }
                 )
             )
+        }
+        getMainTread {
             _publicProfileNavigationItems.value = listOf(
                 NavigationItem(
                     title = getString(strings.createNewOfferTitle),
@@ -152,11 +159,10 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        try {
-                            profileNavigation.replaceCurrent(
-                                ProfileConfig.MyBidsScreen
-                            )
-                        } catch ( _ : Exception){}
+                        profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                        profileNavigation.pushNew(
+                            ProfileConfig.MyBidsScreen
+                        )
                     }
                 ),
                 NavigationItem(
@@ -170,7 +176,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                         userInfo?.countUnreadPriceProposals else null,
                     onClick = {
                         try {
-                            profileNavigation.replaceCurrent(
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(
                                 ProfileConfig.MyProposalsScreen
                             )
                         } catch ( _ : Exception){}
@@ -185,7 +192,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceCurrent(
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(
                                 ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
                             )
                         } catch (_: Exception) {
@@ -201,7 +209,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceCurrent(
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(
                                 ProfileConfig.MyOffersScreen
                             )
                         } catch ( _ : Exception){}
@@ -216,7 +225,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceCurrent(
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(
                                 ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
                             )
                         } catch ( _ : Exception){}
@@ -231,7 +241,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = if((userInfo?.countUnreadMessages ?:0) > 0) userInfo?.countUnreadMessages else null,
                     onClick = {
                         try {
-                            profileNavigation.replaceCurrent(
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(
                                 ProfileConfig.ConversationsScreen()
                             )
                         } catch ( _ : Exception){
@@ -266,7 +277,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceCurrent(
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(
                                 ProfileConfig.ProfileSettingsScreen
                             )
                         } catch ( _ : Exception){}
@@ -291,7 +303,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     }
                 ),
             )
-        }
+       }
     }
 
     fun debouncedNavigate(targetConfig : MainConfig) {

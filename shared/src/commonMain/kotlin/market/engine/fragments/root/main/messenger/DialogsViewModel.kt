@@ -66,6 +66,7 @@ import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.convertDateYear
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseDeepLink
@@ -741,15 +742,21 @@ data class DialogItemEventsImpl(
     override fun linkClicked(url: String) {
         when (val deepLink = parseDeepLink(url)) {
             is DeepLink.GoToOffer -> {
-                component.goToOffer(deepLink.offerId)
+                viewModel.getMainTread {
+                    component.goToOffer(deepLink.offerId)
+                }
             }
 
             is DeepLink.GoToListing -> {
-                component.goToNewSearch(deepLink.ownerId ?: 1)
+                viewModel.getMainTread {
+                    component.goToNewSearch(deepLink.ownerId ?: 1)
+                }
             }
 
             is DeepLink.GoToUser -> {
-                component.goToUser(deepLink.userId)
+                viewModel.getMainTread {
+                    component.goToUser(deepLink.userId)
+                }
             }
 
             is DeepLink.GoToAuth -> {

@@ -11,7 +11,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
-import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -99,18 +98,18 @@ class DefaultProfileChildrenComponent(
         when (currentPage) {
             "conversations" -> {
                 val mes = if(content != currentPage)content else null
-                navigationProfile.replaceAll(ProfileConfig.ConversationsScreen(mes))
+                navigationProfile.pushNew(ProfileConfig.ConversationsScreen(mes))
             }
             "purchases" -> {
                 searchID = content?.toLongOrNull()
-                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
+                navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
             }
             "sales" -> {
                 searchID = content?.toLongOrNull()
-                navigationProfile.replaceAll(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
+                navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
             }
             "proposals" -> {
-                navigationProfile.replaceAll(ProfileConfig.MyProposalsScreen)
+                navigationProfile.pushNew(ProfileConfig.MyProposalsScreen)
             }
         }
     }
@@ -280,7 +279,7 @@ class DefaultProfileChildrenComponent(
                         )
                     },
                     navigateToBack = {
-                        navigationProfile.replaceCurrent(ProfileConfig.ProfileScreen())
+                        navigationProfile.pop()
                     },
                     navigateToProposal = { id, type ->
                         navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
@@ -322,16 +321,19 @@ class DefaultProfileChildrenComponent(
                         navigationProfile.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
                     },
                     navigateToPurchases = {
-                        navigationProfile.replaceCurrent(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
+                        navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                        navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
                     },
                     navigateToDialog = { dialogId ->
                         if (dialogId != null)
                             navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
-                        else
-                            navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                        else {
+                            navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                            navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
+                        }
                     },
                     navigateBack = {
-                        navigationProfile.replaceCurrent(ProfileConfig.ProfileScreen())
+                        navigationProfile.pop()
                     }
                 )
             }
@@ -374,8 +376,10 @@ class DefaultProfileChildrenComponent(
                                     getCurrentDate()
                                 )
                             )
-                        else
-                            navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                        else {
+                            navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                            navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
+                        }
                     },
                     navigateToProposal = { id, type ->
                         navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
@@ -446,11 +450,13 @@ class DefaultProfileChildrenComponent(
                     navigateToMessenger = { dialogId ->
                         if(dialogId != null)
                             navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
-                        else
-                            navigationProfile.replaceAll(ProfileConfig.ConversationsScreen())
+                        else {
+                            navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                            navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
+                        }
                     },
                     navigateToBack = {
-                        navigationProfile.replaceCurrent(ProfileConfig.ProfileScreen())
+                        navigationProfile.pop()
                     }
                 )
             }

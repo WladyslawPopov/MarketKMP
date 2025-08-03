@@ -26,6 +26,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent
@@ -72,8 +73,7 @@ class MyOffersViewModel(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this, component),
-                        this,
-                        savedStateHandle
+                        this
                     )
                 }
             }
@@ -144,22 +144,30 @@ data class OfferRepositoryEventsImpl(
         id: Long,
         externalImages: List<String>?
     ) {
-        component.goToCreateOffer(type, id, catpath)
+        viewModel.getMainTread {
+            component.goToCreateOffer(type, id, catpath)
+        }
     }
 
     override fun goToProposalPage(
         offerId: Long,
         type: ProposalType
     ) {
-        component.goToProposals(offerId, type)
+        viewModel.getMainTread {
+            component.goToProposals(offerId, type)
+        }
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        component.goToDynamicSettings(type, id)
+        viewModel.getMainTread {
+            component.goToDynamicSettings(type, id)
+        }
     }
 
     override fun goToLogin() {
-        DefaultRootComponent.Companion.goToLogin(false)
+        viewModel.getMainTread {
+            DefaultRootComponent.Companion.goToLogin(false)
+        }
     }
 
     override fun goToDialog(id: Long?) {}
@@ -175,7 +183,9 @@ data class OfferRepositoryEventsImpl(
                 viewModel.listingBaseViewModel.addSelectItem(offer.id)
             }
         } else {
-            component.goToOffer(offer)
+            viewModel.getMainTread {
+                component.goToOffer(offer)
+            }
         }
     }
 

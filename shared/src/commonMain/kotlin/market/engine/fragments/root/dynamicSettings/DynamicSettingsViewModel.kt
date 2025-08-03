@@ -13,8 +13,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -41,6 +39,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
@@ -417,10 +416,12 @@ class DynamicSettingsViewModel(
                             null
                         }
 
-                        if (body?.isNotBlank() == true) {
-                            component.goToVerificationPage(body,owner, code)
-                        } else {
-                            goBack()
+                        getMainTread {
+                            if (body?.isNotBlank() == true) {
+                                component.goToVerificationPage(body, owner, code)
+                            } else {
+                                goBack()
+                            }
                         }
 
                     } else {

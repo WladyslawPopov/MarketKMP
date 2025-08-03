@@ -8,17 +8,18 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.util.fastForEach
-import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -52,7 +53,6 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
@@ -62,100 +62,46 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
-import kotlin.collections.remove
 import kotlin.toString
 
 class OfferRepository(
     offer: Offer = Offer(),
     val listingData: ListingData = ListingData(),
     val events: OfferRepositoryEvents,
-    val core: CoreViewModel,
-    savedStateHandle: SavedStateHandle,
+    val core: CoreViewModel
 ) {
-
     val offerOperations : OfferOperations by lazy { getKoin().get() }
 
-    private val _offerState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "offer_${offer.id}",
-        offer.parseToOfferItem(),
-        OfferItem.serializer()
-    )
-    val offerState: StateFlow<OfferItem> = _offerState.state
+    private val _offerState = MutableStateFlow(offer.parseToOfferItem())
+    val offerState: StateFlow<OfferItem> = _offerState.asStateFlow()
 
-    private val _operationsList = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "operationsList_${offer.id}",
-        emptyList(),
-        ListSerializer(Operations.serializer())
-    )
+    private val _operationsList = MutableStateFlow<List<Operations>>(emptyList())
+    private val _promoOperationsList = MutableStateFlow<List<Operations>>(emptyList())
 
-    private val _promoList = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "promoList_${offer.id}",
-        emptyList(),
-        ListSerializer(Operations.serializer())
-    )
+    private val _customDialogState = MutableStateFlow(CustomDialogState())
+    val customDialogState = _customDialogState.asStateFlow()
 
-    private val _customDialogState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "customDialogState_${offer.id}",
-        CustomDialogState(),
-        CustomDialogState.serializer()
-    )
-    val customDialogState = _customDialogState.state
+    private val _myMaximalBid = MutableStateFlow(offer.myMaximalBid)
+    val myMaximalBid = _myMaximalBid.asStateFlow()
 
-    private val _myMaximalBid = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "myMaximalBid_${offer.id}",
-        offer.myMaximalBid,
-        String.serializer()
-    )
-    val myMaximalBid = _myMaximalBid.state
+    private val _messageText = MutableStateFlow("")
+    val messageText = _messageText.asStateFlow()
 
-    private val _messageText = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "messageText_${offer.id}",
-        "",
-        String.serializer()
-    )
-    val messageText = _messageText.state
+    private val _valuesPickerState = MutableStateFlow("")
+    val valuesPickerState = _valuesPickerState.asStateFlow()
 
-    private val _valuesPickerState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "valuesPickerState_${offer.id}",
-        "",
-        String.serializer()
-    )
-    val valuesPickerState = _valuesPickerState.state
+    private val _futureTimeInSeconds = MutableStateFlow("")
+    val futureTimeInSeconds = _futureTimeInSeconds.asStateFlow()
 
-    private val _futureTimeInSeconds = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "futureTimeInSeconds_${offer.id}",
-        "",
-        String.serializer()
-    ) 
-    val futureTimeInSeconds = _futureTimeInSeconds.state
+    private val _isMenuVisible = MutableStateFlow(false)
+    val isMenuVisible = _isMenuVisible.asStateFlow()
 
-    private val _isMenuVisible = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "isMenuVisible_${offer.id}",
-        false,
-        Boolean.serializer()
-    )
-    val isMenuVisible = _isMenuVisible.state
-
-    private val _isProposalEnabled = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "isProposalEnabled_${offer.id}",
-        false,
-        Boolean.serializer()
-    ) 
-    val isProposalEnabled = _isProposalEnabled.state
+    private val _isProposalEnabled = MutableStateFlow(false)
+    val isProposalEnabled = _isProposalEnabled.asStateFlow()
     
-    val annotatedTitle = mutableStateOf(AnnotatedString(""))
+    val annotatedTitle = mutableStateOf<AnnotatedString?>(null)
 
-    val menuList = _operationsList.state.map { operations ->
+    val menuList = _operationsList.map { operations ->
         operations.map { operation ->
             MenuItem(
                 id = operation.id ?: "",
@@ -362,7 +308,7 @@ class OfferRepository(
         emptyList()
     )
 
-    val promoList = _promoList.state.map {
+    val promoList = _promoOperationsList.map {
         val currency = getString(strings.currencyCode)
         it.map { operation ->
             MenuItem(
@@ -403,7 +349,7 @@ class OfferRepository(
 
     init {
         core.viewModelScope.launch {
-            _offerState.state.collect {
+            _offerState.collectLatest {
                 updateOperations()
             }
         }
@@ -503,7 +449,7 @@ class OfferRepository(
                 offerState.value.id,
                 "promo"
             ) { listOperations ->
-                _promoList.value = listOperations
+                _promoOperationsList.value = listOperations
             }
         }
     }

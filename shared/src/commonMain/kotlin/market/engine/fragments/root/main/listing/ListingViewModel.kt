@@ -45,6 +45,7 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -116,8 +117,7 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
                     offer,
                     listingData,
                     events = OfferRepositoryEventsImpl(this, component),
-                    this,
-                    savedStateHandle
+                    this
                 )
             }
         }
@@ -180,7 +180,9 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
 
             _listingDataState.value = SimpleAppBarData(
                 onBackClick = {
-                    component.goBack()
+                    getMainTread {
+                        component.goBack()
+                    }
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -210,7 +212,9 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
                                     }
                                 )
                             } else {
-                                goToLogin(false)
+                                getMainTread {
+                                    goToLogin(false)
+                                }
                             }
                         }
                     ),
@@ -469,7 +473,9 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun openCabinetOffer(offer: OfferItem) {
-        component.goToOffer(offer)
+        viewModel.getMainTread {
+            component.goToOffer(offer)
+        }
     }
 
     override fun scrollToBids() {}

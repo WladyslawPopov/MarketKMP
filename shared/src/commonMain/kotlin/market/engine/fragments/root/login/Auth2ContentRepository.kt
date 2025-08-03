@@ -1,19 +1,16 @@
-package market.engine.fragments.root.dynamicSettings
+package market.engine.fragments.root.login
 
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
-import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.ThemeResources
 import market.engine.core.data.states.Auth2ContentData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.UserPayload
@@ -22,36 +19,50 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-
-class Auth2ContentViewModel(
+class Auth2ContentRepository(
     initData: Auth2ContentData,
+    savedStateHandle: SavedStateHandle,
+    val core: CoreViewModel,
     val onBack: () -> Unit,
-    savedStateHandle: SavedStateHandle
-) : CoreViewModel(savedStateHandle)
+)
 {
     private val _leftTimerState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        core.viewModelScope,
         "leftTimerState",
         0,
         Int.serializer()
     )
     val leftTimerState = _leftTimerState.state
 
-    private val _codeState = MutableStateFlow(TextFieldValue())
-    val codeState = _codeState.asStateFlow()
+    private val _codeState = savedStateHandle.getSavedStateFlow(
+        core.viewModelScope,
+        "codeState",
+        "",
+        String.serializer()
+    )
+    val codeState = _codeState.state
 
-    private val _auth2ContentState = MutableStateFlow(initData)
-    val auth2ContentState = _auth2ContentState.asStateFlow()
+    private val _auth2ContentState = savedStateHandle.getSavedStateFlow(
+        core.viewModelScope,
+        "auth2ContentState",
+        initData,
+        Auth2ContentData.serializer()
+    )
+    val auth2ContentState = _auth2ContentState.state
 
     init {
-        if (initData.lastRequestByIdentity != null) {
-            startTimer(initData.lastRequestByIdentity)
+        core.viewModelScope.launch {
+            _auth2ContentState.state.collectLatest {
+                if (it.lastRequestByIdentity != null) {
+                    startTimer(it.lastRequestByIdentity)
+                }
+            }
         }
     }
 
     fun startTimer(leftTimer : Int){
         _leftTimerState.value = leftTimer
-        viewModelScope.launch {
+        core.viewModelScope.launch {
             while (_leftTimerState.value > 0){
                 delay(1000)
                 _leftTimerState.value--
@@ -63,13 +74,13 @@ class Auth2ContentViewModel(
         }
     }
 
-    fun onCodeChange(value : TextFieldValue){
+    fun onCodeChange(value : String){
         _codeState.value = value
-        if(value.text.length == 4){
+        if(value.length == 4){
             onCodeSubmit()
         }
     }
-    
+
     fun changeO2AuthState(humanMessage: String?, lastRequestByIdentity: Int?){
         _auth2ContentState.update {
             it.copy(
@@ -80,16 +91,16 @@ class Auth2ContentViewModel(
     }
 
     fun onCodeSubmit() {
-        setLoading(true)
-        viewModelScope.launch {
+        core.setLoading(true)
+        core.viewModelScope.launch {
             try {
                 val body = HashMap<String, String>()
                 body["user_id"] = auth2ContentState.value.user.toString()
-                if (codeState.value.text.isNotBlank()) {
-                    body["code"] = codeState.value.text
+                if (codeState.value.isNotBlank()) {
+                    body["code"] = codeState.value
                 }
                 val res = withContext(Dispatchers.IO) {
-                    apiService.postAuthByCode(body)
+                    core.apiService.postAuthByCode(body)
                 }
                 val serializer = UserPayload.serializer()
                 val payload: UserPayload =
@@ -97,11 +108,11 @@ class Auth2ContentViewModel(
 
                 withContext(Dispatchers.Main) {
                     if (payload.result == "SUCCESS") {
-                        userRepository.setToken(payload.user, payload.token ?: "")
-                        updateUserInfo()
-                        showToast(
+                        core.userRepository.setToken(payload.user, payload.token ?: "")
+                        core.updateUserInfo()
+                        core.showToast(
                             successToastItem.copy(
-                                message = getString(strings.operationSuccess)
+                                message = getString(ThemeResources.strings.operationSuccess)
                             )
                         )
 
@@ -110,14 +121,15 @@ class Auth2ContentViewModel(
                             "login_result" to "success",
                             "login_email" to body["identity"]
                         )
-                        analyticsHelper.reportEvent("login_success", events)
+                        core.analyticsHelper.reportEvent("login_success", events)
                         delay(1000)
                         onBack()
                     } else {
                         if (auth2ContentState.value.lastRequestByIdentity != null) {
-                            showToast(
+                            core.showToast(
                                 errorToastItem.copy(
-                                    message = res.humanMessage ?: getString(strings.errorLogin)
+                                    message = res.humanMessage
+                                        ?: getString(ThemeResources.strings.errorLogin)
                                 )
                             )
                         }
@@ -125,16 +137,16 @@ class Auth2ContentViewModel(
                     }
                 }
             } catch (e: ServerErrorException) {
-                onError(e)
+                core.onError(e)
             } catch (e: Exception) {
-                onError(
+                core.onError(
                     ServerErrorException(
                         errorCode = e.message.toString(),
                         humanMessage = e.message.toString()
                     )
                 )
             } finally {
-                setLoading(false)
+                core.setLoading(false)
             }
         }
     }

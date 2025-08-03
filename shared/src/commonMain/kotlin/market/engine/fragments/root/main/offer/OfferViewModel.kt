@@ -34,6 +34,7 @@ import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.shared.AuctionMarketDb
@@ -61,7 +62,7 @@ class OfferViewModel(
     private val component: OfferComponent,
     val offerId : Long = 1,
     val isSnapshot : Boolean = false,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : CoreViewModel(savedStateHandle)
 {
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
@@ -95,8 +96,7 @@ class OfferViewModel(
         offer = Offer(),
         listingData = ListingData(),
         events = offerRepositoryEvents,
-        this,
-        savedStateHandle = savedStateHandle
+        this
     )
 
     private val _responseOfferView: MutableStateFlow<OfferViewState> = MutableStateFlow(
@@ -487,7 +487,9 @@ class OfferViewModel(
                 )
             }
         } else {
-            component.goToLogin()
+            getMainTread {
+                component.goToLogin()
+            }
         }
     }
 
@@ -533,7 +535,9 @@ class OfferViewModel(
                 }
             )
         } else {
-            component.goToLogin()
+            getMainTread {
+                component.goToLogin()
+            }
         }
     }
 
@@ -755,30 +759,42 @@ data class OfferRepositoryEventsImpl(
         id: Long,
         externalImages: List<String>?
     ) {
-        component.goToCreateOffer(type, catpath, id, externalImages)
+        viewModel.getMainTread {
+            component.goToCreateOffer(type, catpath, id, externalImages)
+        }
     }
 
     override fun goToProposalPage(
         offerId: Long,
         type: ProposalType
     ) {
-        component.goToProposalPage(type)
+        viewModel.getMainTread {
+            component.goToProposalPage(type)
+        }
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        component.goToDynamicSettings(type, id)
+        viewModel.getMainTread {
+            component.goToDynamicSettings(type, id)
+        }
     }
 
     override fun goToLogin() {
-        component.goToLogin()
+        viewModel.getMainTread {
+            component.goToLogin()
+        }
     }
 
     override fun goToDialog(id: Long?) {
-        component.goToDialog(id)
+        viewModel.getMainTread {
+            component.goToDialog(id)
+        }
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
-        component.goToCreateOrder(item)
+        viewModel.getMainTread {
+            component.goToCreateOrder(item)
+        }
     }
 
     override fun goToUserPage(sellerId: Long) {}
@@ -786,7 +802,9 @@ data class OfferRepositoryEventsImpl(
     override fun openCabinetOffer(offer: OfferItem) {}
 
     override fun scrollToBids() {
-        viewModel.scrollToBids()
+        viewModel.getMainTread {
+            viewModel.scrollToBids()
+        }
     }
 
     override fun refreshPage() {

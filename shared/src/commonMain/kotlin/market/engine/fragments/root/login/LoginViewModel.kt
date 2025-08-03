@@ -1,6 +1,7 @@
 package market.engine.fragments.root.login
 
 import androidx.lifecycle.SavedStateHandle
+import com.arkivanov.decompose.ExperimentalDecomposeApi
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,6 @@ import market.engine.core.data.states.Auth2ContentData
 import market.engine.core.network.networkObjects.UserPayload
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.root.dynamicSettings.Auth2ContentViewModel
 import org.jetbrains.compose.resources.getString
 
 data class LoginContentState(
@@ -70,11 +70,13 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
         Boolean.serializer()
     )
 
-    val auth2ContentViewModel = Auth2ContentViewModel(
+    @OptIn(ExperimentalDecomposeApi::class)
+    val auth2ContentRepository = Auth2ContentRepository(
         Auth2ContentData(),
-        { component.onBack() },
-        savedStateHandle
-    )
+        savedStateHandle,
+        this@LoginViewModel
+
+    ) { component.onBack() }
 
     val openContent = _openContent.state
 
@@ -119,7 +121,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
     }
 
     fun postAuth() {
-        if (auth2ContentViewModel.auth2ContentState.value.user == 1L) {
+        if (auth2ContentRepository.auth2ContentState.value.user == 1L) {
             val email = emailTextValue.value
             val password = passwordTextValue.value
             val captcha = captchaState.value.captcha
@@ -178,8 +180,8 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
                                     )
                                     analyticsHelper.reportEvent("login_fail_need_code", events)
 
-                                    auth2ContentViewModel.updateAuthData(
-                                        auth2ContentViewModel.auth2ContentState.value.copy(
+                                    auth2ContentRepository.updateAuthData(
+                                        auth2ContentRepository.auth2ContentState.value.copy(
                                             user = payload.user,
                                             obfuscatedIdentity = payload.obfuscatedIdentity,
                                             lastRequestByIdentity = payload.lastRequestByIdentity,
@@ -323,8 +325,8 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
     }
 
     fun setEmailTextValue(value : String) {
-        auth2ContentViewModel.updateAuthData(
-            auth2ContentViewModel.auth2ContentState.value.copy(
+        auth2ContentRepository.updateAuthData(
+            auth2ContentRepository.auth2ContentState.value.copy(
                 user = 1
             )
         )

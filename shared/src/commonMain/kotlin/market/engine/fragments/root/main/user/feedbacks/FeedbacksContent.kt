@@ -71,7 +71,7 @@ fun FeedbacksContent(
             }?.value == "" ||
             listingData.filters.find { it.key == "evaluation" }?.value == null
         ) {
-            filters[0]
+            filters.firstOrNull()
         } else {
             filters[(listingData.filters.find { it.key == "evaluation" }?.value?.toInt()
                 ?: 0) + 1]
@@ -136,7 +136,7 @@ fun FeedbacksContent(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         getDropdownMenu(
-                            selectedText = currentFilter,
+                            selectedText = currentFilter ?: stringResource(strings.allFilterParams),
                             selectedTextDef = stringResource(strings.allFilterParams),
                             selects = filters,
                             onClearItem = {

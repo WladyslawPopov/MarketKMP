@@ -71,7 +71,7 @@ fun LoginContent(
     val captchaImage = uiState.captchaImage
     val appBarData = uiState.appBarData
 
-    val auth2ContentState = viewModel.auth2ContentViewModel
+    val auth2ContentState = viewModel.auth2ContentRepository
 
     val isLoading by viewModel.isShowProgress.collectAsState()
     val err by viewModel.errorMessage.collectAsState()

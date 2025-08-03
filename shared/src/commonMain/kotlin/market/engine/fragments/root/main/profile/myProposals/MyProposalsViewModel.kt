@@ -26,6 +26,7 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent
@@ -78,7 +79,6 @@ class MyProposalsViewModel(
                         listingParams,
                         events = OfferRepositoryEventsImpl(this, component),
                         this,
-                        savedStateHandle
                     )
                 }
             }
@@ -154,29 +154,41 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun goToProposalPage(offerId: Long, type: ProposalType) {
-        component.goToProposal(offerId, type)
+        viewModel.getMainTread {
+            component.goToProposal(offerId, type)
+        }
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
+        viewModel.getMainTread {
+            DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
+        }
     }
 
     override fun goToLogin() {
-        DefaultRootComponent.Companion.goToLogin(false)
+        viewModel.getMainTread {
+            DefaultRootComponent.Companion.goToLogin(false)
+        }
     }
 
     override fun goToDialog(id: Long?) {
-        component.goToDialog(id)
+        viewModel.getMainTread {
+            component.goToDialog(id)
+        }
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
 
     override fun goToUserPage(sellerId : Long) {
-        component.goToUser(sellerId)
+        viewModel.getMainTread {
+            component.goToUser(sellerId)
+        }
     }
 
     override fun openCabinetOffer(offer: OfferItem) {
-        component.goToOffer(offer)
+        viewModel.getMainTread {
+            component.goToOffer(offer)
+        }
     }
 
     override fun scrollToBids() {}

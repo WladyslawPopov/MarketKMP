@@ -306,8 +306,10 @@ fun createProfileChild(
                     navigateToDialog = { dialogId ->
                         if(dialogId != null)
                             profileNavigation.pushNew(DialogsScreen(dialogId, null, getCurrentDate()))
-                        else
-                            profileNavigation.replaceAll(ProfileConfig.ConversationsScreen())
+                        else {
+                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.pushNew(ProfileConfig.ConversationsScreen())
+                        }
                     },
                     navigationSubscribes = {
                         navigateToSubscribe()
@@ -459,7 +461,7 @@ fun createProfileChild(
                 config.message,
                 componentContext,
                 navigateBack = {
-                    profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                    profileNavigation.pop()
                 },
                 navigateToMessenger = { id, message ->
                     profileNavigation.pushNew(
