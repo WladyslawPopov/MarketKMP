@@ -4,6 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.paging.cachedIn
 import androidx.paging.map
 import app.cash.paging.PagingData
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.Platform
@@ -46,6 +50,7 @@ import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
+import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -60,17 +65,28 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    private val _regionOptions = MutableStateFlow<List<Options>>(emptyList())
-    val regionOptions : StateFlow<List<Options>> = _regionOptions.asStateFlow()
+    private val _regionOptions = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "regionOptions",
+        emptyList(),
+        ListSerializer(Options.serializer())
+    )
+    val regionOptions : StateFlow<List<Options>> = _regionOptions.state
 
     private val _listingDataState = MutableStateFlow(SimpleAppBarData())
     val listingDataState : StateFlow<SimpleAppBarData> = _listingDataState.asStateFlow()
 
     val errorString = MutableStateFlow("")
 
-    val listingBaseVM = ListingBaseViewModel(true, component, savedStateHandle = savedStateHandle)
+    @OptIn(ExperimentalDecomposeApi::class)
+    val listingBaseVM = (component as JetpackComponentContext).viewModel("listingBaseViewModel"){
+        ListingBaseViewModel(true, component, savedStateHandle = savedStateHandle)
+    }
 
-    val listingCategoryModel = CategoryViewModel(savedStateHandle = savedStateHandle)
+    @OptIn(ExperimentalDecomposeApi::class)
+    val listingCategoryModel = (component as JetpackComponentContext).viewModel("listingCategoryViewModel"){
+        CategoryViewModel(savedStateHandle = savedStateHandle)
+    }
 
     val ld = listingBaseVM.listingData
     val activeType = listingBaseVM.activeWindowType

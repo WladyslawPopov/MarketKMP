@@ -6,7 +6,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceAll
+import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -78,9 +78,7 @@ class DefaultProfileComponent(
             }
             else -> {
                 if(isBigScreen.value){
-                    navigationProfile.pushNew(ProfileConfig.MyOffersScreen)
-                }else{
-                    navigationProfile.pushNew(ProfileConfig.ProfileScreen(content))
+                    navigationProfile.replaceCurrent(ProfileConfig.MyOffersScreen)
                 }
             }
         }

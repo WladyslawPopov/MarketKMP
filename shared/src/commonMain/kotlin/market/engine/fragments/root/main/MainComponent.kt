@@ -339,9 +339,7 @@ class DefaultMainComponent(
                     goToLogin(true)
                 }else{
                     if(activeCurrent == "Profile"){
-                        modelNavigation.value.profileNavigation.replaceAll(
-                            ProfileConfig.ProfileScreen(openPage)
-                        )
+                        modelNavigation.value.profileNavigation.popToFirst()
                     }
                     activeCurrent = "Profile"
                     modelNavigation.value.mainNavigation.replaceCurrent(config)

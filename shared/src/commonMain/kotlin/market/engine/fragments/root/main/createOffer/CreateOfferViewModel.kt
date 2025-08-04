@@ -1,6 +1,9 @@
 package market.engine.fragments.root.main.createOffer
 
 import androidx.lifecycle.SavedStateHandle
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
+import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -90,10 +93,13 @@ class CreateOfferViewModel(
     savedStateHandle: SavedStateHandle
 ) : CoreViewModel(savedStateHandle) {
 
-    val categoryViewModel = CategoryViewModel(
-        isCreateOffer = true,
-        savedStateHandle = savedStateHandle
-    )
+    @OptIn(ExperimentalDecomposeApi::class)
+    val categoryViewModel = (component as JetpackComponentContext).viewModel("createOfferCategoryViewModel") {
+        CategoryViewModel(
+            isCreateOffer = true,
+            savedStateHandle = savedStateHandle
+        )
+    }
 
     private val _responseGetPage = savedStateHandle.getSavedStateFlow(
         viewModelScope,
@@ -142,7 +148,10 @@ class CreateOfferViewModel(
     
     val searchData = categoryViewModel.searchData
 
-    val photoTempViewModel = PhotoTempViewModel(type, savedStateHandle)
+    @OptIn(ExperimentalDecomposeApi::class)
+    val photoTempViewModel = (component as JetpackComponentContext).viewModel("createOfferPhotoTempViewModel") {
+        PhotoTempViewModel(type, savedStateHandle)
+    }
 
     val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
         _responseGetPage.state,
