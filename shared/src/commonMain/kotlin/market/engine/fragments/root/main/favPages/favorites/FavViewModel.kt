@@ -32,10 +32,8 @@ import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
 
@@ -48,12 +46,8 @@ class FavViewModel(
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel(
-        deleteSelectedItems = {
-            deleteSelectsItems()
-        },
-        savedStateHandle = savedStateHandle
-    )
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
+    private val categoryViewModel = component.additionalModels.value.categoryViewModel
 
     val listingData = listingBaseViewModel.listingData
 
@@ -70,10 +64,7 @@ class FavViewModel(
 
     val filtersCategoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
-        CategoryViewModel(
-            isFilters = true,
-            savedStateHandle = savedStateHandle
-        )
+        categoryViewModel
     )
 
     val pagingParamsFlow: Flow<ListingData> = combine(

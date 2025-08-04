@@ -43,7 +43,6 @@ import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
-import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -69,8 +68,6 @@ class DynamicSettingsViewModel(
 ) : CoreViewModel(savedStateHandle) {
 
     private val userOperations : UserOperations by lazy { getKoin().get() }
-
-    val deliveryCardsViewModel = DeliveryCardsViewModel(savedStateHandle)
 
     private val _dynamicSettingsState = savedStateHandle.getSavedStateFlow(
         viewModelScope,

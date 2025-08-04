@@ -17,10 +17,17 @@ import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.Subscription
+import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 
 
 interface SubscriptionsComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel
+    )
+
     val model : Value<Model>
     data class Model(
         val favType: FavScreenType,
@@ -40,6 +47,21 @@ class DefaultSubscriptionsComponent(
     val navigateToCreateNewSubscription : (Long?) -> Unit,
     val navigateToListing : (ListingData) -> Unit,
 ) : SubscriptionsComponent, JetpackComponentContext by componentContext {
+
+    val listingBaseVM = viewModel("subBaseViewModel"){
+        ListingBaseViewModel(
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    private val _additionalModels = MutableValue(
+        SubscriptionsComponent.AdditionalModels(
+            listingBaseVM
+        )
+    )
+
+    override val additionalModels: Value<SubscriptionsComponent.AdditionalModels> = _additionalModels
+
 
     private val subViewModel = viewModel("subViewModel"){
         SubViewModel(this@DefaultSubscriptionsComponent, createSavedStateHandle())

@@ -12,9 +12,18 @@ import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.LotsType
+import market.engine.fragments.base.listing.ListingBaseViewModel
+import market.engine.widgets.filterContents.categories.CategoryViewModel
 
 
 interface MyBidsComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel,
+        val categoryViewModel: CategoryViewModel,
+    )
+
     val model : Value<Model>
     data class Model(
         val viewModel: MyBidsViewModel,
@@ -42,6 +51,24 @@ class DefaultMyBidsComponent(
     val navigateToDialog: (Long?) -> Unit,
     val navigateBack: () -> Unit
 ) : MyBidsComponent, JetpackComponentContext by componentContext {
+
+    val listingBaseVM = viewModel("myBidsBaseViewModel"){
+        ListingBaseViewModel(
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    val listingCategoryModel = viewModel("myBidsCategoryViewModel"){
+        CategoryViewModel(savedStateHandle = createSavedStateHandle())
+    }
+
+    private val _additionalModels = MutableValue(
+        MyBidsComponent.AdditionalModels(
+            listingBaseVM, listingCategoryModel
+        )
+    )
+
+    override val additionalModels: Value<MyBidsComponent.AdditionalModels> = _additionalModels
 
     private val viewModel = viewModel("myBidsViewModel"){
         MyBidsViewModel(type, this@DefaultMyBidsComponent, createSavedStateHandle())

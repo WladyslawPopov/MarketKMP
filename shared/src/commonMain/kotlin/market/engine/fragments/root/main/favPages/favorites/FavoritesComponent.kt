@@ -12,8 +12,17 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.ProposalType
+import market.engine.fragments.base.listing.ListingBaseViewModel
+import market.engine.widgets.filterContents.categories.CategoryViewModel
 
 interface FavoritesComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel,
+        val categoryViewModel: CategoryViewModel,
+    )
+
     val model : Value<Model>
     data class Model(
         val listId : Long?,
@@ -38,6 +47,27 @@ class DefaultFavoritesComponent(
     val navigateToProposalPage : (ProposalType, Long) -> Unit,
     val navigateToCreateOffer : (CreateOfferType, Long) -> Unit,
 ) : FavoritesComponent, JetpackComponentContext by componentContext {
+
+    val listingBaseVM = viewModel("favoritesBaseViewModel"){
+        ListingBaseViewModel(
+            deleteSelectedItems = {
+                model.value.favViewModel.deleteSelectsItems()
+            },
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    val listingCategoryModel = viewModel("favoritesCategoryViewModel"){
+        CategoryViewModel(savedStateHandle = createSavedStateHandle())
+    }
+
+    private val _additionalModels = MutableValue(
+        FavoritesComponent.AdditionalModels(
+            listingBaseVM, listingCategoryModel
+        )
+    )
+
+    override val additionalModels: Value<FavoritesComponent.AdditionalModels> = _additionalModels
 
     private val favViewModel = viewModel {
         FavViewModel(favType, idList, this@DefaultFavoritesComponent, createSavedStateHandle())

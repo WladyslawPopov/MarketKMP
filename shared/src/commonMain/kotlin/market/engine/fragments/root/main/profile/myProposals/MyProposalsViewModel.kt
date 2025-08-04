@@ -28,9 +28,7 @@ import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
 class MyProposalsViewModel(
@@ -41,13 +39,14 @@ class MyProposalsViewModel(
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
+    val categoryViewModel = component.additionalModels.value.categoryViewModel
     val ld = listingBaseViewModel.listingData
     val activeType = listingBaseViewModel.activeWindowType
 
     val categoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
-        CategoryViewModel(isFilters = true, savedStateHandle = savedStateHandle)
+        categoryViewModel
     )
 
     val pagingParamsFlow: Flow<ListingData> = combine(
@@ -57,11 +56,6 @@ class MyProposalsViewModel(
         resetScroll()
         listingData
     }
-
-    private val filtersCategoryModel = CategoryViewModel(
-        isFilters = true,
-        savedStateHandle = savedStateHandle
-    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
@@ -127,8 +121,8 @@ class MyProposalsViewModel(
     fun onBackNavigation(onBack: () -> Unit){
         when(activeType.value){
             ActiveWindowListingType.CATEGORY_FILTERS -> {
-                if (filtersCategoryModel.searchData.value.searchCategoryID != 1L){
-                    filtersCategoryModel.navigateBack()
+                if (categoryViewModel.searchData.value.searchCategoryID != 1L){
+                    categoryViewModel.navigateBack()
                 }else{
                     listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
                 }

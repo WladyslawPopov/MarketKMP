@@ -10,8 +10,15 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Conversations
+import market.engine.fragments.base.listing.ListingBaseViewModel
 
 interface ConversationsComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel
+    )
+
     val model : Value<Model>
     data class Model(
         var message : String?,
@@ -30,6 +37,22 @@ class DefaultConversationsComponent(
     val navigateBack : () -> Unit,
     val navigateToMessenger : (Long, String?) -> Unit,
 ) : ConversationsComponent, JetpackComponentContext by componentContext {
+
+
+    val listingBaseVM = viewModel("conversationBaseViewModel") {
+        ListingBaseViewModel(deleteSelectedItems = {
+            viewModel.deleteSelectsItems()
+        }, savedStateHandle = createSavedStateHandle())
+    }
+
+    private val _additionalModels = MutableValue(
+        ConversationsComponent.AdditionalModels(
+            listingBaseVM
+        )
+    )
+
+    override val additionalModels: Value<ConversationsComponent.AdditionalModels>
+        get() = _additionalModels
 
     private val viewModel = viewModel("conversationViewModel"){
         ConversationsViewModel(this@DefaultConversationsComponent, createSavedStateHandle())

@@ -32,7 +32,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
 data class CreateSubDataState(
@@ -62,10 +61,7 @@ class CreateSubscriptionViewModel(
         Boolean.serializer()
     )
 
-    val categoryViewModel = CategoryViewModel(
-        isFilters = true,
-        savedStateHandle = savedStateHandle
-    )
+    val categoryViewModel = component.additionalModels.value.categoryViewModel
 
     val createSubContentState : StateFlow<CreateSubDataState> = combine(
         _responseGetFields.state,

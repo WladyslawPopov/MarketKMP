@@ -11,8 +11,15 @@ import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.DealType
 import market.engine.core.network.networkObjects.Offer
+import market.engine.fragments.base.listing.ListingBaseViewModel
 
 interface MyOrdersComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel
+    )
+
     val model : Value<Model>
     data class Model(
         val viewModel: MyOrdersViewModel,
@@ -38,6 +45,20 @@ class DefaultMyOrdersComponent(
     val navigateToMessenger: (Long?) -> Unit,
     val navigateToBack: () -> Unit
 ) : MyOrdersComponent, JetpackComponentContext by componentContext {
+
+    val listingBaseVM = viewModel("myOrdersBaseViewModel"){
+        ListingBaseViewModel(
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    private val _additionalModels = MutableValue(
+        MyOrdersComponent.AdditionalModels(
+            listingBaseVM
+        )
+    )
+
+    override val additionalModels: Value<MyOrdersComponent.AdditionalModels> = _additionalModels
 
     private val viewModel = viewModel("myOrdersViewModel") {
         MyOrdersViewModel(

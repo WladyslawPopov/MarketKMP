@@ -72,7 +72,6 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseDeepLink
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.String
@@ -175,7 +174,8 @@ class DialogsViewModel(
 
     val messageBarEvents = MessageBarEventsImpl(this)
 
-    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
+
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
 
     val listingData = listingBaseViewModel.listingData
 

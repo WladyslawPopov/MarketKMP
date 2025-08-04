@@ -17,6 +17,6 @@ data class SearchUiState(
     val searchHistory: List<SearchHistoryItem> = emptyList(),
 
     val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val categoryState: CategoryState,
+    val categoryState: CategoryState?,
     val searchEvents: SearchEvents
 )

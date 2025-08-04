@@ -8,10 +8,15 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ReportPageType
+import market.engine.fragments.base.listing.ListingBaseViewModel
 
 interface FeedbacksComponent {
-    val model : Value<Model>
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel,
+    )
 
+    val model : Value<Model>
     data class Model(
         val userId : Long,
         var type : ReportPageType,
@@ -35,8 +40,23 @@ class DefaultFeedbacksComponent(
     private val navigateToUser : (Long) -> Unit,
 ) : FeedbacksComponent, JetpackComponentContext by componentContext {
 
+    val listingBaseVM = viewModel("feedbacksBaseViewModel"){
+        ListingBaseViewModel(
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    private val _additionalModels = MutableValue(
+        FeedbacksComponent.AdditionalModels(
+            listingBaseVM
+        )
+    )
+
+    override val additionalModels: Value<FeedbacksComponent.AdditionalModels> = _additionalModels
+
+
     val feedbacksViewModel = viewModel("feedbacksViewModel"){
-        FeedbacksViewModel(type, userId, createSavedStateHandle())
+        FeedbacksViewModel(type, userId, this@DefaultFeedbacksComponent, createSavedStateHandle())
     }
 
     private val _model = MutableValue(

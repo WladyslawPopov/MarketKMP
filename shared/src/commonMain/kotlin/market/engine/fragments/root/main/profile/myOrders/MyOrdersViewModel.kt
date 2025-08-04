@@ -29,7 +29,6 @@ import market.engine.core.repositories.OrderRapository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.collections.contains
 
@@ -41,7 +40,7 @@ class MyOrdersViewModel(
 ) : CoreViewModel(savedStateHandle) {
     private val pagingRepository: PagingRepository<Order> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
     private val ld = listingBaseViewModel.listingData
     private val activeType = listingBaseViewModel.activeWindowType
 

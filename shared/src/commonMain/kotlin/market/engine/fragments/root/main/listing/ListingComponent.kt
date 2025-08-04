@@ -20,15 +20,24 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.SearchPagesType
+import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
 import market.engine.fragments.root.main.favPages.subscriptions.SubscriptionsComponent
+import market.engine.widgets.filterContents.categories.CategoryViewModel
 
 interface ListingComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel,
+        val categoryViewModel: CategoryViewModel,
+    )
+
     val model : Value<Model>
     data class Model(
         val listingViewModel: ListingViewModel,
         val backHandler: BackHandler,
-        val searchNavigator : PagesNavigation<SearchPagesConfig>
+        val searchNavigator : PagesNavigation<SearchPagesConfig>,
     )
 
     val searchPages: Value<ChildPages<*, SearchPagesComponents>>
@@ -51,8 +60,33 @@ class DefaultListingComponent(
     private val navigateToNewSubscription: (Long?) -> Unit,
 ) : ListingComponent, JetpackComponentContext by componentContext {
 
+    val listingBaseVM = viewModel("listingBaseViewModel"){
+        ListingBaseViewModel(
+            listingData,
+            isOpenSearch,
+            true,
+            this@DefaultListingComponent,
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    val listingCategoryModel = viewModel("listingCategoryViewModel"){
+        CategoryViewModel(isFilters = true, savedStateHandle = createSavedStateHandle())
+    }
+
+    private val _additionalModels = MutableValue(
+        ListingComponent.AdditionalModels(
+            listingBaseVM, listingCategoryModel
+        )
+    )
+
+    override val additionalModels: Value<ListingComponent.AdditionalModels> = _additionalModels
+
     private val listingViewModel = viewModel("listingViewModel") {
-        ListingViewModel(this@DefaultListingComponent, createSavedStateHandle())
+        ListingViewModel(
+            this@DefaultListingComponent,
+            savedStateHandle = createSavedStateHandle()
+        )
     }
 
     private val navigator = PagesNavigation<SearchPagesConfig>()
@@ -64,6 +98,7 @@ class DefaultListingComponent(
             searchNavigator = navigator
         )
     )
+
 
     override val model: Value<ListingComponent.Model> = _model
 
@@ -118,17 +153,6 @@ class DefaultListingComponent(
                 updateBackHandlerItem.value = 1L
             }
         }
-
-        listingViewModel.init(listingData)
-
-        val eventParameters = mapOf(
-            "catalog_category" to searchData.searchCategoryName,
-            "category_id" to searchData.searchCategoryID.toString()
-        )
-        analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
-
-        if(isOpenSearch)
-            listingViewModel.listingBaseVM.changeOpenSearch(isOpenSearch)
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {

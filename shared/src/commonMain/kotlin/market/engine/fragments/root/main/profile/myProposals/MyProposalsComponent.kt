@@ -12,8 +12,17 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
+import market.engine.fragments.base.listing.ListingBaseViewModel
+import market.engine.widgets.filterContents.categories.CategoryViewModel
 
 interface MyProposalsComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel,
+        val categoryViewModel: CategoryViewModel,
+    )
+
     val model : Value<Model>
     data class Model(
         val viewModel: MyProposalsViewModel,
@@ -41,6 +50,25 @@ class DefaultMyProposalsComponent(
     val navigateBack: () -> Unit,
     val navigateToProposal: (Long, ProposalType) -> Unit,
 ) : MyProposalsComponent, JetpackComponentContext by componentContext {
+
+    val listingBaseVM = viewModel("MyProposalsBaseViewModel"){
+        ListingBaseViewModel(
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+
+    val listingCategoryModel = viewModel("MyProposalsCategoryViewModel"){
+        CategoryViewModel(savedStateHandle = createSavedStateHandle())
+    }
+
+    private val _additionalModels = MutableValue(
+        MyProposalsComponent.AdditionalModels(
+            listingBaseVM, listingCategoryModel
+        )
+    )
+
+    override val additionalModels: Value<MyProposalsComponent.AdditionalModels> = _additionalModels
+
 
     private val viewModel = viewModel("MyProposalsViewModel"){
         MyProposalsViewModel(type, this@DefaultMyProposalsComponent, createSavedStateHandle())

@@ -10,10 +10,16 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.SelectedBasketItem
+import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 
 interface CreateOrderComponent {
-    val model : Value<Model>
 
+    val additionalModels : Value<AdditionalModel>
+    data class AdditionalModel(
+        val deliveryCardsViewModel: DeliveryCardsViewModel
+    )
+
+    val model : Value<Model>
     data class Model(
         val basketItem : Pair<Long, List<SelectedBasketItem>>,
         val createOrderViewModel: CreateOrderViewModel,
@@ -36,6 +42,17 @@ class DefaultCreateOrderComponent(
     val navigateToUser: (Long) -> Unit,
     val navigateToMyOrders: () -> Unit
 ) : CreateOrderComponent, JetpackComponentContext by componentContext {
+
+    private val deliveryCardsViewModel = viewModel("dynamicDeliveryCardViewModel") {
+        DeliveryCardsViewModel(createSavedStateHandle())
+    }
+
+
+    override val additionalModels = MutableValue(
+        CreateOrderComponent.AdditionalModel(
+            deliveryCardsViewModel = deliveryCardsViewModel
+        )
+    )
 
     private val createOrderViewModel = viewModel("createOrderViewModel") {
         CreateOrderViewModel(basketItem, this@DefaultCreateOrderComponent, createSavedStateHandle())

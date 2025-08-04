@@ -22,14 +22,13 @@ import market.engine.core.network.networkObjects.Reports
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 
-class FeedbacksViewModel(val type : ReportPageType, val userId : Long, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
+class FeedbacksViewModel(val type : ReportPageType, val userId : Long, component: FeedbacksComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Reports> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
 
     private val listingData = listingBaseViewModel.listingData
 

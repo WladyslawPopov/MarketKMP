@@ -4,9 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.paging.cachedIn
 import androidx.paging.map
 import app.cash.paging.PagingData
-import com.arkivanov.decompose.ExperimentalDecomposeApi
-import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
-import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
@@ -53,15 +50,16 @@ import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.fragments.root.DefaultRootComponent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.String
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
+class ListingViewModel(
+    val component: ListingComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
@@ -78,15 +76,8 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
 
     val errorString = MutableStateFlow("")
 
-    @OptIn(ExperimentalDecomposeApi::class)
-    val listingBaseVM = (component as JetpackComponentContext).viewModel("listingBaseViewModel"){
-        ListingBaseViewModel(true, component, savedStateHandle = savedStateHandle)
-    }
-
-    @OptIn(ExperimentalDecomposeApi::class)
-    val listingCategoryModel = (component as JetpackComponentContext).viewModel("listingCategoryViewModel"){
-        CategoryViewModel(savedStateHandle = savedStateHandle)
-    }
+    val listingBaseVM = component.additionalModels.value.listingBaseViewModel
+    val listingCategoryModel = component.additionalModels.value.categoryViewModel
 
     val ld = listingBaseVM.listingData
     val activeType = listingBaseVM.activeWindowType
@@ -139,8 +130,9 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
         }
     }.cachedIn(viewModelScope)
 
-    fun init(ld: ListingData) {
+    init {
         viewModelScope.launch {
+            val ld = listingBaseVM.listingData.value
             ld.data.methodServer = "get_public_listing"
             ld.data.objServer = "offers"
 
@@ -245,6 +237,12 @@ class ListingViewModel(val component: ListingComponent, savedStateHandle: SavedS
                 )
             )
         }
+        val searchData = ld.value.searchData
+        val eventParameters = mapOf(
+            "catalog_category" to searchData.searchCategoryName,
+            "category_id" to searchData.searchCategoryID.toString()
+        )
+        analyticsHelper.reportEvent("open_catalog_listing", eventParameters)
     }
 
     fun changeOpenCategory(complete: Boolean = false) {

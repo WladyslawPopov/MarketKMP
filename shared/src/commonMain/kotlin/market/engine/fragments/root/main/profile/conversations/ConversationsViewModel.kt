@@ -28,7 +28,6 @@ import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -38,12 +37,7 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
 
     private val conversationsOperations : ConversationsOperations by lazy { getKoin().get() }
 
-    val listingBaseViewModel = ListingBaseViewModel(
-        deleteSelectedItems = {
-            deleteSelectsItems()
-        },
-        savedStateHandle = savedStateHandle
-    )
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
 
     val ld = listingBaseViewModel.listingData
     val activeType = listingBaseViewModel.activeWindowType

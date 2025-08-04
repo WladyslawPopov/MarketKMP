@@ -10,10 +10,15 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
+import market.engine.widgets.filterContents.categories.CategoryViewModel
 
 interface CreateOfferComponent {
-    val model : Value<Model>
 
+    val additionalModels : Value<AdditionalModel>
+    data class AdditionalModel(
+        val categoryViewModel: CategoryViewModel
+    )
+    val model : Value<Model>
     data class Model(
         var catPath : List<Long>?,
         val offerId : Long?,
@@ -41,6 +46,18 @@ class DefaultCreateOfferComponent(
     val navigateToOffer: (Long) -> Unit,
     val navigateToCreateOffer: (Long?, List<Long>?, CreateOfferType) -> Unit
 ) : CreateOfferComponent, JetpackComponentContext by componentContext {
+
+    val categoryViewModel = viewModel("createOfferCategoryViewModel") {
+        CategoryViewModel(
+            isCreateOffer = true,
+            savedStateHandle = createSavedStateHandle()
+        )
+    }
+    override val additionalModels = MutableValue(
+        CreateOfferComponent.AdditionalModel(
+            categoryViewModel = categoryViewModel
+        )
+    )
 
     private val createOfferViewModel = viewModel("createOfferViewModel") {
         CreateOfferViewModel(

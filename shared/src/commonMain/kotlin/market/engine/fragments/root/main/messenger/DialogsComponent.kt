@@ -14,10 +14,16 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.activeDialog
 import market.engine.core.data.globalData.updateMessenger
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.fragments.base.listing.ListingBaseViewModel
 
-interface DialogsComponent{
+interface DialogsComponent {
+
+    val additionalModels : Value<AdditionalModels>
+    data class AdditionalModels(
+        val listingBaseViewModel: ListingBaseViewModel
+    )
+
     val model : Value<Model>
-
     data class Model(
         val dialogId : Long,
         val dialogsViewModel: DialogsViewModel,
@@ -43,8 +49,20 @@ class DefaultDialogsComponent(
     message : String?,
 ) : DialogsComponent, JetpackComponentContext by componentContext {
 
+    val listingBaseVM = viewModel("dialogsBaseViewModel") {
+        ListingBaseViewModel(savedStateHandle = createSavedStateHandle())
+    }
+
+    private val _additionalModels = MutableValue(
+        DialogsComponent.AdditionalModels(
+            listingBaseVM
+        )
+    )
+
+    override val additionalModels: Value<DialogsComponent.AdditionalModels> = _additionalModels
+
     private val dialogsViewModel = viewModel("dialogsViewModel") {
-        DialogsViewModel(dialogId,message, this@DefaultDialogsComponent, createSavedStateHandle())
+        DialogsViewModel(dialogId, message, this@DefaultDialogsComponent, createSavedStateHandle())
     }
 
     private val _model = MutableValue(
@@ -54,6 +72,7 @@ class DefaultDialogsComponent(
             backHandler = backHandler
         )
     )
+
 
     override val model = _model
 

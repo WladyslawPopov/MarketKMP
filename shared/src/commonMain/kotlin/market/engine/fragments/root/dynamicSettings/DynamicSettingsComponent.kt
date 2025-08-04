@@ -10,8 +10,15 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToVerification
+import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 
 interface DynamicSettingsComponent {
+
+    val additionalModels : Value<AdditionalModel>
+    data class AdditionalModel(
+        val deliveryCardsViewModel: DeliveryCardsViewModel
+    )
+
     val model : Value<Model>
 
     data class Model(
@@ -33,7 +40,18 @@ class DefaultDynamicSettingsComponent(
     componentContext: JetpackComponentContext,
 ) : DynamicSettingsComponent, JetpackComponentContext by componentContext
 {
-    private val dynamicSettingsViewModel = viewModel {
+    private val deliveryCardsViewModel = viewModel("dynamicDeliveryCardViewModel") {
+        DeliveryCardsViewModel(createSavedStateHandle())
+    }
+
+    override val additionalModels: Value<DynamicSettingsComponent.AdditionalModel>
+        get() = MutableValue(
+            DynamicSettingsComponent.AdditionalModel(
+                deliveryCardsViewModel
+            )
+        )
+
+    private val dynamicSettingsViewModel = viewModel("dynamicSettingsViewModel") {
         DynamicSettingsViewModel(
             settingsType,
             owner,

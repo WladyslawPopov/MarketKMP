@@ -30,17 +30,16 @@ import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle)
 {
-    private val subscriptionOperations: SubscriptionOperations = getKoin().get()
+    val subOperations : SubscriptionOperations by lazy { getKoin().get() }
 
     private val pagingRepository: PagingRepository<Subscription> = PagingRepository()
 
-    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
+    val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
     val listingData = listingBaseViewModel.listingData
     val activeWindowType = listingBaseViewModel.activeWindowType
 
@@ -58,7 +57,6 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
         String.serializer()
     )
 
-    val subOperations : SubscriptionOperations by lazy { getKoin().get() }
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         listingData,
@@ -127,7 +125,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     fun getSubscription(subId : Long, onSuccess : (Subscription?) -> Unit ) {
          viewModelScope.launch {
              val buffer = withContext(Dispatchers.IO) {
-                 subscriptionOperations.getSubscription(
+                 subOperations.getSubscription(
                      subId
                  )
              }

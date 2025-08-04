@@ -2,16 +2,10 @@ package market.engine.fragments.root.main.user
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
-import androidx.paging.PagingData
-import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
@@ -19,19 +13,15 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
-import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
-import market.engine.core.network.networkObjects.Reports
 import market.engine.core.network.networkObjects.User
-import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
@@ -56,13 +46,7 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
 
     val isVisibleUserPanel = mutableStateOf(true)
 
-    private val pagingRepository: PagingRepository<Reports> = PagingRepository()
-
     val userOperations : UserOperations by lazy { getKoin().get() }
-
-    val listingBaseViewModel = ListingBaseViewModel(savedStateHandle = savedStateHandle)
-
-    private val listingData = listingBaseViewModel.listingData
 
     init {
         getUserInfo()
@@ -70,27 +54,6 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
         analyticsHelper.reportEvent("open_user_profile", hashMapOf("user_id" to userId.toString()))
     }
 
-
-    val pagingParamsFlow: Flow<ListingData> = combine(
-        listingData,
-        updatePage
-    ) { listingData, _ ->
-        resetScroll()
-        listingData
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<Reports>> = pagingParamsFlow.flatMapLatest{ listingData ->
-        val serializer = Reports.serializer()
-        pagingRepository.getListing(
-            listingData,
-            apiService,
-            serializer,
-            onTotalCountReceived = {
-                listingBaseViewModel.setTotalCount(it)
-            }
-        )
-    }.cachedIn(viewModelScope)
 
     private fun initializeUserData(user: User) {
         viewModelScope.launch {

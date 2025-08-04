@@ -49,7 +49,6 @@ import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.collections.plus
 
@@ -93,13 +92,7 @@ class CreateOfferViewModel(
     savedStateHandle: SavedStateHandle
 ) : CoreViewModel(savedStateHandle) {
 
-    @OptIn(ExperimentalDecomposeApi::class)
-    val categoryViewModel = (component as JetpackComponentContext).viewModel("createOfferCategoryViewModel") {
-        CategoryViewModel(
-            isCreateOffer = true,
-            savedStateHandle = savedStateHandle
-        )
-    }
+    val categoryViewModel = component.additionalModels.value.categoryViewModel
 
     private val _responseGetPage = savedStateHandle.getSavedStateFlow(
         viewModelScope,

@@ -72,10 +72,14 @@ data class SearchEventsImpl(
 }
 
 class ListingBaseViewModel(
+    listingData: ListingData = ListingData(),
+    isOpenSearch : Boolean = false,
     showSwipeTabs : Boolean = false,
     val listingComponent: ListingComponent? = null,
     val deleteSelectedItems: () -> Unit = {},
-    savedStateHandle: SavedStateHandle
+    val searchCategoryViewModel: CategoryViewModel? = null,
+    savedStateHandle: SavedStateHandle,
+
 ) : CoreViewModel(savedStateHandle) {
 
     private val _selectItems = savedStateHandle.getSavedStateFlow(
@@ -107,7 +111,7 @@ class ListingBaseViewModel(
     private val _listingData = savedStateHandle.getSavedStateFlow(
         scope = viewModelScope,
         key = "listingData",
-        initialValue = ListingData(),
+        initialValue = listingData,
         serializer = ListingData.serializer()
     )
     val listingData : StateFlow<ListingData> = _listingData.state
@@ -115,7 +119,7 @@ class ListingBaseViewModel(
     private val _activeWindowType = savedStateHandle.getSavedStateFlow(
         scope = viewModelScope,
         key = "activeWindowType",
-        initialValue = ActiveWindowListingType.LISTING,
+        initialValue = if(isOpenSearch) ActiveWindowListingType.SEARCH else ActiveWindowListingType.LISTING,
         serializer = ActiveWindowListingType.serializer()
     )
     val activeWindowType : StateFlow<ActiveWindowListingType> = _activeWindowType.state
@@ -141,11 +145,6 @@ class ListingBaseViewModel(
         serializer = ListSerializer(OfferItem.serializer())
     )
     val promoList : StateFlow<List<OfferItem>> = _promoList.state
-
-    val searchCategoryModel = CategoryViewModel(
-        isFilters = true,
-        savedStateHandle = savedStateHandle
-    )
 
     private val _isReversingPaging = savedStateHandle.getSavedStateFlow(
         scope = viewModelScope,
@@ -377,10 +376,12 @@ class ListingBaseViewModel(
                         )
                     ),
                 ),
-                categoryState = CategoryState(
-                    categoryViewModel = searchCategoryModel,
-                    openCategory = activeType == ActiveWindowListingType.CATEGORY_FILTERS,
-                ),
+                categoryState = searchCategoryViewModel?.let {
+                    CategoryState(
+                        categoryViewModel = it,
+                        openCategory = activeType == ActiveWindowListingType.CATEGORY_FILTERS,
+                    )
+                },
                 searchEvents = SearchEventsImpl(this),
             )
         }else{
@@ -646,7 +647,7 @@ class ListingBaseViewModel(
     }
 
     fun openSearchCategory(value : Boolean, complete: Boolean) {
-        searchCategoryModel.run {
+        searchCategoryViewModel?.run {
             if (!value) {
                 if (complete) {
                     if (listingData.value.searchData.searchCategoryID != searchData.value.searchCategoryID) {

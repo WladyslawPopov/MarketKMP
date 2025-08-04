@@ -40,7 +40,6 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
-import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
@@ -62,7 +61,7 @@ class CreateOrderViewModel(
     val userOperations : UserOperations by lazy { getKoin().get() }
     val offerOperations : OfferOperations by lazy { getKoin().get() }
 
-    val deliveryCardsViewModel = DeliveryCardsViewModel(savedStateHandle)
+    val deliveryCardsViewModel = component.additionalModels.value.deliveryCardsViewModel
 
     private val _responseGetOffers = savedStateHandle.getSavedStateFlow(
         viewModelScope,
