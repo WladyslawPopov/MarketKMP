@@ -268,7 +268,7 @@ fun createHomeChild(
                     )
                 },
                 navigateToLoginSelected = {
-                    goToLogin(true)
+                    goToLogin()
                 },
                 navigateToOfferSelected = { id ->
                     homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
@@ -284,7 +284,7 @@ fun createHomeChild(
                             )
                         )
                     } else {
-                        goToLogin(true)
+                        goToLogin()
                     }
                 },
                 navigateToMessengerSelected = {
@@ -347,7 +347,7 @@ fun createHomeChild(
                         )
                     },
                     navigateToLogin = {
-                        goToLogin(true)
+                        goToLogin()
                     },
                     navigateToDialog = { dialogId ->
                         if(dialogId != null)

@@ -15,7 +15,6 @@ interface OfferRepositoryEvents {
 
     fun goToProposalPage(offerId: Long, type: ProposalType)
     fun goToDynamicSettings(type: String, id: Long)
-    fun goToLogin()
     fun goToDialog(id: Long?)
     fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>)
     fun goToUserPage(sellerId : Long)

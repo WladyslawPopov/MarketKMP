@@ -35,7 +35,7 @@ fun OnError(
             }
             it == "MISSING_OR_INVALID_TOKEN" -> {
                 userRepository.delete()
-                goToLogin(true)
+                goToLogin()
             }
             it.contains(" timeout ") -> {
                 NoInternetContent(onRefresh)

@@ -321,7 +321,7 @@ fun createProfileChild(
                         )
                     },
                     navigateToLogin = {
-                        goToLogin(true)
+                        goToLogin()
                     },
                     navigateToDialog = { dialogId ->
                         if(dialogId != null)

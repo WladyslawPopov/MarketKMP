@@ -163,10 +163,6 @@ data class OfferRepositoryEventsImpl(
         DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
     }
 
-    override fun goToLogin() {
-        DefaultRootComponent.Companion.goToLogin(false)
-    }
-
     override fun goToDialog(id: Long?) {
         viewModel.getMainTread {
             component.goToDialog(id)

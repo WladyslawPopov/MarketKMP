@@ -33,7 +33,6 @@ import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
-import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
 
 
@@ -164,13 +163,6 @@ class FavViewModel(
         }
     }
 
-    fun onBackNavigation(){
-        if (categoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
-            categoryState.categoryViewModel.navigateBack()
-        }else{
-            listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
-        }
-    }
 
     fun deleteSelectsItems() {
         viewModelScope.launch {
@@ -258,11 +250,6 @@ data class OfferRepositoryEventsImpl(
         }
     }
 
-    override fun goToLogin() {
-        viewModel.getMainTread {
-            goToLogin(false)
-        }
-    }
     override fun scrollToBids() {}
     override fun refreshPage() {}
     override fun updateBidsInfo(item: OfferItem) { }

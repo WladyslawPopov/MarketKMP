@@ -736,7 +736,7 @@ class OfferRepository(
                     }
                 )
             } else {
-                events.goToLogin()
+                goToLogin()
             }
         }
     }
@@ -815,7 +815,7 @@ class OfferRepository(
                 )
             }
         } else {
-            events.goToLogin()
+            goToLogin()
         }
     }
     fun buyNowSuccessDialog(valuesPicker: Int){
@@ -851,7 +851,7 @@ class OfferRepository(
                 events.goToCreateOrder(item)
             }
         } else {
-            events.goToLogin()
+            goToLogin()
         }
     }
 
@@ -907,7 +907,7 @@ class OfferRepository(
                 }
             }
         }else{
-            goToLogin(false)
+            goToLogin()
         }
     }
 

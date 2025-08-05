@@ -72,7 +72,6 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     }
 
     fun updateNavLists() {
-
             val userInfo = UserData.userInfo
             val profileNavigation = component.modelNavigation.value.profileNavigation
         getMainTread {
@@ -366,12 +365,12 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
 
             is DeepLink.GoToAuth -> {
                 if (UserData.token == "")
-                    goToLogin(true)
+                    goToLogin()
             }
 
             is DeepLink.GoToRegistration -> {
                 if (UserData.token == "")
-                    goToLogin(true)
+                    goToLogin()
             }
 
             is DeepLink.GoToDynamicSettings -> {

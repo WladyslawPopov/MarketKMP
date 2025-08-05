@@ -426,7 +426,7 @@ class CreateOrderViewModel(
                 }
             }
         }else{
-            goToLogin(false)
+            goToLogin()
         }
     }
 }

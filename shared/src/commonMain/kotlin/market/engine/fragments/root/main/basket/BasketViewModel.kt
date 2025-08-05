@@ -538,7 +538,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                 }
             }
         }else{
-            goToLogin(false)
+            goToLogin()
         }
     }
 }

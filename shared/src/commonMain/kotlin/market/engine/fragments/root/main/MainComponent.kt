@@ -303,7 +303,8 @@ class DefaultMainComponent(
             }
             is MainConfig.Basket -> {
                 if (UserData.token == "") {
-                    goToLogin(true)
+                    modelNavigation.value.mainNavigation.replaceCurrent(MainConfig.Home)
+                    goToLogin()
                 }else{
                     if(activeCurrent == "Basket"){
                         modelNavigation.value.basketNavigation.popToFirst()
@@ -314,7 +315,8 @@ class DefaultMainComponent(
             }
             is MainConfig.Favorites -> {
                 if (UserData.token == "") {
-                    goToLogin(true)
+                    modelNavigation.value.mainNavigation.replaceCurrent(MainConfig.Home)
+                    goToLogin()
                 }else {
                     when {
                         activeCurrent == "Favorites" -> {
@@ -335,7 +337,8 @@ class DefaultMainComponent(
             }
             is MainConfig.Profile -> {
                 if (UserData.token == "") {
-                    goToLogin(true)
+                    modelNavigation.value.mainNavigation.replaceCurrent(MainConfig.Home)
+                    goToLogin()
                 }else{
                     if(activeCurrent == "Profile"){
                         modelNavigation.value.profileNavigation.popToFirst()

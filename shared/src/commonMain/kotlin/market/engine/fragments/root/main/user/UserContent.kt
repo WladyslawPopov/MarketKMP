@@ -161,7 +161,7 @@ fun UserContent(
                                    }
                                )
                            } else {
-                               goToLogin(false)
+                               goToLogin()
                            }
                        },
                        goToSubscriptions = {

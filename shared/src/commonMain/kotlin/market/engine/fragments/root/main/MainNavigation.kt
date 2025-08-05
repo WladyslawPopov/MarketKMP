@@ -17,9 +17,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
-import market.engine.common.backAnimation
 import market.engine.core.data.compositions.LocalBottomBarHeight
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
@@ -73,10 +73,7 @@ fun MainNavigation(
             Children(
                 modifier = modifier,
                 stack = childStack,
-                animation = backAnimation(
-                    backHandler = component.model.value.backHandler,
-                    onBack = {}
-                ),
+                animation = stackAnimation(),
             ) { child ->
                 Box {
                     Row {
@@ -135,7 +132,8 @@ fun MainNavigation(
                         onDismiss = { viewModel.setLogoutDialog(false) },
                         goToLogin = {
                             viewModel.setLogoutDialog(false)
-                            goToLogin(true)
+                            viewModel.debouncedNavigate(MainConfig.Home)
+                            goToLogin()
                         }
                     )
                 }

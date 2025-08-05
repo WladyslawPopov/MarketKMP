@@ -147,7 +147,7 @@ class DefaultRootComponent(
     companion object {
         private val navigation = StackNavigation<RootConfig>()
 
-        val goToLogin: (reset : Boolean) -> Unit = { isReset ->
+        val goToLogin: () -> Unit = {
             navigation.pushNew(RootConfig.Login())
         }
 

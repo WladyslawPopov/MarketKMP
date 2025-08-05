@@ -178,7 +178,7 @@ class OfferViewModel(
 
                         getCategoriesHistory(offer.catpath)
                         val initTimer =
-                            ((offer.session?.end?.toLongOrNull()
+                            ((offer.session.end?.toLongOrNull()
                                 ?: 1L) - (getCurrentDate().toLongOrNull()
                                 ?: 1L)) * 1000
 
@@ -214,10 +214,10 @@ class OfferViewModel(
                             offer.state == "active" -> {
                                 analyticsHelper.reportEvent("view_item", eventParameters)
                                 when {
-                                    (offer.session?.start?.toLongOrNull()
+                                    (offer.session.start?.toLongOrNull()
                                         ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
 
-                                    (offer.session?.end?.toLongOrNull()
+                                    (offer.session.end?.toLongOrNull()
                                         ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
 
                                     else -> OfferStates.COMPLETED
@@ -226,7 +226,7 @@ class OfferViewModel(
 
                             offer.state == "sleeping" -> {
                                 analyticsHelper.reportEvent("view_item", eventParameters)
-                                if (offer.session == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                                if (offer.session.start == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
                             }
 
                             else -> {
@@ -776,12 +776,6 @@ data class OfferRepositoryEventsImpl(
     override fun goToDynamicSettings(type: String, id: Long) {
         viewModel.getMainTread {
             component.goToDynamicSettings(type, id)
-        }
-    }
-
-    override fun goToLogin() {
-        viewModel.getMainTread {
-            component.goToLogin()
         }
     }
 

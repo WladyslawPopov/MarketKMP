@@ -221,7 +221,7 @@ class ListingViewModel(
                                 )
                             } else {
                                 getMainTread {
-                                    goToLogin(false)
+                                    goToLogin()
                                 }
                             }
                         }
@@ -473,10 +473,6 @@ data class OfferRepositoryEventsImpl(
 
     override fun goToDynamicSettings(type: String, id: Long) {
         DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
-    }
-
-    override fun goToLogin() {
-        goToLogin(false)
     }
 
     override fun goToDialog(id: Long?) {

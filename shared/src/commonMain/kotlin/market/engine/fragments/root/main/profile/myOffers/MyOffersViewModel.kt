@@ -28,7 +28,6 @@ import market.engine.core.repositories.OfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.root.DefaultRootComponent
 import org.jetbrains.compose.resources.getString
 
 class MyOffersViewModel(
@@ -161,12 +160,6 @@ data class OfferRepositoryEventsImpl(
     override fun goToDynamicSettings(type: String, id: Long) {
         viewModel.getMainTread {
             component.goToDynamicSettings(type, id)
-        }
-    }
-
-    override fun goToLogin() {
-        viewModel.getMainTread {
-            DefaultRootComponent.Companion.goToLogin(false)
         }
     }
 
