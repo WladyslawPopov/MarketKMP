@@ -73,7 +73,6 @@ class DefaultDialogsComponent(
         )
     )
 
-
     override val model = _model
 
     init {

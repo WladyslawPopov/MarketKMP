@@ -322,10 +322,9 @@ class DefaultMainComponent(
                         }
 
                         openPage == "subscribe" -> {
-                            modelNavigation.value.favoritesNavigation.replaceCurrent(
+                            modelNavigation.value.favoritesNavigation.replaceAll(
                                 FavoritesConfig.FavPagesScreen(
-                                    FavScreenType.SUBSCRIBED,
-                                    getCurrentDate()
+                                    FavScreenType.SUBSCRIBED
                                 )
                             )
                         }

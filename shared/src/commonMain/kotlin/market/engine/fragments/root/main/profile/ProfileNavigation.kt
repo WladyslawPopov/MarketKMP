@@ -165,29 +165,49 @@ fun ProfileNavigation(
                 is ChildProfile.ProposalChild -> screen.component.model.value.backHandler
                 is ChildProfile.CreateSubscriptionChild -> screen.component.model.value.backHandler
                 is ChildProfile.ConversationsChild -> screen.component.model.value.backHandler
-                is ChildProfile.MyBidsChild -> screen.component.model.value.backHandler
-                is ChildProfile.MyOffersChild -> screen.component.model.value.backHandler
-                is ChildProfile.MyOrdersChild -> screen.component.model.value.backHandler
-                is ChildProfile.MyProposalsChild -> screen.component.model.value.backHandler
                 is ChildProfile.ProfileChild -> screen.component.model.value.backHandler
-                is ChildProfile.ProfileSettingsChild -> screen.component.model.value.backHandler
+                is ChildProfile.MyBidsChild ->{
+                    val pages = screen.component.myBidsPages.value
+                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                        ?: screen.component.model.value.backHandler
+                }
+                is ChildProfile.MyOffersChild -> {
+                    val pages = screen.component.myOffersPages.value
+                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                        ?: screen.component.model.value.backHandler
+                }
+                is ChildProfile.MyOrdersChild -> {
+                    val pages = screen.component.myOrdersPages.value
+                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                        ?: screen.component.model.value.backHandler
+                }
+                is ChildProfile.MyProposalsChild -> {
+                    val pages = screen.component.myProposalsPages.value
+                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                        ?: screen.component.model.value.backHandler
+                }
+                is ChildProfile.ProfileSettingsChild -> {
+                    val pages = screen.component.settingsPages.value
+                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                        ?: screen.component.model.value.backHandler
+                }
             },
             onBack = {
                 when (val screen = stack.active.instance) {
                     is ChildProfile.ListingChild -> screen.component.goBack()
                     is ChildProfile.OfferChild -> screen.component.onBackClick()
-                    is ChildProfile.UserChild -> screen.component.onBack()
+                    is ChildProfile.UserChild -> screen.component.onBackClick()
                     is ChildProfile.CreateOfferChild -> screen.component.onBackClicked()
                     is ChildProfile.CreateOrderChild -> screen.component.onBackClicked()
                     is ChildProfile.DialogsChild -> screen.component.onBackClicked()
                     is ChildProfile.ProposalChild -> screen.component.goBack()
                     is ChildProfile.CreateSubscriptionChild -> screen.component.onBackClicked()
-                    is ChildProfile.ConversationsChild -> screen.component.onBack()
-                    is ChildProfile.MyBidsChild -> screen.component.onBack()
-                    is ChildProfile.MyOffersChild -> screen.component.onBack()
-                    is ChildProfile.MyOrdersChild -> screen.component.onBack()
-                    is ChildProfile.MyProposalsChild -> screen.component.onBack()
-                    is ChildProfile.ProfileSettingsChild -> screen.component.onBack()
+                    is ChildProfile.ConversationsChild -> screen.component.onBackClick()
+                    is ChildProfile.MyBidsChild -> screen.component.onBackClick()
+                    is ChildProfile.MyOffersChild -> screen.component.onBackClick()
+                    is ChildProfile.MyOrdersChild -> screen.component.onBackClick()
+                    is ChildProfile.MyProposalsChild -> screen.component.onBackClick()
+                    is ChildProfile.ProfileSettingsChild -> screen.component.onBackClick()
                     is ChildProfile.ProfileChild -> {}
                 }
             }

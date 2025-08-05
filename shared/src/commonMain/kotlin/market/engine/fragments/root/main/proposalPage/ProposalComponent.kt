@@ -48,7 +48,6 @@ class DefaultProposalComponent(
     )
     override val model = _model
 
-
     override fun goToOffer(offerId: Long) {
         navigateToOffer(offerId)
     }

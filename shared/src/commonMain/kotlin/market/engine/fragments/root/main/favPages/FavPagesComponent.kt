@@ -63,7 +63,6 @@ class DefaultFavPagesComponent(
 
     override val model = initialModel
 
-
     override fun updateNavigationPages(){
         val tabs = viewModel.favoritesTabList.value
         val initPosition = viewModel.initPosition.value

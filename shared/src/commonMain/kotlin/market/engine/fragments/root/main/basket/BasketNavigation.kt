@@ -146,7 +146,7 @@ fun BasketNavigation(
                     }
 
                     is ChildBasket.UserChild -> {
-                        screen.component.onBack()
+                        screen.component.onBackClick()
                     }
 
                     is ChildBasket.CreateOrderChild -> {

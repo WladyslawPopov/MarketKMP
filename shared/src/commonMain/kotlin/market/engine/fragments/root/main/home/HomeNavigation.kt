@@ -177,7 +177,7 @@ fun HomeNavigation (
                     }
 
                     is UserChild -> {
-                        screen.component.onBack()
+                        screen.component.onBackClick()
                     }
 
                     is CreateOfferChild -> {

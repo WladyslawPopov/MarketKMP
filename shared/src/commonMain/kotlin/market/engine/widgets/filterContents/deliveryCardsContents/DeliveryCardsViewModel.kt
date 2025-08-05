@@ -37,12 +37,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
         emptyList(),
         ListSerializer(Fields.serializer())
     )
-    val deliveryFieldsState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
-        "deliveryFields",
-        emptyList(),
-        ListSerializer(Fields.serializer())
-    )
+    val deliveryFieldsState = _deliveryFields.state
 
     private val _showFields = savedStateHandle.getSavedStateFlow(
         viewModelScope,

@@ -172,6 +172,8 @@ fun DynamicSettingsContent(
 
                 "set_address_cards" -> {
                     item {
+                        val deliveryCardsViewModel = component.additionalModels.value.deliveryCardsViewModel
+
                         HeaderAlertText(
                             rememberRichTextState().setHtml(
                                 stringResource(strings.headerDeliveryCardLabel)
@@ -179,9 +181,9 @@ fun DynamicSettingsContent(
                         )
 
                         DeliveryCardsContent(
-                            viewModel.deliveryCardsViewModel,
+                            deliveryCardsViewModel,
                             refresh = {
-                                viewModel.deliveryCardsViewModel.refreshCards()
+                                deliveryCardsViewModel.refreshCards()
                             }
                         )
                     }

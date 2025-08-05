@@ -44,7 +44,7 @@ fun DeliveryCardsContent(
     refresh: () -> Unit
 ){
     val cardsState by viewModel.deliveryCardsState.collectAsState()
-    val fieldsState by viewModel.deliveryFieldsState.state.collectAsState()
+    val fieldsState by viewModel.deliveryFieldsState.collectAsState()
     val showFieldsState by viewModel.showFieldsState.collectAsState()
     val selectedCardsState by viewModel.selectedCardState.collectAsState()
     val isLoading by viewModel.isShowProgress.collectAsState()

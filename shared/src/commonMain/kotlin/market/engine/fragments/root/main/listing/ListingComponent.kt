@@ -31,6 +31,7 @@ interface ListingComponent {
     data class AdditionalModels(
         val listingBaseViewModel: ListingBaseViewModel,
         val categoryViewModel: CategoryViewModel,
+        val searchCategoryViewModel: CategoryViewModel
     )
 
     val model : Value<Model>
@@ -71,12 +72,18 @@ class DefaultListingComponent(
     }
 
     val listingCategoryModel = viewModel("listingCategoryViewModel"){
+        CategoryViewModel(savedStateHandle = createSavedStateHandle())
+    }
+
+    val searchCategoryModel = viewModel("searchCategoryModel"){
         CategoryViewModel(isFilters = true, savedStateHandle = createSavedStateHandle())
     }
 
     private val _additionalModels = MutableValue(
         ListingComponent.AdditionalModels(
-            listingBaseVM, listingCategoryModel
+            listingBaseVM,
+            listingCategoryModel,
+            searchCategoryModel
         )
     )
 
@@ -98,8 +105,6 @@ class DefaultListingComponent(
             searchNavigator = navigator
         )
     )
-
-
     override val model: Value<ListingComponent.Model> = _model
 
     private val searchData = listingData.searchData
@@ -202,9 +207,7 @@ class DefaultListingComponent(
     }
 
     override fun goBack() {
-        listingViewModel.backClick{
-            selectedBack()
-        }
+        selectedBack()
     }
 
     override fun goToSubscribe() {

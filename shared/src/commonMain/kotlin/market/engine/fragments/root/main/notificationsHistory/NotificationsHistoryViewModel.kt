@@ -22,6 +22,12 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
     )
     val responseGetPage = _responseGetPage.state
 
+    init {
+        getPage()
+
+        analyticsHelper.reportEvent("view_notifications_history", mapOf())
+    }
+
     fun getPage() {
         refresh()
         viewModelScope.launch {

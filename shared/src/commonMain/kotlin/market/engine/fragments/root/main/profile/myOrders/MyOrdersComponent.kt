@@ -6,6 +6,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
@@ -30,7 +31,6 @@ interface MyOrdersComponent {
     fun goToOffer(offer: Offer)
     fun selectMyOrderPage(select : DealType)
     fun goToMessenger(dialogId : Long?)
-    fun goToBack()
     fun onRefresh()
 }
 
@@ -78,12 +78,21 @@ class DefaultMyOrdersComponent(
     )
     override val model: Value<MyOrdersComponent.Model> = _model
 
+    val backCallback = object : BackCallback(){
+        override fun onBack() {
+            viewModel.onBack{
+                navigateToBack()
+            }
+        }
+    }
 
     init {
+        backHandler.register(backCallback)
+
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
             if (UserData.token == ""){
-                goToBack()
+                navigateToBack()
             }
         }
     }
@@ -102,12 +111,6 @@ class DefaultMyOrdersComponent(
 
     override fun goToMessenger(dialogId : Long?) {
         navigateToMessenger(dialogId)
-    }
-
-    override fun goToBack() {
-        viewModel.onBack{
-            navigateToBack()
-        }
     }
 
     override fun onRefresh() {

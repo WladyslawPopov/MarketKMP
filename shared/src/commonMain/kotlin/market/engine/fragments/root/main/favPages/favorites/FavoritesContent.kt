@@ -40,7 +40,7 @@ fun FavoritesContent(
     val type = model.favType
     val viewModel = model.favViewModel
     val listingBaseViewModel = viewModel.listingBaseViewModel
-    val categoryState = viewModel.filtersCategoryState
+    val categoryState = viewModel.categoryState
 
     val listingDataState by listingBaseViewModel.listingData.collectAsState()
 

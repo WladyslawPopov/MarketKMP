@@ -6,15 +6,14 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.LotsType
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
-
 
 interface MyBidsComponent {
 
@@ -81,9 +80,8 @@ class DefaultMyBidsComponent(
             backHandler = backHandler
         )
     )
-    override val model: Value<MyBidsComponent.Model> = _model
 
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    override val model: Value<MyBidsComponent.Model> = _model
 
     private val updateBackHandlerItem = MutableValue(1L)
 
@@ -99,11 +97,6 @@ class DefaultMyBidsComponent(
                 updateBackHandlerItem.value = 1L
             }
         }
-        val eventParameters = mapOf(
-            "user_id" to UserData.login.toString(),
-            "profile_source" to "bids"
-        )
-        analyticsHelper.reportEvent("view_seller_profile", eventParameters)
     }
 
     override fun goToOffer(offer: OfferItem, isTopPromo : Boolean) {

@@ -173,7 +173,7 @@ data class Offer(
     @SerialName("seller_data") var sellerData: User? = null,
     @SerialName("buyer_data") var buyerData: BuyerData? = null,
     @SerialName("state") var state: String? = null,
-    @SerialName("session") var session: Session? = null,
+    @SerialName("session") var session: Session = Session(),
     @SerialName("minimum_delivery_price") val minimumDeliveryPrice: String? = null,
     @SerialName("images") var images: List<Image>? = null,
     @SerialName("image") val image: Urls? = null,

@@ -130,7 +130,7 @@ fun UserContent(
                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically)
                ) {
                    NavigationArrowButton {
-                       component.onBack()
+                       component.onBackClick()
                    }
 
                    UserPanel(
@@ -210,7 +210,7 @@ fun UserContent(
                            )
                        ),
                        onBackClick = {
-                           component.onBack()
+                           component.onBackClick()
                        }
                    ),
                    color = colors.primaryColor

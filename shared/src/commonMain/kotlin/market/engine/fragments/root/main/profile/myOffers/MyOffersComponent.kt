@@ -6,6 +6,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.common.AnalyticsFactory
@@ -15,9 +16,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 import market.engine.fragments.base.listing.ListingBaseViewModel
-import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.widgets.filterContents.categories.CategoryViewModel
-
 
 interface MyOffersComponent {
 
@@ -90,7 +89,15 @@ class DefaultMyOffersComponent(
 
     private val updateBackHandlerItem = MutableValue(1L)
 
+    val backCallback = object : BackCallback(){
+        override fun onBack() {
+            navigateToBack()
+        }
+    }
+
     init {
+        backHandler.register(backCallback)
+
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
             if (UserData.token == ""){

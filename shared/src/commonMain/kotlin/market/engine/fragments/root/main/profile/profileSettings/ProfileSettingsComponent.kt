@@ -5,12 +5,12 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.replaceCurrent
+import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileConfig
@@ -27,8 +27,6 @@ interface ProfileSettingsComponent {
     fun selectProfileSettingsPage(type: ProfileSettingsTypes)
 
     fun navigateToDynamicSettings(settingsType : String)
-
-    fun goToBack()
 }
 
 @OptIn(ExperimentalDecomposeApi::class)
@@ -40,8 +38,6 @@ class DefaultProfileSettingsComponent(
     componentContext: JetpackComponentContext,
 ) : ProfileSettingsComponent, JetpackComponentContext by componentContext
 {
-
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     private  val profileSettingsViewModel = viewModel("ProfileSettingsViewModel"){
         ProfileSettingsViewModel(this@DefaultProfileSettingsComponent, createSavedStateHandle())
@@ -57,11 +53,19 @@ class DefaultProfileSettingsComponent(
 
     override val model = _model
 
+    val backCallback = object : BackCallback(){
+        override fun onBack() {
+            profileNavigation.pop()
+        }
+    }
+
     init {
+        backHandler.register(backCallback)
+
         lifecycle.doOnResume {
             profileSettingsViewModel.updateUserInfo()
             if (UserData.token == ""){
-                goToBack()
+                profileNavigation.pop()
             }
         }
 
@@ -71,7 +75,7 @@ class DefaultProfileSettingsComponent(
                     "user_id" to UserData.login,
                     "profile_source" to "settings"
                 )
-                analyticsHelper.reportEvent("view_settings_profile_general", eventParameters)
+                profileSettingsViewModel.analyticsHelper.reportEvent("view_settings_profile_general", eventParameters)
             }
 
             ProfileSettingsTypes.SELLER_SETTINGS -> {
@@ -79,14 +83,14 @@ class DefaultProfileSettingsComponent(
                     "user_id" to UserData.login,
                     "profile_source" to "settings"
                 )
-                analyticsHelper.reportEvent("view_settings_profile_seller", eventParameters)
+                profileSettingsViewModel.analyticsHelper.reportEvent("view_settings_profile_seller", eventParameters)
             }
             ProfileSettingsTypes.ADDITIONAL_SETTINGS -> {
                 val eventParameters = mapOf(
                     "user_id" to UserData.login,
                     "profile_source" to "settings"
                 )
-                analyticsHelper.reportEvent("view_settings_profile_other", eventParameters)
+                profileSettingsViewModel.analyticsHelper.reportEvent("view_settings_profile_other", eventParameters)
             }
         }
     }
@@ -97,9 +101,5 @@ class DefaultProfileSettingsComponent(
 
     override fun navigateToDynamicSettings(settingsType: String) {
         goToDynamicSettings(settingsType)
-    }
-
-    override fun goToBack() {
-        profileNavigation.replaceCurrent(ProfileConfig.ProfileScreen())
     }
 }

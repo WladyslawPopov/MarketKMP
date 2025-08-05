@@ -125,7 +125,7 @@ fun SearchNavigation(
                 when (val screen = stack.active.instance) {
                     is ChildSearch.ListingChild -> screen.component.goBack()
                     is ChildSearch.OfferChild -> screen.component.onBackClick()
-                    is ChildSearch.UserChild -> screen.component.onBack()
+                    is ChildSearch.UserChild -> screen.component.onBackClick()
                     is ChildSearch.CreateOfferChild -> screen.component.onBackClicked()
                     is ChildSearch.CreateOrderChild -> screen.component.onBackClicked()
                     is ChildSearch.MessageChild -> screen.component.onBackClicked()

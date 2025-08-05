@@ -47,7 +47,6 @@ class DefaultCreateOrderComponent(
         DeliveryCardsViewModel(createSavedStateHandle())
     }
 
-
     override val additionalModels = MutableValue(
         CreateOrderComponent.AdditionalModel(
             deliveryCardsViewModel = deliveryCardsViewModel

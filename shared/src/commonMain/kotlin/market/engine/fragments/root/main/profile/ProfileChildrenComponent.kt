@@ -61,7 +61,7 @@ interface ProfileChildrenComponent {
     fun onRefreshOrders()
     fun onRefreshBids()
     fun onRefreshProposals()
-    fun onBack()
+    fun onBackClick()
 }
 
 @OptIn(ExperimentalDecomposeApi::class)
@@ -87,7 +87,6 @@ class DefaultProfileChildrenComponent(
     private var currentPage = ""
 
     private var searchID : Long? = null
-
 
     init {
         val params = selectedPage?.split("/", limit = 2)
@@ -128,7 +127,7 @@ class DefaultProfileChildrenComponent(
         }
     }
 
-    override fun onBack() {
+    override fun onBackClick() {
         navigationProfile.pop()
     }
 

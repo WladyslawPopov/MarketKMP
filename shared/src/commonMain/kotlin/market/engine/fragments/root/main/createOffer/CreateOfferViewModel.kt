@@ -37,6 +37,7 @@ import market.engine.core.data.items.PhotoSave
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.CategoryState
 import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.states.CreateOfferContentState
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
@@ -51,36 +52,6 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.collections.plus
-
-data class CreateOfferContentState(
-    val appBarState: SimpleAppBarData = SimpleAppBarData(),
-    val categoryState: CategoryState,
-
-    val catHistory : List<Category> = emptyList(),
-    val textState : String = "",
-
-    val firstDynamicContent : List<String> = listOf(
-        "title",
-        "saletype",
-    ),
-    val secondDynamicContent : List<String> = listOf("params"),
-    val thirdDynamicContent : List<String> = listOf(
-        "length_in_days",
-        "quantity",
-        "relisting_mode",
-        "whopaysfordelivery",
-        "region",
-        "freelocation",
-        "paymentmethods",
-        "dealtype",
-        "deliverymethods",
-    ),
-    val endDynamicContent : List<String> = listOf(
-        "images",
-        "session_start",
-        "description",
-    )
-)
 
 
 class CreateOfferViewModel(
@@ -187,33 +158,10 @@ class CreateOfferViewModel(
             }
         }
 
-        dynamicPayload.find { it.key == "category_id" }
-            ?.let { field ->
-                field.data?.jsonPrimitive?.longOrNull?.let {
-                    if (categoryViewModel.searchData.value.searchCategoryID == 1L) {
-                        categoryViewModel.updateFromSearchData(SD(
-                            searchCategoryID = it,
-                            searchCategoryName = "",
-                            searchParentID = it,
-                            searchIsLeaf = true
-                        ))
-                    }
-                }
-            }
-
-        if(type == CreateOfferType.CREATE) {
-            dynamicPayload.find { it.key == "session_start" }?.data =
-                if (selectedDate.value != 0L) {
-                    JsonPrimitive(2)
-                } else {
-                    JsonPrimitive(0)
-                }
-        }
-
         CreateOfferContentState(
             appBarState = SimpleAppBarData(
                 onBackClick = {
-                    component.onBackClicked()
+                    onBackClicked()
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -327,22 +275,31 @@ class CreateOfferViewModel(
                         payload.fields.find {
                             it.key == "future_time"
                         }?.let { field ->
-                            if(
+                            if (
                                 field.data != null &&
                                 (field.data?.jsonPrimitive?.longOrNull ?: 1) >
                                 (getCurrentDate().toLongOrNull() ?: 1L)
-                            ){
+                            ) {
                                 payload.fields.find {
                                     it.key == "session_start"
                                 }?.let { it.data = JsonPrimitive(2) }
                                 _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 0
-                            }else{
-                                payload.fields.find {
-                                    it.key == "session_start"
-                                }?.let { it.data = JsonPrimitive(0) }
-                                setSelectData()
                             }
                         }
+
+                        payload.fields.find { it.key == "category_id" }
+                            ?.let { field ->
+                                field.data?.jsonPrimitive?.longOrNull?.let {
+                                    categoryViewModel.updateFromSearchData(
+                                        SD(
+                                            searchCategoryID = it,
+                                            searchCategoryName = "",
+                                            searchParentID = it,
+                                            searchIsLeaf = true
+                                        )
+                                    )
+                                }
+                            }
 
                         _responseGetPage.value = payload.fields
                     }
@@ -469,6 +426,7 @@ class CreateOfferViewModel(
                         _responsePostPage.value = payload
 
                         if (type == CreateOfferType.EDIT) {
+                            categoryViewModel.resetToRoot()
                             delay(1000L)
                             withContext(Dispatchers.Main) {
                                 component.onBackClicked()
@@ -552,12 +510,12 @@ class CreateOfferViewModel(
         _selectedDate.value = data ?: 0
     }
 
-    fun onBackClicked(onBack: () -> Unit) {
+    fun onBackClicked() {
         if(categoryViewModel.searchData.value.searchCategoryID != 1L){
             _isEditCat.value = true
             categoryViewModel.navigateBack()
         }else{
-            onBack()
+            component.onBackClicked()
         }
     }
 
@@ -618,7 +576,9 @@ class CreateOfferViewModel(
                     }
 
                     "category_id" -> {
-                        put(field.key, JsonPrimitive(categoryID))
+                        if(type != CreateOfferType.EDIT) {
+                            put(field.key, JsonPrimitive(categoryID))
+                        }
                     }
 
                     "session_start" -> {
@@ -640,7 +600,9 @@ class CreateOfferViewModel(
 
             when (type) {
                 CreateOfferType.EDIT, CreateOfferType.COPY -> {
-                    put("delete_images", JsonArray(deleteImages))
+                    if(deleteImages.isNotEmpty()) {
+                        put("delete_images", JsonArray(deleteImages))
+                    }
                 }
 
                 else -> {}

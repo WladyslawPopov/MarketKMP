@@ -62,7 +62,7 @@ class FavViewModel(
         null
     )
 
-    val filtersCategoryState = CategoryState(
+    val categoryState = CategoryState(
         activeType.value == ActiveWindowListingType.CATEGORY_FILTERS,
         categoryViewModel
     )
@@ -161,6 +161,14 @@ class FavViewModel(
             )
 
             analyticsHelper.reportEvent("open_favorites", mapOf("type" to favType.name))
+        }
+    }
+
+    fun onBackNavigation(){
+        if (categoryState.categoryViewModel.searchData.value.searchCategoryID != 1L){
+            categoryState.categoryViewModel.navigateBack()
+        }else{
+            listingBaseViewModel.setActiveWindowType(ActiveWindowListingType.LISTING)
         }
     }
 

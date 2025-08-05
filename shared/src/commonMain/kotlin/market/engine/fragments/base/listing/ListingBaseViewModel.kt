@@ -36,7 +36,6 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.main.listing.ListingComponent
 import market.engine.shared.SearchHistory
-import market.engine.widgets.filterContents.categories.CategoryViewModel
 import org.jetbrains.compose.resources.getString
 
 data class SearchEventsImpl(
@@ -77,7 +76,6 @@ class ListingBaseViewModel(
     showSwipeTabs : Boolean = false,
     val listingComponent: ListingComponent? = null,
     val deleteSelectedItems: () -> Unit = {},
-    val searchCategoryViewModel: CategoryViewModel? = null,
     savedStateHandle: SavedStateHandle,
 
 ) : CoreViewModel(savedStateHandle) {
@@ -162,6 +160,12 @@ class ListingBaseViewModel(
         initialValue = "",
         serializer = String.serializer()
     )
+
+    init {
+        if (listingComponent != null){
+            getHistory()
+        }
+    }
 
     val filterBarUiState : StateFlow<FilterBarUiState> = combine(
         _listingType.state,
@@ -345,20 +349,24 @@ class ListingBaseViewModel(
         val subTitle = getString(strings.mySubscribedTitle)
         val searchTitle = getString(strings.searchTitle)
 
-        if (listingComponent != null) {
+        val searchVm = listingComponent?.additionalModels?.value?.searchCategoryViewModel
+
+        val tabs = buildList {
+            add(
+                Tab(searchHistory)
+            )
+            if (UserData.token != "") {
+                add(Tab(subTitle))
+            }
+        }
+
+        if (searchVm != null) {
             SearchUiState(
                 searchData = listingData.searchData,
-                searchString = searchDataState.value?.searchString ?: searchString,
+                searchString = searchString,
                 searchHistory = responseHistory,
                 selectedTabIndex = changeSearchTab,
-                tabs = buildList {
-                    add(
-                        Tab(searchHistory)
-                    )
-                    if (UserData.token != "") {
-                        add(Tab(subTitle))
-                    }
-                },
+                tabs = tabs,
                 appBarData = SimpleAppBarData(
                     onBackClick = {
                         changeOpenSearch(false)
@@ -376,12 +384,10 @@ class ListingBaseViewModel(
                         )
                     ),
                 ),
-                categoryState = searchCategoryViewModel?.let {
-                    CategoryState(
-                        categoryViewModel = it,
-                        openCategory = activeType == ActiveWindowListingType.CATEGORY_FILTERS,
-                    )
-                },
+                categoryState = CategoryState(
+                    categoryViewModel = searchVm,
+                    openCategory = activeType == ActiveWindowListingType.CATEGORY_FILTERS,
+                ),
                 searchEvents = SearchEventsImpl(this),
             )
         }else{
@@ -647,7 +653,7 @@ class ListingBaseViewModel(
     }
 
     fun openSearchCategory(value : Boolean, complete: Boolean) {
-        searchCategoryViewModel?.run {
+        listingComponent?.additionalModels?.value?.searchCategoryViewModel?.run {
             if (!value) {
                 if (complete) {
                     if (listingData.value.searchData.searchCategoryID != searchData.value.searchCategoryID) {
@@ -664,7 +670,6 @@ class ListingBaseViewModel(
                     updateFromSearchData(listingData.value.searchData.copy())
                     initialize()
                 }
-
                 setActiveWindowType(ActiveWindowListingType.CATEGORY_FILTERS)
             }
         }

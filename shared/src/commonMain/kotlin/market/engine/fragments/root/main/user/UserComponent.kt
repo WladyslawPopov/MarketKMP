@@ -35,7 +35,7 @@ interface UserComponent {
 
     fun selectAllOffers(user : User)
 
-    fun onBack()
+    fun onBackClick()
 
     fun selectFeedbackPage(type: ReportPageType)
 
@@ -83,7 +83,7 @@ class DefaultUserComponent(
         goToListing(ld)
     }
 
-    override fun onBack() {
+    override fun onBackClick() {
         navigateBack()
     }
 

@@ -27,7 +27,7 @@ interface ConversationsComponent {
     )
 
     fun goToMessenger(conversation : Conversations)
-    fun onBack()
+    fun onBackClick()
 }
 
 @OptIn(ExperimentalDecomposeApi::class)
@@ -92,7 +92,7 @@ class DefaultConversationsComponent(
         model.value.message = null
     }
 
-    override fun onBack() {
+    override fun onBackClick() {
         navigateBack()
     }
 }

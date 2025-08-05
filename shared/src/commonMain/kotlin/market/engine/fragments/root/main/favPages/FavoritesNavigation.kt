@@ -63,7 +63,7 @@ import market.engine.fragments.root.main.user.UserContent
 @Serializable
 sealed class FavoritesConfig {
     @Serializable
-    data class FavPagesScreen(val favScreenType: FavScreenType, val ts: String? = null) : FavoritesConfig()
+    data class FavPagesScreen(val favScreenType: FavScreenType) : FavoritesConfig()
 
     @Serializable
     data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : FavoritesConfig()
@@ -138,7 +138,7 @@ fun FavoritesNavigation(
                 when (val screen = stack.active.instance) {
                     is ChildFavorites.ListingChild -> screen.component.goBack()
                     is ChildFavorites.OfferChild -> screen.component.onBackClick()
-                    is ChildFavorites.UserChild -> screen.component.onBack()
+                    is ChildFavorites.UserChild -> screen.component.onBackClick()
                     is ChildFavorites.CreateOfferChild -> screen.component.onBackClicked()
                     is ChildFavorites.CreateOrderChild -> screen.component.onBackClicked()
                     is ChildFavorites.MessengerChild -> screen.component.onBackClicked()
@@ -147,7 +147,7 @@ fun FavoritesNavigation(
                     is ChildFavorites.FavPagesChild -> {}
                 }
             }
-        ),
+        )
     ) { child ->
         when (val screen = child.instance) {
             is ChildFavorites.FavPagesChild -> FavPagesNavigation(screen.component, modifier)

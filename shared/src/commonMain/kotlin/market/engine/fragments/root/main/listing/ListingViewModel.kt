@@ -425,15 +425,17 @@ class ListingViewModel(
         }
     }
 
-    fun backClick(onBack: () -> Unit) {
+    fun backClick() {
+        val searchCategory = component.additionalModels.value.searchCategoryViewModel
+
         when {
             activeType.value == ActiveWindowListingType.CATEGORY_FILTERS &&
-                    listingBaseVM.searchCategoryModel.searchData.value.searchCategoryID!= 1L -> {
-                listingBaseVM.searchCategoryModel.navigateBack()
+                    searchCategory.searchData.value.searchCategoryID!= 1L -> {
+                searchCategory.navigateBack()
             }
 
             activeType.value == ActiveWindowListingType.CATEGORY &&
-                    listingBaseVM.searchCategoryModel.searchData.value.searchCategoryID!= 1L -> {
+                    searchCategory.searchData.value.searchCategoryID!= 1L -> {
                 listingCategoryModel.navigateBack()
             }
 
@@ -442,7 +444,7 @@ class ListingViewModel(
             }
 
             else -> {
-                onBack()
+                component.goBack()
             }
         }
     }

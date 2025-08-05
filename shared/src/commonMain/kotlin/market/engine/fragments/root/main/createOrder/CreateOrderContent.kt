@@ -219,7 +219,7 @@ fun CreateOrderContent(
             item {
                 // delivery cards
                 DeliveryCardsContent(
-                    viewModel.deliveryCardsViewModel
+                    component.additionalModels.value.deliveryCardsViewModel
                 ) {
                     viewModel.refreshPage()
                 }

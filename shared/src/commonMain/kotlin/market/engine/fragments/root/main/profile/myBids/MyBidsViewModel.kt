@@ -15,6 +15,7 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.filtersObjects.OfferFilters
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
@@ -115,6 +116,12 @@ class MyBidsViewModel(
                     )
                 }
             )
+
+            val eventParameters = mapOf(
+                "user_id" to UserData.login.toString(),
+                "profile_source" to "bids"
+            )
+            analyticsHelper.reportEvent("view_seller_profile", eventParameters)
         }
     }
 

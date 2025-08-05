@@ -6,6 +6,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
@@ -87,7 +88,15 @@ class DefaultMyProposalsComponent(
 
     private val updateBackHandlerItem = MutableValue(1L)
 
+    val backCallback = object : BackCallback(){
+        override fun onBack() {
+            goToBack()
+        }
+    }
+
     init {
+        backHandler.register(backCallback)
+
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
             if (UserData.token == ""){

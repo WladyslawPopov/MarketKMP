@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
@@ -48,20 +50,26 @@ fun SearchContent(
     val focusManager = LocalFocusManager.current
     val searchEvents = uiSearchUiState.searchEvents
     val appBarData = uiSearchUiState.appBarData
-    val openCategory = uiSearchUiState.categoryState.openCategory
+    val openCategory = uiSearchUiState.categoryState?.openCategory
     val searchStringState = uiSearchUiState.searchString
 
-    val searchString = remember { mutableStateOf(TextFieldValue(searchStringState)) }
+
+    LaunchedEffect(openCategory){
+        if (openCategory == true){
+            focusManager.clearFocus()
+        }
+    }
 
     EdgeToEdgeScaffold(
         modifier = Modifier.fillMaxSize(),
         isLoading = false,
         topBar = {
-            if (!openCategory) {
+            if (openCategory != null) {
                 SimpleAppBar(
                     modifier = Modifier,
                     data = appBarData
                 ) {
+                    val searchString = remember { mutableStateOf(TextFieldValue(searchStringState, selection = TextRange(searchStringState.length))) }
                     SearchTextField(
                         !openCategory,
                         searchString.value,
@@ -84,109 +92,112 @@ fun SearchContent(
             }
         },
     ){ contentPadding ->
-        CustomBottomSheet(
-            initValue = openCategory,
-            contentPadding = contentPadding,
-            onClosed = {
-                searchEvents.openSearchCategory(value = false, complete = false)
-            },
-            sheetContent = {
-                CategoryContent(
-                    viewModel = uiSearchUiState.categoryState.categoryViewModel,
-                    onCompleted = {
-                        searchEvents.openSearchCategory(value = false, complete = true)
-                    },
-                    onClose = {
-                        searchEvents.openSearchCategory(value = false, complete = false)
-                    }
-                )
-            }
-        ){
-            Box(
-                modifier = Modifier
-                .padding(contentPadding)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = dimens.largePadding)
-                        .pointerInput(Unit) {
-                            detectTapGestures(onTap = {
-                                focusManager.clearFocus()
-                            })
+        openCategory?.let {
+            CustomBottomSheet(
+                initValue = openCategory,
+                contentPadding = contentPadding,
+                onClosed = {
+                    searchEvents.openSearchCategory(value = false, complete = false)
+                },
+                sheetContent = {
+                    CategoryContent(
+                        viewModel = uiSearchUiState.categoryState.categoryViewModel,
+                        onCompleted = {
+                            searchEvents.openSearchCategory(value = false, complete = true)
                         },
-                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                )
-                {
-                    Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
-
-                    FiltersSearchBar(uiSearchUiState, searchEvents)
-
-                    if (uiSearchUiState.tabs.size > 1) {
-                        TabRow(
-                            uiSearchUiState.tabs,
-                            dividerColor = colors.transparent,
-                            selectedTab = uiSearchUiState.selectedTabIndex,
-                            containerColor = colors.primaryColor,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { index, tab ->
-                            PageTab(
-                                tab = tab,
-                                selectedTab = uiSearchUiState.selectedTabIndex,
-                                currentIndex = index,
-                                textStyle = MaterialTheme.typography.titleSmall,
-                                modifier = Modifier.clickable {
-                                    searchEvents.onTabSelect(index)
-                                },
-                            )
+                        onClose = {
+                            searchEvents.openSearchCategory(value = false, complete = false)
                         }
-                    }
-
-                    ChildPages(
-                        pages = searchPages,
-                        scrollAnimation = PagesScrollAnimation.Default,
-                        onPageSelected = {
-                            searchEvents.onTabSelect(it)
-                            focusManager.clearFocus()
-                        }
-                    ) { _, page ->
-                        when (page) {
-                            is SearchPagesComponents.HistoryChild -> {
-                                HistoryLayout(
-                                    historyItems = uiSearchUiState.searchHistory,
-                                    modifier = Modifier.fillMaxSize()
-                                        .padding(horizontal = dimens.smallPadding),
-                                    onItemClick = { item ->
-                                        searchEvents.editHistoryItem(item)
-                                    },
-                                    onClearHistory = {
-                                        searchEvents.onDeleteHistory()
-                                    },
-                                    onDeleteItem = {
-                                        searchEvents.onDeleteHistoryItem(it)
-                                    },
-                                    goToListing = { item ->
-                                        searchEvents.onHistoryItemClicked(item)
-                                    }
-                                )
-                            }
-
-                            is SearchPagesComponents.SubscriptionsChild -> {
-                                SubscriptionsContent(
-                                    page.component,
-                                    Modifier.padding(bottom = dimens.largePadding),
-                                )
-                            }
-                        }
-                    }
+                    )
                 }
-
-                AcceptedPageButton(
-                    stringResource(strings.categoryEnter),
-                    Modifier.align(Alignment.BottomCenter)
+            )
+            {
+                Box(
+                    modifier = Modifier
+                        .padding(contentPadding)
                 ) {
-                    searchEvents.goToListing()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = dimens.largePadding)
+                            .pointerInput(Unit) {
+                                detectTapGestures(onTap = {
+                                    focusManager.clearFocus()
+                                })
+                            },
+                        verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    )
+                    {
+                        Spacer(modifier = Modifier.fillMaxWidth().padding(dimens.smallSpacer))
+
+                        FiltersSearchBar(uiSearchUiState, searchEvents)
+
+                        if (uiSearchUiState.tabs.size > 1) {
+                            TabRow(
+                                uiSearchUiState.tabs,
+                                dividerColor = colors.transparent,
+                                selectedTab = uiSearchUiState.selectedTabIndex,
+                                containerColor = colors.primaryColor,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { index, tab ->
+                                PageTab(
+                                    tab = tab,
+                                    selectedTab = uiSearchUiState.selectedTabIndex,
+                                    currentIndex = index,
+                                    textStyle = MaterialTheme.typography.titleSmall,
+                                    modifier = Modifier.clickable {
+                                        searchEvents.onTabSelect(index)
+                                    },
+                                )
+                            }
+                        }
+
+                        ChildPages(
+                            pages = searchPages,
+                            scrollAnimation = PagesScrollAnimation.Default,
+                            onPageSelected = {
+                                searchEvents.onTabSelect(it)
+                                focusManager.clearFocus()
+                            }
+                        ) { _, page ->
+                            when (page) {
+                                is SearchPagesComponents.HistoryChild -> {
+                                    HistoryLayout(
+                                        historyItems = uiSearchUiState.searchHistory,
+                                        modifier = Modifier.fillMaxSize()
+                                            .padding(horizontal = dimens.smallPadding),
+                                        onItemClick = { item ->
+                                            searchEvents.editHistoryItem(item)
+                                        },
+                                        onClearHistory = {
+                                            searchEvents.onDeleteHistory()
+                                        },
+                                        onDeleteItem = {
+                                            searchEvents.onDeleteHistoryItem(it)
+                                        },
+                                        goToListing = { item ->
+                                            searchEvents.onHistoryItemClicked(item)
+                                        }
+                                    )
+                                }
+
+                                is SearchPagesComponents.SubscriptionsChild -> {
+                                    SubscriptionsContent(
+                                        page.component,
+                                        Modifier.padding(bottom = dimens.largePadding),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    AcceptedPageButton(
+                        stringResource(strings.categoryEnter),
+                        Modifier.align(Alignment.BottomCenter)
+                    ) {
+                        searchEvents.goToListing()
+                    }
                 }
             }
         }

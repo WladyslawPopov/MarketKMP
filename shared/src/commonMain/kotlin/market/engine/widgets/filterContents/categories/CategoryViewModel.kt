@@ -195,6 +195,7 @@ class CategoryViewModel(
         _searchData.update {
             searchData.copy()
         }
+        initialize()
     }
 
     fun onCatBack(
