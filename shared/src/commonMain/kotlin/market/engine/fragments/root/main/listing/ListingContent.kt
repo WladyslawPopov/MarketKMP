@@ -217,12 +217,12 @@ fun ListingContent(
                                 if (listingBaseModel.listingType.value == 0) {
                                     PublicOfferItem(
                                         offer,
-                                        updateItem,
+                                        updateItem
                                     )
                                 } else {
                                     PublicOfferItemGrid(
                                         offer,
-                                        updateItem,
+                                        updateItem
                                     )
                                 }
                             },

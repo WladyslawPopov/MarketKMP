@@ -26,12 +26,12 @@ fun getRemainingMinutesTime(endTimestamp: Long): Long {
 }
 
 fun Instant.toCurrentSystemLocalDateTime(): LocalDateTime {
-    return this.toLocalDateTime(TimeZone.UTC)
+    return this.toLocalDateTime(TimeZone.currentSystemDefault())
 }
 
 fun String.convertDateWithMinutes(): String {
     try {
-        if (this.isEmpty()) {
+        if (this.isEmpty() || this == "null") {
             return ""
         }
 
@@ -54,7 +54,7 @@ fun String.convertDateWithMinutes(): String {
 fun String.convertHoursAndMinutes(): String {
     try {
         // Validate that the input date string is not empty
-        if (this.isEmpty()) {
+        if (this.isEmpty() || this == "null") {
             return ""
         }
 
@@ -95,7 +95,7 @@ fun String.convertDateYear(): String{
 fun String.convertDateOnlyYear(): String {
     try {
         // Validate that the input date string is not empty
-        if (this.isEmpty()) {
+        if (this.isEmpty() || this == "null") {
             return ""
         }
 

@@ -32,7 +32,7 @@ import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
@@ -92,7 +92,7 @@ class OfferViewModel(
 
     private val offerRepositoryEvents = OfferRepositoryEventsImpl(component, this)
 
-    val offerRepository = OfferRepository(
+    val cabinetOfferRepository = CabinetOfferRepository(
         offer = Offer(),
         listingData = ListingData(),
         events = offerRepositoryEvents,
@@ -116,7 +116,7 @@ class OfferViewModel(
 
     fun editNote(){
         viewModelScope.launch {
-            offerRepository.menuList.value.find { it.id == "edit_note" }?.onClick()
+            cabinetOfferRepository.menuList.value.find { it.id == "edit_note" }?.onClick()
         }
     }
 
@@ -236,7 +236,7 @@ class OfferViewModel(
                         }
 
                         if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
-                            startTimerUpdateBids(offerRepository.offerState.value)
+                            startTimerUpdateBids(cabinetOfferRepository.offerState.value)
                         }
 
                         if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
@@ -275,7 +275,7 @@ class OfferViewModel(
                             } ?: "",
                         )
 
-                        offerRepository.setNewOfferData(offer.parseToOfferItem())
+                        cabinetOfferRepository.setNewOfferData(offer.parseToOfferItem())
 
                         updateUserState(offer.sellerData?.id ?: 1)
                     }
@@ -428,8 +428,8 @@ class OfferViewModel(
             }
             withContext(Dispatchers.Main) {
                 if (user != null) {
-                    offerRepository.setNewOfferData(
-                        offerRepository.offerState.value.copy(
+                    cabinetOfferRepository.setNewOfferData(
+                        cabinetOfferRepository.offerState.value.copy(
                             seller = user,
                         )
                     )
@@ -456,8 +456,8 @@ class OfferViewModel(
                 withContext(Dispatchers.Main) {
                     response.success?.body?.let { body ->
                         if (body.isChanged) {
-                            offerRepository.setNewOfferData(
-                                offerRepository.offerState.value.copy(
+                            cabinetOfferRepository.setNewOfferData(
+                                cabinetOfferRepository.offerState.value.copy(
                                     bids = body.bids,
                                     version = JsonPrimitive(body.currentVersion),
                                     price = body.currentPrice ?: "",
@@ -653,7 +653,7 @@ class OfferViewModel(
     }
 
     fun scrollToBids(){
-        if(offerRepository.offerState.value.bids?.isNotEmpty() == true) {
+        if(cabinetOfferRepository.offerState.value.bids?.isNotEmpty() == true) {
             _scrollPosition.value = goToBids
         }
     }
@@ -806,6 +806,6 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun updateBidsInfo(item: OfferItem) {
-        viewModel.updateBidsInfo(viewModel.offerRepository.offerState.value)
+        viewModel.updateBidsInfo(viewModel.cabinetOfferRepository.offerState.value)
     }
 }

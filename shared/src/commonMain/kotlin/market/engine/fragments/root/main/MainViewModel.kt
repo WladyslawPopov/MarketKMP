@@ -2,8 +2,8 @@ package market.engine.fragments.root.main
 
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
+import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -158,7 +158,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                        profileNavigation.popToFirst()
                         profileNavigation.pushNew(
                             ProfileConfig.MyBidsScreen
                         )
@@ -175,7 +175,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                         userInfo?.countUnreadPriceProposals else null,
                     onClick = {
                         try {
-                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.MyProposalsScreen
                             )
@@ -191,7 +191,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
                             )
@@ -208,7 +208,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.MyOffersScreen
                             )
@@ -224,7 +224,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
                             )
@@ -240,7 +240,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = if((userInfo?.countUnreadMessages ?:0) > 0) userInfo?.countUnreadMessages else null,
                     onClick = {
                         try {
-                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.ConversationsScreen()
                             )
@@ -276,7 +276,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     badgeCount = null,
                     onClick = {
                         try {
-                            profileNavigation.replaceAll(ProfileConfig.ProfileScreen())
+                            profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.ProfileSettingsScreen
                             )

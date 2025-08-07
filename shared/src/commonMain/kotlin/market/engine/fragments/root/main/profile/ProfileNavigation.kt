@@ -11,6 +11,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
@@ -167,29 +168,49 @@ fun ProfileNavigation(
                 is ChildProfile.ConversationsChild -> screen.component.model.value.backHandler
                 is ChildProfile.ProfileChild -> screen.component.model.value.backHandler
                 is ChildProfile.MyBidsChild ->{
-                    val pages = screen.component.myBidsPages.value
-                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
-                        ?: screen.component.model.value.backHandler
+                    val pages = screen.component.myOrdersPages.value
+                    if (pages.items.isNotEmpty()){
+                        pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                            ?: screen.component.model.value.backHandler
+                    }else{
+                        screen.component.model.value.backHandler
+                    }
                 }
                 is ChildProfile.MyOffersChild -> {
-                    val pages = screen.component.myOffersPages.value
-                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
-                        ?: screen.component.model.value.backHandler
+                    val pages = screen.component.myOrdersPages.value
+                    if (pages.items.isNotEmpty()){
+                        pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                            ?: screen.component.model.value.backHandler
+                    }else{
+                        screen.component.model.value.backHandler
+                    }
                 }
                 is ChildProfile.MyOrdersChild -> {
                     val pages = screen.component.myOrdersPages.value
-                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
-                        ?: screen.component.model.value.backHandler
+                    if (pages.items.isNotEmpty()){
+                        pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                            ?: screen.component.model.value.backHandler
+                    }else{
+                        screen.component.model.value.backHandler
+                    }
                 }
                 is ChildProfile.MyProposalsChild -> {
-                    val pages = screen.component.myProposalsPages.value
-                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
-                        ?: screen.component.model.value.backHandler
+                    val pages = screen.component.myOrdersPages.value
+                    if (pages.items.isNotEmpty()){
+                        pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                            ?: screen.component.model.value.backHandler
+                    }else{
+                        screen.component.model.value.backHandler
+                    }
                 }
                 is ChildProfile.ProfileSettingsChild -> {
-                    val pages = screen.component.settingsPages.value
-                    pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
-                        ?: screen.component.model.value.backHandler
+                    val pages = screen.component.myOrdersPages.value
+                    if (pages.items.isNotEmpty()){
+                        pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
+                            ?: screen.component.model.value.backHandler
+                    }else{
+                        screen.component.model.value.backHandler
+                    }
                 }
             },
             onBack = {
@@ -259,7 +280,6 @@ fun createProfileChild(
     config: ProfileConfig,
     componentContext: JetpackComponentContext,
     profileNavigation: StackNavigation<ProfileConfig>,
-    navigateToMyOrders: (Long?, DealTypeGroup) -> Unit,
     navigateToSubscribe: () -> Unit
 ): ChildProfile {
     return when (config) {
@@ -282,7 +302,6 @@ fun createProfileChild(
 
         is OfferScreen -> ChildProfile.OfferChild(
             component =
-
                 DefaultOfferComponent(
                     config.id,
                     config.isSnapshot,
@@ -396,7 +415,8 @@ fun createProfileChild(
                             profileNavigation.pop()
                         },
                         navigateToOrder = { id, type ->
-                            navigateToMyOrders(id, type)
+                            profileNavigation.popToFirst()
+                            profileNavigation.pushNew(ProfileConfig.MyOrdersScreen(type, id))
                         },
                         navigateToSnapshot = { id ->
                             profileNavigation.pushNew(
@@ -461,8 +481,8 @@ fun createProfileChild(
                     )
                 },
                 navigateToMyOrders = {
-                    profileNavigation.pop()
-                    navigateToMyOrders(null, DealTypeGroup.BUY)
+                    profileNavigation.popToFirst()
+                    profileNavigation.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY,null))
                 }
             )
         )
@@ -508,7 +528,8 @@ fun createProfileChild(
                     profileNavigation.pop()
                 },
                 navigateToOrder = { id, type ->
-                    navigateToMyOrders(id, type)
+                    profileNavigation.popToFirst()
+                    profileNavigation.pushNew(ProfileConfig.MyOrdersScreen(type, id))
                 },
                 navigateToUser = {
                     profileNavigation.pushNew(

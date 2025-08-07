@@ -298,8 +298,8 @@ class ListingBaseViewModel(
                     tabs = tabs,
                     currentTab = curTab,
                     isTabsVisible = true,
-                    onClick = {
-                        when(curTab){
+                    onClick = { selectedTab ->
+                        when(selectedTab){
                             allString -> {
                                 changeSaleTab("")
                             }

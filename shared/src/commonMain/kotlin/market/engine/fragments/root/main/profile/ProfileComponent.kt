@@ -5,6 +5,7 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
@@ -62,9 +63,11 @@ class DefaultProfileComponent(
         val currentPage = params?.firstOrNull() ?: ""
         val content = params?.lastOrNull()
 
+        navigationProfile.popToFirst()
+
         when (currentPage) {
             "conversations" -> {
-                val mes = if(content != currentPage)content else null
+                val mes = if(content != currentPage) content else null
                 navigationProfile.pushNew(ProfileConfig.ConversationsScreen(mes))
             }
             "purchases" -> {

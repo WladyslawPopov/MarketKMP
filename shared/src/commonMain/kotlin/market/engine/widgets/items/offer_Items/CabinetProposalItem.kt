@@ -31,7 +31,7 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.ProposalType
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.ilustrations.LoadImage
@@ -46,20 +46,20 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetProposalItem(
-    offerRepository : OfferRepository,
+    cabinetOfferRepository : CabinetOfferRepository,
     updateItem : Long? = null,
 ) {
-    val offer by offerRepository.offerState.collectAsState()
-    val events = offerRepository.events
+    val offer by cabinetOfferRepository.offerState.collectAsState()
+    val events = cabinetOfferRepository.events
 
-    val menuList = offerRepository.menuList.collectAsState()
+    val menuList = cabinetOfferRepository.menuList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
-    val defOptions = offerRepository.getDefOperations()
+    val defOptions = cabinetOfferRepository.getDefOperations()
 
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.updateItem()
+            cabinetOfferRepository.updateItem()
         }
     }
 
@@ -297,7 +297,7 @@ fun CabinetProposalItem(
                             textColor = colors.alwaysWhite,
                             modifier = Modifier.weight(1f, false)
                         ) {
-                            offerRepository.openMesDialog()
+                            cabinetOfferRepository.openMesDialog()
                         }
                     }
                 }
@@ -306,6 +306,6 @@ fun CabinetProposalItem(
     }
 
     OfferOperationsDialogs(
-        offerRepository
+        cabinetOfferRepository
     )
 }

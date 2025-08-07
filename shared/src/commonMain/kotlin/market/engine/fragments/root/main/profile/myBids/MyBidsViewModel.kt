@@ -25,7 +25,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
@@ -60,7 +60,7 @@ class MyBidsViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow
+    val pagingDataFlow: Flow<PagingData<CabinetOfferRepository>> = pagingParamsFlow
         .flatMapLatest { listingParams ->
             pagingRepository.getListing(
                 listingParams,
@@ -70,7 +70,7 @@ class MyBidsViewModel(
                 listingBaseViewModel.setTotalCount(tc)
             }.map { pagingData ->
                 pagingData.map { offer ->
-                    OfferRepository(
+                    CabinetOfferRepository(
                         offer,
                         listingParams,
                         OfferRepositoryEventsImpl(this@MyBidsViewModel, component),

@@ -9,8 +9,8 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
-import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
@@ -95,20 +95,11 @@ class DefaultProfileChildrenComponent(
         val content = params?.lastOrNull()
 
         when (currentPage) {
-            "conversations" -> {
-                val mes = if(content != currentPage)content else null
-                navigationProfile.pushNew(ProfileConfig.ConversationsScreen(mes))
-            }
             "purchases" -> {
                 searchID = content?.toLongOrNull()
-                navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY, content?.toLongOrNull()))
             }
             "sales" -> {
                 searchID = content?.toLongOrNull()
-                navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL, content?.toLongOrNull()))
-            }
-            "proposals" -> {
-                navigationProfile.pushNew(ProfileConfig.MyProposalsScreen)
             }
         }
     }
@@ -320,14 +311,14 @@ class DefaultProfileChildrenComponent(
                         navigationProfile.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
                     },
                     navigateToPurchases = {
-                        navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                        navigationProfile.popToFirst()
                         navigationProfile.pushNew(ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY))
                     },
                     navigateToDialog = { dialogId ->
                         if (dialogId != null)
                             navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
                         else {
-                            navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                            navigationProfile.popToFirst()
                             navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
                         }
                     },
@@ -376,7 +367,7 @@ class DefaultProfileChildrenComponent(
                                 )
                             )
                         else {
-                            navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                            navigationProfile.popToFirst()
                             navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
                         }
                     },
@@ -450,7 +441,7 @@ class DefaultProfileChildrenComponent(
                         if(dialogId != null)
                             navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
                         else {
-                            navigationProfile.replaceAll(ProfileConfig.ProfileScreen())
+                            navigationProfile.popToFirst()
                             navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
                         }
                     },

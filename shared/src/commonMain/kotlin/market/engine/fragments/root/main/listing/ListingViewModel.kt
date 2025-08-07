@@ -26,33 +26,31 @@ import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.successToastItem
-import market.engine.core.data.events.OfferRepositoryEvents
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.items.OfferItem
-import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
-import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.PlatformWindowType
-import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
-import market.engine.core.repositories.OfferRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
+import market.engine.core.repositories.PublicOfferRepository
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
-import market.engine.fragments.root.DefaultRootComponent
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
+
 import kotlin.String
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,6 +60,8 @@ class ListingViewModel(
 ) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
+
+    val offerOperations: OfferOperations = getKoin().get()
 
     private val _regionOptions = savedStateHandle.getSavedStateFlow(
         viewModelScope,
@@ -90,7 +90,7 @@ class ListingViewModel(
         listingData
     }
 
-    val pagingDataFlow: Flow<PagingData<OfferRepository>> = pagingParamsFlow.flatMapLatest{ listingData ->
+    val pagingDataFlow: Flow<PagingData<PublicOfferRepository>> = pagingParamsFlow.flatMapLatest{ listingData ->
         pagingRepository.getListing(
             listingData,
             apiService,
@@ -120,11 +120,21 @@ class ListingViewModel(
                     }
                 }
 
-                OfferRepository(
-                    offer,
-                    listingData,
-                    events = OfferRepositoryEventsImpl(this, component),
-                    this
+                PublicOfferRepository(
+                    offer = offer,
+                    goToOffer = {
+                        component.goToOffer(it)
+                    },
+                    addFavorite = { item, onSuccess ->
+                        addFavorite(item){
+                            onSuccess(it)
+                        }
+                    },
+                    updateOffer = { id, onSuccess ->
+                        updateOffer(id) { newOffer ->
+                            onSuccess(newOffer)
+                        }
+                    }
                 )
             }
         }
@@ -188,9 +198,7 @@ class ListingViewModel(
 
             _listingDataState.value = SimpleAppBarData(
                 onBackClick = {
-                    getMainTread {
-                        component.goBack()
-                    }
+                    backClick()
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -299,6 +307,45 @@ class ListingViewModel(
                         humanMessage = exception.message.toString()
                     )
                 )
+            }
+        }
+    }
+    fun addFavorite(offer: OfferItem, onSuccess: (Boolean) -> Unit) {
+        val opId = if(offer.isWatchedByMe) "unwatch" else "watch"
+
+        postOperationFields(
+            offer.id,
+            opId,
+            "offers",
+            onSuccess = {
+                val eventParameters = mapOf(
+                    "lot_id" to offer.id,
+                    "lot_name" to offer.title,
+                    "lot_city" to offer.location,
+                    "auc_delivery" to offer.safeDeal,
+                    "lot_category" to offer.catPath.firstOrNull(),
+                    "seller_id" to offer.seller.id,
+                    "lot_price_start" to offer.price,
+                )
+                analyticsHelper.reportEvent(
+                    "${opId}_success",
+                    eventParameters
+                )
+                updateUserInfo()
+                onSuccess(!offer.isWatchedByMe)
+            },
+            errorCallback = {
+                onSuccess(offer.isWatchedByMe)
+            }
+        )
+    }
+
+    fun updateOffer(id : Long, onSuccess: (Offer) -> Unit){
+        viewModelScope.launch {
+            val res = offerOperations.getOffer(id)
+            val offer = res.success
+            if (offer != null) {
+                onSuccess(offer)
             }
         }
     }
@@ -453,45 +500,3 @@ class ListingViewModel(
         errorString.value = ""
     }
 }
-
-data class OfferRepositoryEventsImpl(
-    val viewModel: ListingViewModel,
-    val component: ListingComponent
-): OfferRepositoryEvents
-{
-    override fun goToCreateOffer(
-        type: CreateOfferType,
-        catpath: List<Long>,
-        id: Long,
-        externalImages: List<String>?
-    ) {}
-
-    override fun goToProposalPage(
-        offerId: Long,
-        type: ProposalType
-    ) {}
-
-    override fun goToDynamicSettings(type: String, id: Long) {
-        DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
-    }
-
-    override fun goToDialog(id: Long?) {
-    }
-
-    override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
-    }
-
-    override fun goToUserPage(sellerId: Long) {
-    }
-
-    override fun openCabinetOffer(offer: OfferItem) {
-        viewModel.getMainTread {
-            component.goToOffer(offer)
-        }
-    }
-
-    override fun scrollToBids() {}
-    override fun refreshPage() {}
-    override fun updateBidsInfo(item: OfferItem) {}
-}
-

@@ -122,7 +122,7 @@ fun OfferContent(
 
     val scrollPos by viewModel.scrollPosition.collectAsState()
 
-    val offerRepository = viewModel.offerRepository
+    val offerRepository = viewModel.cabinetOfferRepository
 
     val remainingTime by viewModel.remainingTime.collectAsState()
 

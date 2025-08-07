@@ -8,7 +8,7 @@ data class SwipeTabsBarState(
     val tabs : List<Tab> = emptyList(),
     val currentTab : String = "",
     val isTabsVisible : Boolean = true,
-    val onClick: () -> Unit = {},
+    val onClick: (String) -> Unit = {},
     val onLongClick: () -> Unit = {},
 )
 

@@ -247,9 +247,6 @@ class DefaultMainComponent(
                     config,
                     componentContext,
                     modelNavigation.value.profileNavigation,
-                    navigateToMyOrders = { id, type ->
-                        navigateToBottomItem(MainConfig.Profile, if(type == DealTypeGroup.BUY) "purchases/$id" else "sales/$id")
-                    },
                     navigateToSubscribe = {
                         navigateToBottomItem(MainConfig.Favorites, "subscribe")
                     }

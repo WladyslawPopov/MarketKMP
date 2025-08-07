@@ -38,7 +38,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.badges.DiscountBadge
 import market.engine.widgets.bars.HeaderOfferBar
@@ -55,19 +55,19 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetOfferItem(
-    offerRepository: OfferRepository,
+    cabinetOfferRepository: CabinetOfferRepository,
     updateItem: Long?,
     selected : Boolean = false,
     onSelected : ((Long) -> Unit)? = null
 ) {
-    val offer by offerRepository.offerState.collectAsState()
+    val offer by cabinetOfferRepository.offerState.collectAsState()
 
-    val events = offerRepository.events
-    val defOptions = offerRepository.getDefOperations()
+    val events = cabinetOfferRepository.events
+    val defOptions = cabinetOfferRepository.getDefOperations()
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.updateItem()
+            cabinetOfferRepository.updateItem()
         }
     }
 
@@ -79,8 +79,8 @@ fun CabinetOfferItem(
 
     val openPromoMenu = remember { mutableStateOf(false) }
 
-    val menuList = offerRepository.menuList.collectAsState()
-    val menuPromotionsList = offerRepository.promoList.collectAsState()
+    val menuList = cabinetOfferRepository.menuList.collectAsState()
+    val menuPromotionsList = cabinetOfferRepository.promoList.collectAsState()
 
     AnimatedVisibility(offer.session != null, enter = fadeIn(), exit = fadeOut()) {
         if (offer.session != null) {
@@ -476,6 +476,6 @@ fun CabinetOfferItem(
     }
 
     OfferOperationsDialogs(
-        offerRepository = offerRepository,
+        cabinetOfferRepository = cabinetOfferRepository,
     )
 }

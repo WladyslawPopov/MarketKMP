@@ -76,7 +76,7 @@ fun FiltersBar(
                             modifier = Modifier.padding(dimens.extraSmallPadding),
                             selected = tab.title == swipeTabsBarState.currentTab,
                             onClick = {
-                                swipeTabsBarState.onClick()
+                                swipeTabsBarState.onClick(tab.title)
                             },
                             label = {
                                 Text(

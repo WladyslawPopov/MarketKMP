@@ -31,7 +31,7 @@ import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
-import market.engine.core.repositories.OfferRepository
+import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.core.utils.getCurrentDate
 import market.engine.widgets.buttons.SimpleTextButton
@@ -47,20 +47,20 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CabinetBidsItem(
-    offerRepository : OfferRepository,
+    cabinetOfferRepository : CabinetOfferRepository,
     updateItem : Long? = null,
 ) {
-    val offer by offerRepository.offerState.collectAsState()
+    val offer by cabinetOfferRepository.offerState.collectAsState()
 
-    val events = offerRepository.events
-    val defOptions = offerRepository.getDefOperations()
+    val events = cabinetOfferRepository.events
+    val defOptions = cabinetOfferRepository.getDefOperations()
 
-    val menuList = offerRepository.menuList.collectAsState()
+    val menuList = cabinetOfferRepository.menuList.collectAsState()
     val openMenu = remember { mutableStateOf(false) }
 
     LaunchedEffect(updateItem) {
         if (updateItem == offer.id) {
-            offerRepository.updateItem()
+            cabinetOfferRepository.updateItem()
         }
     }
 
@@ -283,7 +283,7 @@ fun CabinetBidsItem(
                             backgroundColor = colors.steelBlue,
                             textColor = colors.alwaysWhite
                         ) {
-                            offerRepository.openMesDialog()
+                            cabinetOfferRepository.openMesDialog()
                         }
                     }
                 }
@@ -364,6 +364,6 @@ fun CabinetBidsItem(
     }
 
     OfferOperationsDialogs(
-        offerRepository = offerRepository,
+        cabinetOfferRepository = cabinetOfferRepository,
     )
 }

@@ -64,7 +64,7 @@ import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
 import kotlin.toString
 
-class OfferRepository(
+class CabinetOfferRepository(
     offer: Offer = Offer(),
     val listingData: ListingData = ListingData(),
     val events: OfferRepositoryEvents,
@@ -354,7 +354,6 @@ class OfferRepository(
             }
         }
     }
-
 
     fun refreshOffer(){
         updateItem()
