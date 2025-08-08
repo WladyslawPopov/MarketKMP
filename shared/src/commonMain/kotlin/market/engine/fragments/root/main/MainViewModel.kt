@@ -72,8 +72,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     }
 
     fun updateNavLists() {
-            val userInfo = UserData.userInfo
-            val profileNavigation = component.modelNavigation.value.profileNavigation
+        val userInfo = UserData.userInfo
+        val profileNavigation = component.modelNavigation.value.profileNavigation
         getMainTread {
             _bottomList.value = listOf(
                 NavigationItem(
@@ -135,19 +135,26 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     }
                 )
             )
-        }
-        getMainTread {
+
             _publicProfileNavigationItems.value = listOf(
                 NavigationItem(
-                    title = getString(strings.createNewOfferTitle),
-                    icon = drawables.newLotIcon,
-                    tint = colors.actionItemColors,
+                    title = getString(strings.myProfileTitle),
+                    subtitle = getString(strings.myProfileSubTitle),
+                    icon = drawables.profileIcon,
+                    tint = colors.black,
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        profileNavigation.pushNew(
-                            ProfileConfig.CreateOfferScreen(null, null, CreateOfferType.CREATE, null)
-                        )
+                        try {
+                            profileNavigation.pushNew(
+                                ProfileConfig.UserScreen(
+                                    UserData.login,
+                                    getCurrentDate(),
+                                    false
+                                )
+                            )
+                        } catch (_: Exception) {
+                        }
                     }
                 ),
                 NavigationItem(
@@ -171,7 +178,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     tint = colors.black,
                     hasNews = false,
                     isVisible = true,
-                    badgeCount = if((userInfo?.countUnreadPriceProposals ?:0) > 0)
+                    badgeCount = if ((userInfo?.countUnreadPriceProposals ?: 0) > 0)
                         userInfo?.countUnreadPriceProposals else null,
                     onClick = {
                         try {
@@ -179,7 +186,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                             profileNavigation.pushNew(
                                 ProfileConfig.MyProposalsScreen
                             )
-                        } catch ( _ : Exception){}
+                        } catch (_: Exception) {
+                        }
                     }
                 ),
                 NavigationItem(
@@ -212,7 +220,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                             profileNavigation.pushNew(
                                 ProfileConfig.MyOffersScreen
                             )
-                        } catch ( _ : Exception){}
+                        } catch (_: Exception) {
+                        }
                     }
                 ),
                 NavigationItem(
@@ -228,7 +237,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                             profileNavigation.pushNew(
                                 ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
                             )
-                        } catch ( _ : Exception){}
+                        } catch (_: Exception) {
+                        }
                     }
                 ),
                 NavigationItem(
@@ -237,34 +247,34 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     icon = drawables.dialogIcon,
                     tint = colors.black,
                     hasNews = false,
-                    badgeCount = if((userInfo?.countUnreadMessages ?:0) > 0) userInfo?.countUnreadMessages else null,
+                    badgeCount = if ((userInfo?.countUnreadMessages
+                            ?: 0) > 0
+                    ) userInfo?.countUnreadMessages else null,
                     onClick = {
                         try {
                             profileNavigation.popToFirst()
                             profileNavigation.pushNew(
                                 ProfileConfig.ConversationsScreen()
                             )
-                        } catch ( _ : Exception){
+                        } catch (_: Exception) {
                         }
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.myProfileTitle),
-                    subtitle = getString(strings.myProfileSubTitle),
-                    icon = drawables.profileIcon,
-                    tint = colors.black,
+                    title = getString(strings.createNewOfferTitle),
+                    icon = drawables.newLotIcon,
+                    tint = colors.actionItemColors,
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        try {
-                            profileNavigation.pushNew(
-                                ProfileConfig.UserScreen(
-                                    UserData.login,
-                                    getCurrentDate(),
-                                    false
-                                )
+                        profileNavigation.pushNew(
+                            ProfileConfig.CreateOfferScreen(
+                                null,
+                                null,
+                                CreateOfferType.CREATE,
+                                null
                             )
-                        } catch ( _ : Exception){}
+                        )
                     }
                 ),
                 NavigationItem(
@@ -280,7 +290,8 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                             profileNavigation.pushNew(
                                 ProfileConfig.ProfileSettingsScreen
                             )
-                        } catch ( _ : Exception){}
+                        } catch (_: Exception) {
+                        }
                     }
                 ),
                 NavigationItem(
@@ -302,7 +313,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     }
                 ),
             )
-       }
+        }
     }
 
     fun debouncedNavigate(targetConfig : MainConfig) {

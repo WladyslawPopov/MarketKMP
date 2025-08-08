@@ -716,37 +716,41 @@ fun OfferContent(
                             item {
                                 // seller panel
                                 if (!isMyOffer) {
-                                    UserPanel(
-                                        modifier = Modifier.background(
-                                            colors.white,
-                                            MaterialTheme.shapes.small
-                                        ),
-                                        user = offer.seller,
-                                        goToUser = {
-                                            component.goToUser(
-                                                offer.seller.id,
-                                                false
-                                            )
-                                        },
-                                        goToAllLots = {
-                                            component.goToUsersListing(offer.seller)
-                                        },
-                                        goToAboutMe = {
-                                            component.goToUser(offer.seller.id, true)
-                                        },
-                                        addToSubscriptions = { callBack ->
-                                            viewModel.addToSubscriptions(offer) { es ->
-                                                callBack(es)
-                                            }
-                                        },
-                                        goToSubscriptions = {
-                                            component.goToSubscribes()
-                                        },
-                                        goToSettings = {
-                                            component.goToDynamicSettings(it, null)
-                                        },
-                                        isBlackList = statusList
-                                    )
+                                    Column {
+                                        SeparatorLabel(stringResource(strings.sellerLabel))
+
+                                        UserPanel(
+                                            modifier = Modifier.background(
+                                                colors.white,
+                                                MaterialTheme.shapes.small
+                                            ),
+                                            user = offer.seller,
+                                            goToUser = {
+                                                component.goToUser(
+                                                    offer.seller.id,
+                                                    false
+                                                )
+                                            },
+                                            goToAllLots = {
+                                                component.goToUsersListing(offer.seller)
+                                            },
+                                            goToAboutMe = {
+                                                component.goToUser(offer.seller.id, true)
+                                            },
+                                            addToSubscriptions = { callBack ->
+                                                viewModel.addToSubscriptions(offer) { es ->
+                                                    callBack(es)
+                                                }
+                                            },
+                                            goToSubscriptions = {
+                                                component.goToSubscribes()
+                                            },
+                                            goToSettings = {
+                                                component.goToDynamicSettings(it, null)
+                                            },
+                                            isBlackList = statusList
+                                        )
+                                    }
                                 }
                             }
 
@@ -970,35 +974,38 @@ fun DescriptionHtmlOffer(
     onContentSizeChanged: (Int) -> Unit = {},
     onToggle: () -> Unit = {}
 ){
-    SeparatorLabel(stringResource(strings.description))
+    Column {
+        SeparatorLabel(stringResource(strings.description))
 
-    Box(
-        modifier = Modifier
-            .background(colors.white, MaterialTheme.shapes.small)
-            .clip(MaterialTheme.shapes.small)
-            .fillMaxWidth()
-            .padding(dimens.smallPadding)
-    ) {
-        ExpandableContainer(
-            isExpanded = isExpanded,
-            onToggle = onToggle,
-            isOverflowing = isOverflowing,
-            onContentSizeChanged = onContentSizeChanged,
-        ) {
-            Column {
-                Text(
-                    text = descriptions,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                    color = colors.darkBodyTextColor,
-                    modifier = Modifier.padding(dimens.smallPadding)
-                )
+        Box(
+            modifier = Modifier
+                .background(colors.white, MaterialTheme.shapes.small)
+                .clip(MaterialTheme.shapes.small)
+                .fillMaxWidth()
+                .padding(dimens.smallPadding)
+        )
+        {
+            ExpandableContainer(
+                isExpanded = isExpanded,
+                onToggle = onToggle,
+                isOverflowing = isOverflowing,
+                onContentSizeChanged = onContentSizeChanged,
+            ) {
+                Column {
+                    Text(
+                        text = descriptions,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                        color = colors.darkBodyTextColor,
+                        modifier = Modifier.padding(dimens.smallPadding)
+                    )
 
-                Text(
-                    text = descriptionsDecodeHtmlString,
-                    color = colors.darkBodyTextColor,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                    modifier = Modifier.padding(dimens.smallPadding)
-                )
+                    Text(
+                        text = descriptionsDecodeHtmlString,
+                        color = colors.darkBodyTextColor,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                        modifier = Modifier.padding(dimens.smallPadding)
+                    )
+                }
             }
         }
     }
@@ -1568,94 +1575,98 @@ fun AuctionBidsSection(
     val bids = if(isDeletesBids) offer.removedBids else offer.bids
 
     if (bids != null) {
-        SeparatorLabel(
-            title = stringResource(strings.bidsLabel),
-            annotatedString = if(isDeletesBids) {
-                buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            color = colors.titleTextColor,
-                            fontWeight = FontWeight.Bold
-                        )
-                    ) {
-                        append(
-                            stringResource(strings.removedBidsLabel)
-                        )
+        Column {
+            SeparatorLabel(
+                title = stringResource(strings.bidsLabel),
+                annotatedString = if (isDeletesBids) {
+                    buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                color = colors.titleTextColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
+                            append(
+                                stringResource(strings.removedBidsLabel)
+                            )
+                        }
                     }
+                } else {
+                    null
                 }
-            }else{
-                null
-            }
-        )
-
-        ColumnWithScrollBars(
-            modifier = Modifier.background(color = colors.white, shape = MaterialTheme.shapes.small)
-                .heightIn(max = 400.dp)
-                .padding(bottom = dimens.largePadding, top = dimens.mediumPadding)
-        ) {
-            // Header row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
             )
-            {
-                Text(
-                    text = stringResource(strings.bidsUserLabel),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = colors.grayText,
+            ColumnWithScrollBars(
+                modifier = Modifier.background(
+                    color = colors.white,
+                    shape = MaterialTheme.shapes.small
                 )
-                if(!isDeletesBids) {
+                    .heightIn(max = 400.dp)
+                    .padding(bottom = dimens.largePadding, top = dimens.mediumPadding)
+            ) {
+                // Header row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                )
+                {
                     Text(
-                        text = stringResource(strings.yourMaxBidParameterName),
+                        text = stringResource(strings.bidsUserLabel),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = colors.grayText,
                     )
-                    Text(
-                        text = stringResource(strings.dateParameterName),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = colors.grayText,
-                    )
-                }else{
-                    Text(
-                        text = stringResource(strings.commentLabel),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = colors.grayText,
-                    )
-                }
-            }
-
-            // List items
-            bids.forEachIndexed { i, bid ->
-                if (!isDeletesBids) {
-                    if (bid is Bids) {
-                        BidsListItem(
-                            i = i,
-                            bid = bid,
-                            offer = offer,
-                            goToUser = {
-                                goToUser(it)
-                            },
-                            onRebidClick = onRebidClick
+                    if (!isDeletesBids) {
+                        Text(
+                            text = stringResource(strings.yourMaxBidParameterName),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.grayText,
                         )
-                    }
-                }else{
-                    if (bid is RemoveBid) {
-                        RemovedBidsListItem(
-                            i,
-                            bid
+                        Text(
+                            text = stringResource(strings.dateParameterName),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.grayText,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(strings.commentLabel),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = colors.grayText,
                         )
                     }
                 }
-            }
 
-            if (bids.isEmpty()) {
-                Text(
-                    text = stringResource(strings.noBids),
-                    style = MaterialTheme.typography.titleMedium.copy(fontStyle = FontStyle.Italic),
-                    color = colors.notifyTextColor,
-                    modifier = Modifier.padding(top = dimens.mediumPadding)
-                )
+                // List items
+                bids.forEachIndexed { i, bid ->
+                    if (!isDeletesBids) {
+                        if (bid is Bids) {
+                            BidsListItem(
+                                i = i,
+                                bid = bid,
+                                offer = offer,
+                                goToUser = {
+                                    goToUser(it)
+                                },
+                                onRebidClick = onRebidClick
+                            )
+                        }
+                    } else {
+                        if (bid is RemoveBid) {
+                            RemovedBidsListItem(
+                                i,
+                                bid
+                            )
+                        }
+                    }
+                }
+
+                if (bids.isEmpty()) {
+                    Text(
+                        text = stringResource(strings.noBids),
+                        style = MaterialTheme.typography.titleMedium.copy(fontStyle = FontStyle.Italic),
+                        color = colors.notifyTextColor,
+                        modifier = Modifier.padding(top = dimens.mediumPadding)
+                    )
+                }
             }
         }
     }

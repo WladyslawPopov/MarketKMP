@@ -114,8 +114,6 @@ fun CreateOfferContent(
 
     val photoTempViewModel = viewModel.photoTempViewModel
 
-    val images by photoTempViewModel.responseImages.collectAsState()
-
     val choiceCodeSaleType = remember(payloadState) {
         payloadState.find { it.key == "saletype" }?.data?.jsonPrimitive?.intOrNull
     }
@@ -194,7 +192,6 @@ fun CreateOfferContent(
                         viewModel.closeCategory()
                     },
                     onCompleted = {
-                        viewModel.closeCategory()
                         viewModel.refreshPage()
                     },
                     modifier = Modifier.padding(top = contentPadding.calculateTopPadding())
@@ -376,14 +373,15 @@ fun CreateOfferContent(
                                             "par_"
                                         ) == true
                                     }
+                                    if(paramList.isNotEmpty()) {
+                                        SeparatorLabel(stringResource(strings.parametersLabel))
 
-                                    SeparatorLabel(stringResource(strings.parametersLabel))
-
-                                    SetUpDynamicFields(
-                                        paramList,
-                                        modifier = Modifier.fillMaxWidth(if(isBigScreen.value) 0.5f else 1f)
-                                    ){
-                                        viewModel.setNewFiles(it)
+                                        SetUpDynamicFields(
+                                            paramList,
+                                            modifier = Modifier.fillMaxWidth(if (isBigScreen.value) 0.5f else 1f)
+                                        ) {
+                                            viewModel.setNewFiles(it)
+                                        }
                                     }
                                 }
                             }
@@ -563,7 +561,7 @@ fun CreateOfferContent(
                                         stringResource(strings.chooseAction),
                                         fontSize = MaterialTheme.typography.labelMedium.fontSize,
                                         alignment = Alignment.TopEnd,
-                                        enabled = images.size < MAX_IMAGE_COUNT
+                                        enabled = photoTempViewModel.responseImages.value.size < MAX_IMAGE_COUNT
                                     ) {
                                         if (!getPermissionHandler().checkImagePermissions()) {
                                             getPermissionHandler().requestImagePermissions {
@@ -577,13 +575,7 @@ fun CreateOfferContent(
                                     }
                                 }
 
-                                AnimatedVisibility(
-                                    images.isNotEmpty(),
-                                    enter = fadeIn(),
-                                    exit = fadeOut()
-                                ) {
-                                    PhotoDraggableGrid(images, photoTempViewModel)
-                                }
+                                PhotoDraggableGrid(photoTempViewModel)
                             }
                         }
                         payloadState.find { it.key == key }
@@ -646,7 +638,7 @@ fun CreateOfferContent(
                 }
                 //success offer
                 SuccessContent(
-                    images,
+                    photoTempViewModel.responseImages.value,
                     title,
                     payloadState.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                     modifier = Modifier.padding(contentPadding)
@@ -670,7 +662,7 @@ fun CreateOfferContent(
 
 @Composable
 fun SessionStartContent(
-    selectedDate : Long?,
+    selectedDate : Long,
     field: Fields,
     modifier: Modifier = Modifier,
     onValueChange : (Fields) -> Unit,
@@ -718,7 +710,7 @@ fun SessionStartContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if(selectedDate == null) {
+                if(selectedDate <= 0 ) {
                     Text(
                         stringResource(strings.selectTimeActiveLabel),
                         style = MaterialTheme.typography.titleSmall,

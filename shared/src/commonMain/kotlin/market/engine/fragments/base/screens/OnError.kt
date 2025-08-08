@@ -83,7 +83,6 @@ fun OnError(
                             humanMessage.value = ""
                             errorCode.value = ""
                             showDialog.value = false
-                            onRefresh()
                         }
                     )
                 }

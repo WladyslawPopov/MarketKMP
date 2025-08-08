@@ -20,7 +20,6 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.items.PhotoSave
-import market.engine.fragments.root.main.createOffer.PhotoTempViewModel
 import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.ilustrations.LoadImage
 
@@ -29,14 +28,16 @@ fun PhotoCard(
     item: PhotoSave,
     interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
-    viewModel: PhotoTempViewModel,
+    openPhoto: (PhotoSave) -> Unit,
+    rotatePhoto: (PhotoSave) -> Unit,
+    setDeleteImages: (PhotoSave) -> Unit,
 ) {
     val rotate = remember { mutableStateOf(item.rotate) }
 
-    val isLoading = remember(item.tempId == null) { mutableStateOf(item.tempId == null) }
+    val isLoading = remember(item.tempId) { mutableStateOf(item.tempId == null) }
 
     Card(
-        onClick = { viewModel.openPhoto(item) },
+        onClick = { openPhoto(item) },
         interactionSource = interactionSource,
         modifier = modifier
     ) {
@@ -59,7 +60,7 @@ fun PhotoCard(
                         item.rotate += 90
                         item.rotate %= 360
                         rotate.value = item.rotate
-                        viewModel.rotatePhoto(item)
+                        rotatePhoto(item)
                     }
                 }
             }
@@ -75,7 +76,7 @@ fun PhotoCard(
                     modifierIconSize = Modifier.size(dimens.smallIconSize),
                     modifier = Modifier.size(dimens.smallIconSize)
                 ) {
-                    viewModel.setDeleteImages(item)
+                    setDeleteImages(item)
                 }
             }
 

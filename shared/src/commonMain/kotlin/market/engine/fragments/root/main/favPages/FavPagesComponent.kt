@@ -13,6 +13,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.items.Tab
 import market.engine.core.data.types.FavScreenType
@@ -62,6 +63,14 @@ class DefaultFavPagesComponent(
     )
 
     override val model = initialModel
+
+    val backCallback = BackCallback {
+
+    }
+
+    init {
+        model.value.backHandler.register(backCallback)
+    }
 
     override fun updateNavigationPages(){
         val tabs = viewModel.favoritesTabList.value

@@ -168,7 +168,7 @@ fun ProfileNavigation(
                 is ChildProfile.ConversationsChild -> screen.component.model.value.backHandler
                 is ChildProfile.ProfileChild -> screen.component.model.value.backHandler
                 is ChildProfile.MyBidsChild ->{
-                    val pages = screen.component.myOrdersPages.value
+                    val pages = screen.component.myOffersPages.value
                     if (pages.items.isNotEmpty()){
                         pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
                             ?: screen.component.model.value.backHandler
@@ -177,7 +177,7 @@ fun ProfileNavigation(
                     }
                 }
                 is ChildProfile.MyOffersChild -> {
-                    val pages = screen.component.myOrdersPages.value
+                    val pages = screen.component.myOffersPages.value
                     if (pages.items.isNotEmpty()){
                         pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
                             ?: screen.component.model.value.backHandler
@@ -195,7 +195,7 @@ fun ProfileNavigation(
                     }
                 }
                 is ChildProfile.MyProposalsChild -> {
-                    val pages = screen.component.myOrdersPages.value
+                    val pages = screen.component.myProposalsPages.value
                     if (pages.items.isNotEmpty()){
                         pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
                             ?: screen.component.model.value.backHandler
@@ -204,7 +204,7 @@ fun ProfileNavigation(
                     }
                 }
                 is ChildProfile.ProfileSettingsChild -> {
-                    val pages = screen.component.myOrdersPages.value
+                    val pages = screen.component.settingsPages.value
                     if (pages.items.isNotEmpty()){
                         pages.items[pages.selectedIndex].instance?.model?.value?.backHandler
                             ?: screen.component.model.value.backHandler

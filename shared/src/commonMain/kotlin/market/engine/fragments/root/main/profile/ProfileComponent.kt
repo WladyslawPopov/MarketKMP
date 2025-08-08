@@ -10,6 +10,7 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
@@ -54,7 +55,12 @@ class DefaultProfileComponent(
     )
     override val model = _model
 
+    val backCallback = BackCallback {
+
+    }
+
     init {
+        model.value.backHandler.register(backCallback)
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
         }

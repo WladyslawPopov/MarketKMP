@@ -10,6 +10,7 @@ import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.utils.deleteReadNotifications
 import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
+import com.arkivanov.essenty.backhandler.BackCallback
 
 
 interface HomeComponent {
@@ -57,7 +58,12 @@ class DefaultHomeComponent(
 
     override val model: Value<HomeComponent.Model> = _model
 
+    val backCallback = BackCallback {
+
+    }
+
     init {
+        model.value.backHandler.register(backCallback)
         lifecycle.doOnResume {
             deleteReadNotifications()
             homeViewModel.updatePage()

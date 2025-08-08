@@ -6,6 +6,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.items.SelectedBasketItem
@@ -50,7 +51,12 @@ class DefaultBasketComponent(
 
     private val analyticsHelper = basketViewModel.analyticsHelper
 
+    val backCallback = BackCallback {
+
+    }
+
     init {
+        model.value.backHandler.register(backCallback)
         analyticsHelper.reportEvent("view_cart", mapOf())
 
         lifecycle.doOnResume {

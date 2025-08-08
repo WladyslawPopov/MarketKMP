@@ -854,62 +854,6 @@ class CabinetOfferRepository(
         }
     }
 
-    fun addToFavorites()
-    {
-        val offer = offerState.value
-
-        if(UserData.token != "") {
-            core.viewModelScope.launch {
-                val buf = withContext(Dispatchers.IO) {
-                    core.operationsMethods.postOperationFields(
-                        offer.id,
-                        if (offer.isWatchedByMe) "unwatch" else "watch",
-                        "offers"
-                    )
-                }
-
-                val res = buf.success
-                withContext(Dispatchers.Main) {
-                    if (res != null && res.operationResult?.result == "ok") {
-                        val eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.title,
-                            "lot_city" to offer.location,
-                            "auc_delivery" to offer.safeDeal,
-                            "lot_category" to offer.catPath.firstOrNull(),
-                            "seller_id" to offer.seller.id,
-                            "lot_price_start" to offer.price,
-                        )
-                        if (!offer.isWatchedByMe) {
-                            core.analyticsHelper.reportEvent("offer_watch", eventParameters)
-                        } else {
-                            core.analyticsHelper.reportEvent("offer_unwatch", eventParameters)
-                        }
-
-                        core.showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-
-                        _offerState.update {
-                            it.copy(
-                                isWatchedByMe = !offer.isWatchedByMe
-                            )
-                        }
-
-                        core.updateUserInfo()
-                    } else {
-                        if (buf.error != null)
-                            core.onError(buf.error!!)
-                    }
-                }
-            }
-        }else{
-            goToLogin()
-        }
-    }
-
     @Composable
     fun getDefOperations() : List<MenuItem> {
         val copiedString = stringResource(strings.textCopied)

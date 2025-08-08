@@ -6,16 +6,16 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.common.clipBoardEvent
@@ -37,7 +37,6 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
@@ -45,12 +44,11 @@ import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
 
 
-class OrderRapository(
+class OrderRepository(
     val order : Order,
     val type : DealType,
     val events: OrderItemEvents,
-    val core: CoreViewModel,
-    savedStateHandle: SavedStateHandle,
+    val core: CoreViewModel
 ) {
     val typeGroup = if (type in arrayOf(
             DealType.BUY_ARCHIVE,
@@ -60,24 +58,12 @@ class OrderRapository(
 
     val orderOperations : OrderOperations by lazy { getKoin().get() }
 
-    private val _customDialogState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "customDialogState",
-        CustomDialogState(),
-        CustomDialogState.serializer()
-    )
-    val customDialogState = _customDialogState.state
+    private val _customDialogState = MutableStateFlow(CustomDialogState())
+    val customDialogState = _customDialogState.asStateFlow()
 
+    private val _operationsList = MutableStateFlow<List<Operations>>(emptyList())
 
-
-    private val _operationsList = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "operationsList",
-        emptyList(),
-        ListSerializer(Operations.serializer())
-    )
-
-    val menuList = _operationsList.state.map { operations ->
+    val menuList = _operationsList.map { operations ->
         val commentText = getString(strings.defaultCommentReport)
         operations.map { operation ->
             MenuItem(
@@ -146,13 +132,8 @@ class OrderRapository(
         emptyList()
     )
 
-    private val _messageText = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
-        "messageText",
-        "",
-        String.serializer()
-    )
-    val messageText = _messageText.state
+    private val _messageText = MutableStateFlow("")
+    val messageText = _messageText.asStateFlow()
 
     val annotatedTitle = mutableStateOf(AnnotatedString(""))
 
@@ -373,7 +354,7 @@ class OrderRapository(
 
     fun makeOperation(type : String){
         when(type){
-            "write_to_partner" -> {
+            "send_message" -> {
                 core.postOperationAdditionalData(
                     order.id,
                     "write_to_partner",

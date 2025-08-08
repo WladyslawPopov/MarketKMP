@@ -84,16 +84,19 @@ class PhotoTempViewModel(
     }
 
     fun setDeleteImages(item : PhotoSave) {
-        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY) {
-            if (item.url != null && item.id != null) {
-                _deleteImages.value += JsonPrimitive(item.id!!.last().toString())
+        if (type == CreateOfferType.EDIT || type == CreateOfferType.COPY && item.url != null) {
+            val id = item.id?.last()
+             if(id != null) {
+                _deleteImages.value += JsonPrimitive(id.toString())
             }
         }
 
-        _responseImages.update {
-            val newList = it.toMutableList()
+        _responseImages.update { oldList ->
+            val newList = oldList.toMutableList()
             newList.remove(item)
-            newList
+            newList.map {
+                it.copy()
+            }
         }
     }
 
@@ -127,17 +130,17 @@ class PhotoTempViewModel(
                     item.tempId = res.success?.tempId
 
                     _responseImages.update { list ->
-                        list.map {
-                            if (it.id == item.id) {
+                        list.map { oldItem ->
+                            if (oldItem.id == item.id) {
                                 PhotoSave(
-                                    id = it.id,
-                                    uri = it.uri,
-                                    tempId = it.tempId,
-                                    url = it.url,
-                                    rotate = it.rotate
+                                    id = item.id,
+                                    uri = item.uri,
+                                    tempId = item.tempId,
+                                    url = item.url,
+                                    rotate = item.rotate
                                 )
                             } else {
-                                it.copy()
+                                oldItem.copy()
                             }
                         }
                     }

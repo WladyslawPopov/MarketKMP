@@ -25,7 +25,7 @@ import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
-import market.engine.core.repositories.OrderRapository
+import market.engine.core.repositories.OrderRepository
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
@@ -71,12 +71,11 @@ class MyOrdersViewModel(
                 pagingData.map { order ->
                     MyOrderItemState(
                         order = order,
-                        orderRapository = OrderRapository(
+                        orderRepository = OrderRepository(
                             order,
                             type,
                             MyOrderItemEventsImpl(this, order, component),
-                            this,
-                            savedStateHandle
+                            this
                         )
                     )
                 }

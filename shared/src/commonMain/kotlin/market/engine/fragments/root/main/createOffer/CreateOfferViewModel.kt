@@ -51,7 +51,6 @@ import market.engine.core.utils.getCurrentDate
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
-import kotlin.collections.plus
 
 
 class CreateOfferViewModel(
@@ -123,45 +122,10 @@ class CreateOfferViewModel(
         _isEditCat.state,
     )
     { dynamicPayload, catHistory, openCategory ->
-        val tempPhotos: ArrayList<PhotoSave> = arrayListOf()
-
-        when (type) {
-            CreateOfferType.EDIT, CreateOfferType.COPY -> {
-                val photos = dynamicPayload.filter { it.key?.contains("photo_") == true }
-
-                photos.forEach { field ->
-                    if (field.links != null) {
-                        tempPhotos.add(
-                            PhotoSave(
-                                id = field.key,
-                                url = field.links.mid?.jsonPrimitive?.content,
-                                tempId = ""
-                            )
-                        )
-                    }
-                }
-
-                photoTempViewModel.setImages(tempPhotos.toList())
-            }
-
-            else -> {
-                if (externalImages != null) {
-                    externalImages.forEach {
-                        tempPhotos.add(
-                            PhotoSave(
-                                url = it
-                            )
-                        )
-                    }
-                    photoTempViewModel.setImages(tempPhotos.toList())
-                }
-            }
-        }
-
         CreateOfferContentState(
             appBarState = SimpleAppBarData(
                 onBackClick = {
-                    onBackClicked()
+                    component.onBackClicked()
                 },
                 listItems = listOf(
                     NavigationItem(
@@ -227,26 +191,41 @@ class CreateOfferViewModel(
 
     fun refreshPage(){
         refresh()
+        viewModelScope.launch {
+            if (searchData.value.searchCategoryID != 1L) {
+                getCategoriesHistory(searchData.value.searchCategoryID)
 
-        if(searchData.value.searchCategoryID != 1L) {
-            getCategoriesHistory(searchData.value.searchCategoryID)
+                // update params after category change
+                if (_isEditCat.value && type != CreateOfferType.CREATE) {
+                    val newFields = updateParams(searchData.value.searchCategoryID)
 
-            // update params after category change
-            if (_isEditCat.value) {
-                updateParams(searchData.value.searchCategoryID)
+                    _responseGetPage.update { page ->
+                        buildList {
+                            page.filterNot { it.key.toString().contains("par_") }.map {
+                                add(
+                                    if(it.key == "category_id"){
+                                        it.copy(data = JsonPrimitive(searchData.value.searchCategoryID))
+                                    }else{
+                                        it.copy()
+                                    }
+                                )
+                            }
+                            addAll(newFields)
+                        }
+                    }
+                } else {
+                    val url = when (type) {
+                        CreateOfferType.CREATE -> "categories/${searchData.value.searchCategoryID}/operations/create_offer"
+                        CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
+                        CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
+                        CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
+                        CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
+                    }
+
+                    getPage(url)
+                }
+
                 _isEditCat.value = false
-            } else {
-                val url = when (type) {
-                    CreateOfferType.CREATE -> "categories/${searchData.value.searchCategoryID}/operations/create_offer"
-                    CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
-                    CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
-                    CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
-                    CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
-                }
-                if (type != CreateOfferType.CREATE) {
-                    updateParams(searchData.value.searchCategoryID)
-                }
-                getPage(url)
             }
         }
     }
@@ -267,43 +246,79 @@ class CreateOfferViewModel(
                 }
 
                 try {
-                    withContext(Dispatchers.Main) {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload: DynamicPayload<OperationResult> =
-                            deserializePayload(response.payload, serializer)
 
-                        payload.fields.find {
-                            it.key == "future_time"
-                        }?.let { field ->
-                            if (
-                                field.data != null &&
-                                (field.data?.jsonPrimitive?.longOrNull ?: 1) >
-                                (getCurrentDate().toLongOrNull() ?: 1L)
-                            ) {
-                                payload.fields.find {
-                                    it.key == "session_start"
-                                }?.let { it.data = JsonPrimitive(2) }
-                                _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 0
-                            }
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(response.payload, serializer)
+
+                    payload.fields.find {
+                        it.key == "future_time"
+                    }?.let { field ->
+                        if (
+                            field.data != null &&
+                            (field.data?.jsonPrimitive?.longOrNull ?: 1) >
+                            (getCurrentDate().toLongOrNull() ?: 1L)
+                        ) {
+                            payload.fields.find {
+                                it.key == "session_start"
+                            }?.let { it.data = JsonPrimitive(2) }
+                            _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 0
                         }
+                    }
 
-                        payload.fields.find { it.key == "category_id" }
-                            ?.let { field ->
-                                field.data?.jsonPrimitive?.longOrNull?.let {
-                                    categoryViewModel.updateFromSearchData(
-                                        SD(
-                                            searchCategoryID = it,
-                                            searchCategoryName = "",
-                                            searchParentID = it,
-                                            searchIsLeaf = true
+                    val tempPhotos = mutableListOf<PhotoSave>()
+
+                    when (type) {
+                        CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                            val photos =
+                                payload.fields.filter { it.key?.contains("photo_") == true }
+
+                            photos.forEach { field ->
+                                if (field.links != null) {
+                                    tempPhotos.add(
+                                        PhotoSave(
+                                            id = field.key,
+                                            url = field.links.mid?.jsonPrimitive?.content,
+                                            tempId = ""
                                         )
                                     )
                                 }
                             }
 
-                        _responseGetPage.value = payload.fields
+                            photoTempViewModel.setImages(tempPhotos.toList())
+                        }
+
+                        else -> {
+                            if (externalImages != null) {
+                                externalImages.forEach {
+                                    tempPhotos.add(
+                                        PhotoSave(
+                                            url = it
+                                        )
+                                    )
+                                }
+                                photoTempViewModel.setImages(tempPhotos.toList())
+                            }
+                        }
                     }
-                }catch (_: Exception){
+
+                    val categoryID =
+                        payload.fields.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull
+
+                    if (categoryID != null) {
+                        categoryViewModel.updateFromSearchData(
+                            SD(
+                                searchCategoryID = categoryID,
+                                searchCategoryName = "",
+                                searchParentID = categoryID,
+                                searchIsLeaf = true
+                            )
+                        )
+                    }
+
+                    _responseGetPage.value = payload.fields
+
+                } catch (_: Exception){
                     throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                 }
             } catch (exception: ServerErrorException) {
@@ -316,45 +331,40 @@ class CreateOfferViewModel(
         }
     }
 
-    fun updateParams(categoryID: Long?) {
-        viewModelScope.launch {
-            if (categoryID != null) {
+    suspend fun updateParams(categoryID: Long?) : List<Fields> {
+        if (categoryID != null) {
+            try {
+                val res = withContext(Dispatchers.IO) {
+                    apiService.getPage("categories/$categoryID/operations/create_offer")
+                }
                 try {
-                    val res = withContext(Dispatchers.IO) {
-                        apiService.getPage("categories/$categoryID/operations/create_offer")
-                    }
-                    try {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload: DynamicPayload<OperationResult> =
-                            deserializePayload(res.payload, serializer)
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(res.payload, serializer)
 
-                        val newFields = payload.fields.filter { it.key.toString().contains("par_") }
+                    val newFields = payload.fields.filter { it.key.toString().contains("par_") }
 
-                        withContext(Dispatchers.Main) {
-                            _responseGetPage.update { currentPayload ->
-                                val updatedFields = currentPayload.filterNot {
-                                    it.key.toString().contains("par_")
-                                }
-                                updatedFields + newFields
-                            }
-                        }
-                    } catch (_: Exception) {
-                        throw ServerErrorException(
-                            errorCode = res.errorCode.toString(),
-                            humanMessage = res.errorCode.toString()
-                        )
-                    }
-                } catch (exception: ServerErrorException) {
-                    onError(exception)
-                } catch (exception: Exception) {
-                    onError(
-                        ServerErrorException(
-                            errorCode = exception.message.toString(),
-                            humanMessage = exception.message.toString()
-                        )
+                    return newFields
+                } catch (_: Exception) {
+                    throw ServerErrorException(
+                        errorCode = res.errorCode.toString(),
+                        humanMessage = res.errorCode.toString()
                     )
                 }
+            } catch (exception: ServerErrorException) {
+                onError(exception)
+                return emptyList()
+            } catch (exception: Exception) {
+                onError(
+                    ServerErrorException(
+                        errorCode = exception.message.toString(),
+                        humanMessage = exception.message.toString()
+                    )
+                )
+                return emptyList()
             }
+        } else {
+            return emptyList()
         }
     }
 
@@ -493,9 +503,7 @@ class CreateOfferViewModel(
                 if (categories.isNotEmpty()) {
                     _responseCatHistory.value = categories
                 }
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
-            }
+            } catch (_: Exception) { }
         }
     }
 
@@ -508,15 +516,6 @@ class CreateOfferViewModel(
             }
         }
         _selectedDate.value = data ?: 0
-    }
-
-    fun onBackClicked() {
-        if(categoryViewModel.searchData.value.searchCategoryID != 1L){
-            _isEditCat.value = true
-            categoryViewModel.navigateBack()
-        }else{
-            component.onBackClicked()
-        }
     }
 
     fun setDescription(description: String) {
@@ -541,7 +540,6 @@ class CreateOfferViewModel(
 
     fun createJsonBody() : JsonObject {
         val fields = _responseGetPage.value.filter { it.data != null }
-        val categoryID = searchData.value.searchCategoryID
         val selectedDate = selectedDate.value
         val deleteImages = photoTempViewModel.deleteImages.value
         val images = photoTempViewModel.responseImages.value
@@ -575,19 +573,13 @@ class CreateOfferViewModel(
                         put(field.key, JsonArray(valuesDelivery))
                     }
 
-                    "category_id" -> {
-                        if(type != CreateOfferType.EDIT) {
-                            put(field.key, JsonPrimitive(categoryID))
-                        }
-                    }
-
                     "session_start" -> {
-                        if (selectedDate != 2L) {
+                        if (selectedDate <= 0L) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }
                     "future_time" ->{
-                        if (selectedDate == 2L) {
+                        if (selectedDate >= 0 ) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }
