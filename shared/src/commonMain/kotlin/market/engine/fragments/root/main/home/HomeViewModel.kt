@@ -33,12 +33,15 @@ import market.engine.core.data.states.HomeUiState
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
+import market.engine.core.utils.CacheRepository
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
+import kotlin.time.Duration.Companion.days
 
 
 class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
@@ -72,12 +75,15 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
     private val ld = ListingData()
 
+    private val cacheRepository = CacheRepository(db)
+
     val uiState: StateFlow<HomeUiState> = combine(
         updatePage,
         _responseCategory.state,
         _responseOffersPromotedOnMainPage1.state,
         _responseOffersPromotedOnMainPage2.state,
-    ) { up, categories, promoOffers1, promoOffers2 ->
+    )
+    { up, categories, promoOffers1, promoOffers2 ->
         val userInfo = UserData.userInfo
 
         val proposalString = getString(strings.proposalTitle)
@@ -270,16 +276,32 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         refresh()
 
         updateUserInfo()
-        getCategories(listingData = LD(), searchData = SD(), withoutCounter = true) {
-            setCategory(it)
+
+        viewModelScope.launch {
+            updateCategoriesFromCacheOrNetwork()
+            getOffersPromotedOnMainPage(0, 16)
+            getOffersPromotedOnMainPage(1, 16)
         }
-        getOffersPromotedOnMainPage(0, 16)
-        getOffersPromotedOnMainPage(1, 16)
     }
 
-    fun setCategory(category: List<Category>) {
+    fun updateCategoriesFromCacheOrNetwork() {
         viewModelScope.launch {
-            _responseCategory.value = category
+            val cacheKey = "categories_home"
+            val listSerializer = ListSerializer(Category.serializer())
+            val lifetime = 30.days
+            val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+            val cachedCategories = cacheRepository.get(cacheKey, listSerializer)
+
+            if (cachedCategories == null) {
+                getCategories(listingData = LD(), searchData = SD(), withoutCounter = true) {
+                    viewModelScope.launch {
+                        cacheRepository.put(cacheKey, it, expirationTimestamp, listSerializer)
+                    }
+                    _responseCategory.value = it
+                }
+            }else{
+                _responseCategory.value = cachedCategories
+            }
         }
     }
 
@@ -287,18 +309,42 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         viewModelScope.launch {
             try {
                 setLoading(true)
-                val response = withContext(Dispatchers.IO) {
-                    apiService.getOffersPromotedOnMainPage(page, ipp)
-                }
-                val serializer = Payload.serializer(Offer.serializer())
-                val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
-                when(page){
-                    0 -> {
-                        val newOffers = payload.objects.map { it.parseToOfferItem() }
-                        _responseOffersPromotedOnMainPage1.value = newOffers
+
+                val cacheKey = "home_page_${page}_${ipp}"
+                val listSerializer = ListSerializer(OfferItem.serializer())
+                val lifetime = 1.days
+                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+                val cachedCategories = cacheRepository.get(cacheKey, listSerializer)
+
+                if (cachedCategories == null) {
+                    val response = withContext(Dispatchers.IO) {
+                        apiService.getOffersPromotedOnMainPage(page, ipp)
                     }
-                    1 ->{
-                        _responseOffersPromotedOnMainPage2.value = payload.objects.map { it.parseToOfferItem() }
+                    val serializer = Payload.serializer(Offer.serializer())
+                    val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
+                    val newOffers = payload.objects.map { it.parseToOfferItem() }
+
+                    viewModelScope.launch {
+                        cacheRepository.put(cacheKey, newOffers, expirationTimestamp, listSerializer)
+                    }
+
+                    when(page){
+                        0 ->{
+                            _responseOffersPromotedOnMainPage1.value = newOffers
+                        }
+                        1 ->{
+                            _responseOffersPromotedOnMainPage2.value = newOffers
+                        }
+                    }
+                }else{
+                    when(page) {
+                        0 -> {
+                            _responseOffersPromotedOnMainPage1.value = cachedCategories
+                        }
+
+                        1 -> {
+                            _responseOffersPromotedOnMainPage2.value = cachedCategories
+                        }
                     }
                 }
             } catch (exception: ServerErrorException) {

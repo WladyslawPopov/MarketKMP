@@ -25,7 +25,7 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToContactUs
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -65,13 +65,13 @@ sealed class HomeConfig {
     data object HomeScreen : HomeConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : HomeConfig()
+    data class OfferScreen(val id: Long,val ts: Long?, val isSnapshot: Boolean = false) : HomeConfig()
 
     @Serializable
-    data class ListingScreen(val isOpenSearch : Boolean, val listingData: LD, val searchData : SD, val ts : String?) : HomeConfig()
+    data class ListingScreen(val isOpenSearch : Boolean, val listingData: LD, val searchData : SD, val ts: Long?) : HomeConfig()
 
     @Serializable
-    data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : HomeConfig()
+    data class UserScreen(val userId: Long, val ts: Long?, val aboutMe : Boolean) : HomeConfig()
 
     @Serializable
     data class CreateOfferScreen(
@@ -90,11 +90,11 @@ sealed class HomeConfig {
     data class MessagesScreen(
         val dialogId: Long,
         val text: String? = null,
-        val ts: String
+        val ts: Long?
     ) : HomeConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : HomeConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: Long?) : HomeConfig()
 
     @Serializable
     data class CreateSubscriptionScreen(
@@ -263,7 +263,7 @@ fun createHomeChild(
                             isNewSearch,
                             ld.data,
                             ld.searchData,
-                            getCurrentDate()
+                            nowAsEpochSeconds()
                         )
                     )
                 },
@@ -271,7 +271,7 @@ fun createHomeChild(
                     goToLogin()
                 },
                 navigateToOfferSelected = { id ->
-                    homeNavigation.pushNew(OfferScreen(id, getCurrentDate()))
+                    homeNavigation.pushNew(OfferScreen(id, nowAsEpochSeconds()))
                 },
                 navigateToCreateOfferSelected = {
                     if (UserData.token != "") {
@@ -315,7 +315,7 @@ fun createHomeChild(
                     componentContext,
                     selectOffer = { newId->
                         homeNavigation.pushNew(
-                            OfferScreen(newId, getCurrentDate())
+                            OfferScreen(newId, nowAsEpochSeconds())
                         )
                     },
                     navigationBack = {
@@ -323,12 +323,12 @@ fun createHomeChild(
                     },
                     navigationListing = {
                         homeNavigation.pushNew(
-                            ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                            ListingScreen(false, it.data, it.searchData, nowAsEpochSeconds())
                         )
                     },
                     navigateToUser = { ui, about ->
                         homeNavigation.pushNew(
-                            UserScreen(ui, getCurrentDate(), about)
+                            UserScreen(ui, nowAsEpochSeconds(), about)
                         )
                     },
                     navigationCreateOffer = { type, catPath, offerId, externalImages ->
@@ -351,7 +351,7 @@ fun createHomeChild(
                     },
                     navigateToDialog = { dialogId ->
                         if(dialogId != null)
-                            homeNavigation.pushNew(MessagesScreen(dialogId, null, getCurrentDate()))
+                            homeNavigation.pushNew(MessagesScreen(dialogId, null, nowAsEpochSeconds()))
                         else
                             navigateToConversations()
                     },
@@ -360,7 +360,7 @@ fun createHomeChild(
                     },
                     navigateToProposalPage = { offerId, type ->
                         homeNavigation.pushNew(
-                            ProposalScreen(offerId, type, getCurrentDate())
+                            ProposalScreen(offerId, type, nowAsEpochSeconds())
                         )
                     },
                     navigateDynamicSettings = { type, owner ->
@@ -380,7 +380,7 @@ fun createHomeChild(
                     listingData = ld,
                     selectOffer = {
                         homeNavigation.pushNew(
-                            OfferScreen(it, getCurrentDate())
+                            OfferScreen(it, nowAsEpochSeconds())
                         )
                     },
                     selectedBack = {
@@ -392,7 +392,7 @@ fun createHomeChild(
                     },
                     navigateToListing = {
                         homeNavigation.pushNew(
-                            ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                            ListingScreen(false, it.data, it.searchData, nowAsEpochSeconds())
                         )
                     },
                     navigateToNewSubscription = {
@@ -411,7 +411,7 @@ fun createHomeChild(
                 componentContext = componentContext,
                 goToListing = {
                     homeNavigation.pushNew(
-                        ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                        ListingScreen(false, it.data, it.searchData, nowAsEpochSeconds())
                     )
                 },
                 navigateBack = {
@@ -422,12 +422,12 @@ fun createHomeChild(
                 },
                 navigateToSnapshot = { id ->
                     homeNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate(), true)
+                        OfferScreen(id, nowAsEpochSeconds(), true)
                     )
                 },
                 navigateToUser = {
                     homeNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToSubscriptions = {
@@ -446,7 +446,7 @@ fun createHomeChild(
                     componentContext,
                     navigateToOffer = { id->
                         homeNavigation.pushNew(
-                            OfferScreen(id, getCurrentDate())
+                            OfferScreen(id, nowAsEpochSeconds())
                         )
                     },
                     navigateToCreateOffer = { id, path, t ->
@@ -470,7 +470,7 @@ fun createHomeChild(
                 config.basketItem,
                 navigateToOffer = { id->
                     homeNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, nowAsEpochSeconds())
                     )
                 },
                 navigateBack = {
@@ -478,7 +478,7 @@ fun createHomeChild(
                 },
                 navigateToUser = { id->
                     homeNavigation.pushNew(
-                        UserScreen(id, getCurrentDate(), false)
+                        UserScreen(id, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToMyOrders = {
@@ -502,17 +502,17 @@ fun createHomeChild(
                     },
                     navigateToUser = {
                         homeNavigation.pushNew(
-                            UserScreen(it, getCurrentDate(), false)
+                            UserScreen(it, nowAsEpochSeconds(), false)
                         )
                     },
                     navigateToOffer = {
                         homeNavigation.pushNew(
-                            OfferScreen(it, getCurrentDate())
+                            OfferScreen(it, nowAsEpochSeconds())
                         )
                     },
                     navigateToListingSelected = {
                         homeNavigation.pushNew(
-                            ListingScreen(false, it.data, it.searchData, getCurrentDate())
+                            ListingScreen(false, it.data, it.searchData, nowAsEpochSeconds())
                         )
                     }
                 )
@@ -525,12 +525,12 @@ fun createHomeChild(
                 componentContext = componentContext,
                 navigateToOffer = {
                     homeNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, nowAsEpochSeconds())
                     )
                 },
                 navigateToUser = {
                     homeNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateBack = {

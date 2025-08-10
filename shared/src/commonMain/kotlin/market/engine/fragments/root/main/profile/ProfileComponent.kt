@@ -17,7 +17,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 
@@ -105,13 +105,13 @@ class DefaultProfileComponent(
         searchData.userLogin = UserData.userInfo?.login
         searchData.userSearch = true
         navigationProfile.pushNew(
-            ProfileConfig.ListingScreen(ld.data, ld.searchData, getCurrentDate())
+            ProfileConfig.ListingScreen(ld.data, ld.searchData, nowAsEpochSeconds())
         )
     }
 
     override fun goToAboutMe() {
         navigationProfile.pushNew(
-            ProfileConfig.UserScreen(UserData.login, getCurrentDate(), true)
+            ProfileConfig.UserScreen(UserData.login, nowAsEpochSeconds(), true)
         )
     }
 

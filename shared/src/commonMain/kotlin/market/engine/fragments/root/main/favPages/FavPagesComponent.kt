@@ -17,7 +17,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import market.engine.core.data.items.Tab
 import market.engine.core.data.types.FavScreenType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.root.main.favPages.favorites.DefaultFavoritesComponent
 import market.engine.fragments.root.main.favPages.favorites.FavoritesComponent
 import market.engine.fragments.root.main.favPages.subscriptions.DefaultSubscriptionsComponent
@@ -140,7 +140,7 @@ class DefaultFavPagesComponent(
                                         FavoritesConfig.ListingScreen(
                                             it.data,
                                             it.searchData,
-                                            getCurrentDate()
+                                            nowAsEpochSeconds()
                                         )
                                     )
                                 }
@@ -155,7 +155,7 @@ class DefaultFavPagesComponent(
                                 goToOffer = { id ->
                                     favoritesNavigation.pushNew(
                                         FavoritesConfig.OfferScreen(
-                                            id, getCurrentDate()
+                                            id, nowAsEpochSeconds()
                                         )
                                     )
                                 },
@@ -179,7 +179,7 @@ class DefaultFavPagesComponent(
                                 navigateToProposalPage = { type, id ->
                                     favoritesNavigation.pushNew(
                                         FavoritesConfig.ProposalScreen(
-                                            id, type, getCurrentDate()
+                                            id, type, nowAsEpochSeconds()
                                         )
                                     )
                                 },

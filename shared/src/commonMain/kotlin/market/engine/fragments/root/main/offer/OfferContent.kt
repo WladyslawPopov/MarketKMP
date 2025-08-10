@@ -105,7 +105,6 @@ import market.engine.widgets.texts.TextAppBar
 import market.engine.widgets.texts.TitleText
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import kotlin.toString
 
 
 @Composable
@@ -239,7 +238,7 @@ fun OfferContent(
         buildAnnotatedString {
             offer.standardDescriptions?.forEach { standard ->
                 if (standard.description != null) {
-                    val formattedDate = standard.timestamp.toString().convertDateWithMinutes()
+                    val formattedDate = standard.timestamp?.convertDateWithMinutes()
                     append("\n")
                     if (standard.deleted == false && standard.active == true) {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(sst) }
@@ -256,7 +255,7 @@ fun OfferContent(
 
             offer.addedDescriptions?.forEach { added ->
                 if (added.text != null) {
-                    val formattedDate = added.timestamp.toString().convertDateWithMinutes()
+                    val formattedDate = added.timestamp?.convertDateWithMinutes()
                     append("\n")
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("$ast $formattedDate") }
                     append("\n")
@@ -1479,11 +1478,11 @@ fun TimeOfferSession(
                     append(remainingTime)
                     if (state != OfferStates.FUTURE) {
                         if (offer.session?.end != null) {
-                            append("\n(${offer.session.end.convertDateWithMinutes()})")
+                            append("\n(${offer.session.end.toLongOrNull()?.convertDateWithMinutes()})")
                         }
                     }else{
                         if (offer.session?.start != null) {
-                            append("\n(${offer.session.start.convertDateWithMinutes()})")
+                            append("\n(${offer.session.start.toLongOrNull()?.convertDateWithMinutes()})")
                         }
                     }
                 },

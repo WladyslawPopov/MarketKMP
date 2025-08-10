@@ -157,7 +157,7 @@ fun PublicOfferItemGrid(
                         Text(
                             text = buildString {
                                 if (offer.session != null)
-                                    append((offer.session?.end ?: "").convertDateWithMinutes())
+                                    append(offer.session?.end?.toLongOrNull()?.convertDateWithMinutes())
                                 else
                                     append(sessionEnd)
                             },

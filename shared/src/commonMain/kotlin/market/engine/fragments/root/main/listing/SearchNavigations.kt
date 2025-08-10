@@ -23,7 +23,7 @@ import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ProposalType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
@@ -55,13 +55,13 @@ import market.engine.fragments.root.main.user.UserContent
 @Serializable
 sealed class SearchConfig {
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD, val isOpenSearch : Boolean, val ts : String?) : SearchConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD, val isOpenSearch : Boolean, val ts: Long?) : SearchConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String, val isSnapshot: Boolean = false) : SearchConfig()
+    data class OfferScreen(val id: Long, val ts: Long?, val isSnapshot: Boolean = false) : SearchConfig()
 
     @Serializable
-    data class UserScreen(val id: Long, val ts: String, val aboutMe : Boolean) : SearchConfig()
+    data class UserScreen(val id: Long, val ts: Long?, val aboutMe : Boolean) : SearchConfig()
 
     @Serializable
     data class CreateOfferScreen(
@@ -77,10 +77,10 @@ sealed class SearchConfig {
     ) : SearchConfig()
 
     @Serializable
-    data class MessageScreen(val id: Long, val ts: String) : SearchConfig()
+    data class MessageScreen(val id: Long, val ts: Long?) : SearchConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : SearchConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: Long?) : SearchConfig()
 
     @Serializable
     data class CreateSubscriptionScreen(
@@ -173,7 +173,7 @@ fun createSearchChild(
                         searchNavigation.pushNew(
                             OfferScreen(
                                 id,
-                                getCurrentDate()
+                                nowAsEpochSeconds()
                             )
                         )
                     },
@@ -189,7 +189,7 @@ fun createSearchChild(
                                 ld.data,
                                 ld.searchData,
                                 false,
-                                getCurrentDate()
+                                nowAsEpochSeconds()
                             )
                         )
                     },
@@ -209,7 +209,7 @@ fun createSearchChild(
                     componentContext,
                     selectOffer = { newId->
                         searchNavigation.pushNew(
-                            OfferScreen(newId, getCurrentDate())
+                            OfferScreen(newId, nowAsEpochSeconds())
                         )
                     },
                     navigationBack = {
@@ -217,12 +217,12 @@ fun createSearchChild(
                     },
                     navigationListing = {
                         searchNavigation.pushNew(
-                            ListingScreen(it.data, it.searchData, false, getCurrentDate())
+                            ListingScreen(it.data, it.searchData, false, nowAsEpochSeconds())
                         )
                     },
                     navigateToUser = { ui, about ->
                         searchNavigation.pushNew(
-                            UserScreen(ui, getCurrentDate(), about)
+                            UserScreen(ui, nowAsEpochSeconds(), about)
                         )
                     },
                     navigationCreateOffer = { type, catPath, offerId, externalImages ->
@@ -245,7 +245,7 @@ fun createSearchChild(
                     },
                     navigateToDialog = { dialogId ->
                         if(dialogId != null)
-                            searchNavigation.pushNew(SearchConfig.MessageScreen(dialogId, getCurrentDate()))
+                            searchNavigation.pushNew(SearchConfig.MessageScreen(dialogId, nowAsEpochSeconds()))
                         else
                             navigateToConversations()
                     },
@@ -254,7 +254,7 @@ fun createSearchChild(
                     },
                     navigateToProposalPage = { offerId, type ->
                         searchNavigation.pushNew(
-                            SearchConfig.ProposalScreen(offerId, type, getCurrentDate())
+                            SearchConfig.ProposalScreen(offerId, type, nowAsEpochSeconds())
                         )
                     },
                     navigateDynamicSettings = { type, owner ->
@@ -270,7 +270,7 @@ fun createSearchChild(
                     componentContext = componentContext,
                     goToListing = {
                         searchNavigation.pushNew(
-                            ListingScreen(it.data, it.searchData,false, getCurrentDate())
+                            ListingScreen(it.data, it.searchData,false, nowAsEpochSeconds())
                         )
                     },
                     navigateBack = {
@@ -281,12 +281,12 @@ fun createSearchChild(
                     },
                     navigateToSnapshot = { id ->
                         searchNavigation.pushNew(
-                            OfferScreen(id, getCurrentDate(), true)
+                            OfferScreen(id, nowAsEpochSeconds(), true)
                         )
                     },
                     navigateToUser = {
                         searchNavigation.pushNew(
-                            UserScreen(it, getCurrentDate(), false)
+                            UserScreen(it, nowAsEpochSeconds(), false)
                         )
                     },
                     navigateToSubscriptions = {
@@ -304,7 +304,7 @@ fun createSearchChild(
                     componentContext,
                     navigateToOffer = { id->
                         searchNavigation.pushNew(
-                            OfferScreen(id, getCurrentDate())
+                            OfferScreen(id, nowAsEpochSeconds())
                         )
                     },
                     navigateToCreateOffer = { id, path, t ->
@@ -328,7 +328,7 @@ fun createSearchChild(
                 config.basketItem,
                 navigateToOffer = { id->
                     searchNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, nowAsEpochSeconds())
                     )
                 },
                 navigateBack = {
@@ -336,7 +336,7 @@ fun createSearchChild(
                 },
                 navigateToUser = { id->
                     searchNavigation.pushNew(
-                        UserScreen(id, getCurrentDate(), false)
+                        UserScreen(id, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToMyOrders = {
@@ -359,17 +359,17 @@ fun createSearchChild(
                 },
                 navigateToUser = {
                     searchNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToOffer = {
                     searchNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, nowAsEpochSeconds())
                     )
                 },
                 navigateToListingSelected = {
                     searchNavigation.pushNew(
-                        ListingScreen(it.data, it.searchData, false, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, false, nowAsEpochSeconds())
                     )
                 }
             )
@@ -383,12 +383,12 @@ fun createSearchChild(
                     componentContext = componentContext,
                     navigateToOffer = {
                         searchNavigation.pushNew(
-                            OfferScreen(it, getCurrentDate())
+                            OfferScreen(it, nowAsEpochSeconds())
                         )
                     },
                     navigateToUser = {
                         searchNavigation.pushNew(
-                            UserScreen(it, getCurrentDate(), false)
+                            UserScreen(it, nowAsEpochSeconds(), false)
                         )
                     },
                     navigateBack = {

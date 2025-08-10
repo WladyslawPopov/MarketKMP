@@ -110,7 +110,7 @@ fun MyOrderItem(
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {
                     Text(
-                        order.createdTs.toString().convertDateWithMinutes(),
+                        order.createdTs?.convertDateWithMinutes() ?: "",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.black
                     )

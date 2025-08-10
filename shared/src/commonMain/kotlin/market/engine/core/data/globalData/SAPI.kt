@@ -1,6 +1,5 @@
 package market.engine.core.data.globalData
 
-
 object SAPI {
     var API_BASE: String = ""
 

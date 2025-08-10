@@ -24,7 +24,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.network.networkObjects.Bids
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.utils.convertDateWithMinutes
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
@@ -117,7 +116,7 @@ fun BidsListItem(
         }
 
         Text(
-            text = bid.ts?.convertDateWithMinutes() ?: "",
+            text = bid.ts?.toLongOrNull()?.convertDateWithMinutes() ?: "",
             style = MaterialTheme.typography.bodySmall,
             color = colors.black,
             modifier = Modifier.weight(1f),

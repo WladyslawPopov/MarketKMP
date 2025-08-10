@@ -6,7 +6,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.SD
 import market.engine.core.utils.cleanSearchString
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 
 class UrlBuilder {
 
@@ -109,7 +109,7 @@ class UrlBuilder {
                 if (it.interpretation != null) {
                     when (it.key) {
                         "session_start" -> {
-                            it.value = getCurrentDate()
+                            it.value = nowAsEpochSeconds().toString()
                         }
 
                         "users_to_act_on_price_proposals" -> {

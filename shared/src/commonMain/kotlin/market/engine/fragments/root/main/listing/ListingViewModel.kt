@@ -43,8 +43,10 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.repositories.PublicOfferRepository
+import market.engine.core.utils.CacheRepository
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -52,6 +54,7 @@ import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
 import kotlin.String
+import kotlin.time.Duration.Companion.days
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ListingViewModel(
@@ -81,6 +84,8 @@ class ListingViewModel(
 
     val ld = listingBaseVM.listingData
     val activeType = listingBaseVM.activeWindowType
+
+    val cacheRepository = CacheRepository(db)
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         ld,
@@ -352,11 +357,25 @@ class ListingViewModel(
 
     private fun getRegions(){
         viewModelScope.launch {
-            val res = withContext(Dispatchers.IO) {
-                categoryOperations.getRegions()
-            }
-            withContext(Dispatchers.Main) {
-                res?.firstOrNull()?.options?.sortedBy { it.weight }?.let { _regionOptions.value = it }
+            val cacheKey = "regions"
+            val serializer = ListSerializer(Options.serializer())
+            val cacheRegions = cacheRepository.get(cacheKey, serializer)
+
+            if (cacheRegions == null) {
+                val res = withContext(Dispatchers.IO) {
+                    categoryOperations.getRegions()
+                }
+                withContext(Dispatchers.Main) {
+                    res?.firstOrNull()?.options?.sortedBy { it.weight }
+                        ?.let {
+                            val lifetime = 130.days
+                            val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+                            cacheRepository.put(cacheKey, it,expirationTimestamp,serializer)
+                            _regionOptions.value = it
+                        }
+                }
+            }else{
+                _regionOptions.value = cacheRegions
             }
         }
     }

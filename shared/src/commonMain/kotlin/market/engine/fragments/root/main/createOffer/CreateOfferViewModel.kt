@@ -47,7 +47,7 @@ import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
@@ -257,7 +257,7 @@ class CreateOfferViewModel(
                         if (
                             field.data != null &&
                             (field.data?.jsonPrimitive?.longOrNull ?: 1) >
-                            (getCurrentDate().toLongOrNull() ?: 1L)
+                            nowAsEpochSeconds()
                         ) {
                             payload.fields.find {
                                 it.key == "session_start"

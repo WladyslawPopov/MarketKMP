@@ -13,7 +13,7 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.items.DialogsData
 import market.engine.core.utils.convertDateYear
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -32,7 +32,7 @@ fun SeparatorDialogItem(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
         )
         Text(
-            text = if(getCurrentDate().convertDateYear() == item.dateTime){
+            text = if(nowAsEpochSeconds().convertDateYear() == item.dateTime){
                 today
             } else {
                 item.dateTime

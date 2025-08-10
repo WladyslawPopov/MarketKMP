@@ -157,7 +157,7 @@ fun ConversationItem(
                     )
 
                     Text(
-                        conversation.newMessageTs.toString().convertDateWithMinutes(),
+                        conversation.newMessageTs?.convertDateWithMinutes() ?: "",
                         style = MaterialTheme.typography.labelSmall,
                         color = colors.black,
                     )

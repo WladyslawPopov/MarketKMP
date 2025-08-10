@@ -57,7 +57,7 @@ fun SuccessContent(
             if (isActive) {
                 append(stringResource(strings.congratulationsCreateOfferInFutureLabel))
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = colors.yellowSun)) {
-                    append(" ${futureTime.toString().convertDateWithMinutes()}")
+                    append(" ${futureTime?.convertDateWithMinutes()}")
                 }
             } else{
                 append(

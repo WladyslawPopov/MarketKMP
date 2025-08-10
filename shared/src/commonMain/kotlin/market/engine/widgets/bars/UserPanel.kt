@@ -346,14 +346,14 @@ fun UserPanel(
                         ) {
                             Text(
                                 stringResource(strings.createdUserLabel) + " " +
-                                        user.createdTs.toString().convertDateWithMinutes(),
+                                        user.createdTs?.convertDateWithMinutes(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.black
                             )
 
                             Text(
                                 stringResource(strings.lastActiveUserLabel) + " " +
-                                        user.lastActiveTs.toString().convertDateWithMinutes(),
+                                        user.lastActiveTs?.convertDateWithMinutes(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = colors.black
                             )
@@ -459,7 +459,7 @@ fun UserPanel(
                                 )
                             ) {
                                 append("${stringResource(strings.fromAboutParameterName)} ")
-                                append(user.vacationStart.toString().convertDateWithMinutes())
+                                append(user.vacationStart?.convertDateWithMinutes())
                             }
                             append(" ")
 
@@ -471,7 +471,7 @@ fun UserPanel(
                                 )
                             ) {
                                 append("${stringResource(strings.toAboutParameterName)} ")
-                                append(user.vacationEnd.toString().convertDateWithMinutes())
+                                append(user.vacationEnd?.convertDateWithMinutes())
                             }
                             append("\n")
 

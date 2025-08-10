@@ -53,7 +53,7 @@ import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.processInput
 import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.widgets.buttons.AcceptedPageButton
@@ -643,7 +643,7 @@ fun CreateOfferContent(
                     payloadState.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
                     modifier = Modifier.padding(contentPadding)
                         .padding(dimens.mediumPadding),
-                    futureTime = if(selectedDate != 0L) selectedDate else getCurrentDate().toLong(),
+                    futureTime = if(selectedDate != 0L) selectedDate else nowAsEpochSeconds(),
                     goToOffer = {
                         component.goToOffer(newOfferId)
                     },
@@ -718,7 +718,7 @@ fun SessionStartContent(
                     )
                 }else{
                     Text(
-                        selectedDate.toString().convertDateWithMinutes(),
+                        selectedDate.convertDateWithMinutes(),
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.titleTextColor
                     )

@@ -6,19 +6,17 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
 
-fun getCurrentDate(): String {
-    val currentInstant: Instant = Clock.System.now()
-    val currentTimeInSeconds = currentInstant.epochSeconds
-    return currentTimeInSeconds.toString()
+fun nowAsEpochSeconds(): Long {
+   return Clock.System.now().epochSeconds
 }
 
-fun getRemainingMinutesTime(endTimestamp: Long): Long {
+fun getMinutesRemainingUntil(endTimestamp: Long): Long? {
     val endInstant = Instant.fromEpochSeconds(endTimestamp)
     val nowInstant = Clock.System.now()
 
     val duration = endInstant - nowInstant
 
-    if (duration.isNegative()) return 1
+    if (duration.isNegative()) return null
 
     val totalMinutes = duration.inWholeMinutes
 
@@ -29,13 +27,9 @@ fun Instant.toCurrentSystemLocalDateTime(): LocalDateTime {
     return this.toLocalDateTime(TimeZone.currentSystemDefault())
 }
 
-fun String.convertDateWithMinutes(): String {
+fun Long.convertDateWithMinutes(): String {
     try {
-        if (this.isEmpty() || this == "null") {
-            return ""
-        }
-
-        val instant = Instant.fromEpochSeconds(this.toLongOrNull() ?: this.toDouble().toLong())
+        val instant = Instant.fromEpochSeconds(this)
         val localDateTime = instant.toCurrentSystemLocalDateTime()
 
         val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
@@ -51,14 +45,9 @@ fun String.convertDateWithMinutes(): String {
     }
 }
 
-fun String.convertHoursAndMinutes(): String {
+fun Long.convertHoursAndMinutes(): String {
     try {
-        // Validate that the input date string is not empty
-        if (this.isEmpty() || this == "null") {
-            return ""
-        }
-
-        val instant = Instant.fromEpochSeconds(this.toLongOrNull() ?: this.toDouble().toLong())
+        val instant = Instant.fromEpochSeconds(this)
         val localDateTime = instant.toCurrentSystemLocalDateTime()
 
         val hour = localDateTime.hour.toString().padStart(2, '0')
@@ -71,14 +60,9 @@ fun String.convertHoursAndMinutes(): String {
     }
 }
 
-fun String.convertDateYear(): String{
+fun Long.convertDateYear(): String{
     try {
-        // Validate that the input date string is not empty
-        if (this.isEmpty() || this == "null") {
-            return ""
-        }
-
-        val instant = Instant.fromEpochSeconds(this.toLong())
+        val instant = Instant.fromEpochSeconds(this)
         val localDateTime = instant.toCurrentSystemLocalDateTime()
 
         val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
@@ -92,14 +76,9 @@ fun String.convertDateYear(): String{
     }
 }
 
-fun String.convertDateOnlyYear(): String {
+fun Long.convertDateOnlyYear(): String {
     try {
-        // Validate that the input date string is not empty
-        if (this.isEmpty() || this == "null") {
-            return ""
-        }
-
-        val instant = Instant.fromEpochSeconds(this.toLong())
+        val instant = Instant.fromEpochSeconds(this)
         val localDateTime = instant.toCurrentSystemLocalDateTime()
 
         val year = localDateTime.year

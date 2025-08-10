@@ -10,3 +10,5 @@ const val minExpandedElement = 2
 const val DATABASE_NAME = "AuctionMarketDb.db"
 
 const val alphaBars = 0.95f
+
+const val LocalBottomBarHeight = 100

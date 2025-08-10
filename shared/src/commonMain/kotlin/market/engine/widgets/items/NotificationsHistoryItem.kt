@@ -60,7 +60,7 @@ fun NotificationsHistoryItem(
                 )
 
                 Text(
-                    item.timeCreated.toString().convertDateWithMinutes(),
+                    item.timeCreated.convertDateWithMinutes(),
                     color = colors.steelBlue,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.align(Alignment.End)

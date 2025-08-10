@@ -65,8 +65,8 @@ fun CabinetProposalItem(
 
     if (offer.session != null) {
 
-        val date1 = offer.session?.start?.convertDateWithMinutes()
-        val date2 = offer.session?.end?.convertDateWithMinutes()
+        val date1 = offer.session?.start?.toLongOrNull()?.convertDateWithMinutes()
+        val date2 = offer.session?.end?.toLongOrNull()?.convertDateWithMinutes()
         val d3 = "$date1 – $date2"
 
         Card(

@@ -25,7 +25,7 @@ import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.createOffer.CreateOfferComponent
@@ -66,13 +66,13 @@ sealed class FavoritesConfig {
     data class FavPagesScreen(val favScreenType: FavScreenType) : FavoritesConfig()
 
     @Serializable
-    data class OfferScreen(val id: Long, val ts: String, val isSnap: Boolean = false) : FavoritesConfig()
+    data class OfferScreen(val id: Long, val ts: Long?, val isSnap: Boolean = false) : FavoritesConfig()
 
     @Serializable
-    data class ListingScreen(val listingData: LD, val searchData : SD, val ts : String?) : FavoritesConfig()
+    data class ListingScreen(val listingData: LD, val searchData : SD, val ts: Long?) : FavoritesConfig()
 
     @Serializable
-    data class UserScreen(val userId: Long, val ts: String, val aboutMe : Boolean) : FavoritesConfig()
+    data class UserScreen(val userId: Long, val ts: Long?, val aboutMe : Boolean) : FavoritesConfig()
 
     @Serializable
     data class CreateOfferScreen(
@@ -93,10 +93,10 @@ sealed class FavoritesConfig {
     ) : FavoritesConfig()
 
     @Serializable
-    data class MessengerScreen( val dialogId: Long, val ts: String) : FavoritesConfig()
+    data class MessengerScreen( val dialogId: Long, val ts: Long?) : FavoritesConfig()
 
     @Serializable
-    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: String?) : FavoritesConfig()
+    data class ProposalScreen(val offerId: Long, val proposalType: ProposalType, val ts: Long?) : FavoritesConfig()
 }
 
 sealed class ChildFavorites {
@@ -186,7 +186,7 @@ fun createFavoritesChild(
                     componentContext,
                     selectOffer = { newId->
                         favoritesNavigation.pushNew(
-                            OfferScreen(newId, getCurrentDate())
+                            OfferScreen(newId, nowAsEpochSeconds())
                         )
                     },
                     navigationBack = {
@@ -194,12 +194,12 @@ fun createFavoritesChild(
                     },
                     navigationListing = {
                         favoritesNavigation.pushNew(
-                            ListingScreen(it.data, it.searchData, getCurrentDate())
+                            ListingScreen(it.data, it.searchData, nowAsEpochSeconds())
                         )
                     },
                     navigateToUser = { ui, about ->
                         favoritesNavigation.pushNew(
-                            UserScreen(ui, getCurrentDate(), about)
+                            UserScreen(ui, nowAsEpochSeconds(), about)
                         )
                     },
                     navigationCreateOffer = { type, catPath, offerId, externalImages ->
@@ -222,7 +222,7 @@ fun createFavoritesChild(
                     },
                     navigateToDialog = { dialogId ->
                         if(dialogId != null)
-                            favoritesNavigation.pushNew(MessengerScreen(dialogId, getCurrentDate()))
+                            favoritesNavigation.pushNew(MessengerScreen(dialogId, nowAsEpochSeconds()))
                         else
                             navigateToConversations()
                     },
@@ -231,7 +231,7 @@ fun createFavoritesChild(
                     },
                     navigateToProposalPage = { offerId, type ->
                         favoritesNavigation.pushNew(
-                            ProposalScreen(offerId, type, getCurrentDate())
+                            ProposalScreen(offerId, type, nowAsEpochSeconds())
                         )
                     },
                     navigateDynamicSettings = { type, owner ->
@@ -251,7 +251,7 @@ fun createFavoritesChild(
                     listingData = ld,
                     selectOffer = {
                         favoritesNavigation.pushNew(
-                            OfferScreen(it, getCurrentDate())
+                            OfferScreen(it, nowAsEpochSeconds())
                         )
                     },
                     selectedBack = {
@@ -262,7 +262,7 @@ fun createFavoritesChild(
                     },
                     navigateToListing = { data ->
                         favoritesNavigation.pushNew(
-                            ListingScreen(data.data, data.searchData, getCurrentDate())
+                            ListingScreen(data.data, data.searchData, nowAsEpochSeconds())
                         )
                     },
                     navigateToNewSubscription = {
@@ -282,7 +282,7 @@ fun createFavoritesChild(
                 componentContext = componentContext,
                 goToListing = {
                     favoritesNavigation.pushNew(
-                        ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, nowAsEpochSeconds())
                     )
                 },
                 navigateBack = {
@@ -293,12 +293,12 @@ fun createFavoritesChild(
                 },
                 navigateToSnapshot = { id ->
                     favoritesNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate(), true)
+                        OfferScreen(id, nowAsEpochSeconds(), true)
                     )
                 },
                 navigateToUser = {
                     favoritesNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToSubscriptions = {
@@ -317,7 +317,7 @@ fun createFavoritesChild(
                     componentContext,
                     navigateToOffer = { id->
                         favoritesNavigation.pushNew(
-                            OfferScreen(id, getCurrentDate())
+                            OfferScreen(id, nowAsEpochSeconds())
                         )
                     },
                     navigateToCreateOffer = { id, path, t ->
@@ -341,7 +341,7 @@ fun createFavoritesChild(
                 config.basketItem,
                 navigateToOffer = { id->
                     favoritesNavigation.pushNew(
-                        OfferScreen(id, getCurrentDate())
+                        OfferScreen(id, nowAsEpochSeconds())
                     )
                 },
                 navigateBack = {
@@ -349,7 +349,7 @@ fun createFavoritesChild(
                 },
                 navigateToUser = { id->
                     favoritesNavigation.pushNew(
-                        UserScreen(id, getCurrentDate(), false)
+                        UserScreen(id, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToMyOrders = {
@@ -383,17 +383,17 @@ fun createFavoritesChild(
                 },
                 navigateToUser = {
                     favoritesNavigation.pushNew(
-                        UserScreen(it, getCurrentDate(), false)
+                        UserScreen(it, nowAsEpochSeconds(), false)
                     )
                 },
                 navigateToOffer = {
                     favoritesNavigation.pushNew(
-                        OfferScreen(it, getCurrentDate())
+                        OfferScreen(it, nowAsEpochSeconds())
                     )
                 },
                 navigateToListingSelected = {
                     favoritesNavigation.pushNew(
-                        ListingScreen(it.data, it.searchData, getCurrentDate())
+                        ListingScreen(it.data, it.searchData, nowAsEpochSeconds())
                     )
                 }
             )
@@ -406,12 +406,12 @@ fun createFavoritesChild(
             componentContext = componentContext,
             navigateToOffer = {
                 favoritesNavigation.pushNew(
-                    OfferScreen(it, getCurrentDate())
+                    OfferScreen(it, nowAsEpochSeconds())
                 )
             },
             navigateToUser = {
                 favoritesNavigation.pushNew(
-                    UserScreen(it, getCurrentDate(), false)
+                    UserScreen(it, nowAsEpochSeconds(), false)
                 )
             },
             navigateBack = {

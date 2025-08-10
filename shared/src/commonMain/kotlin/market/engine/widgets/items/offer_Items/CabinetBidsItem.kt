@@ -33,7 +33,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.bars.HeaderOfferBar
 import market.engine.widgets.buttons.OfferActionsBtn
@@ -64,10 +64,10 @@ fun CabinetBidsItem(
         }
     }
 
-    val currentDate = remember { getCurrentDate().toLongOrNull() ?: 1L }
+    val currentDate = remember { nowAsEpochSeconds() }
     val isActive = remember(offer.session?.end) { ((offer.session?.end?.toLongOrNull() ?: 1L) > currentDate) }
-    val date1 = remember(offer.session?.start) { offer.session?.start?.convertDateWithMinutes() }
-    val date2 = remember(offer.session?.end) { offer.session?.end?.convertDateWithMinutes() }
+    val date1 = remember(offer.session?.start) { offer.session?.start?.toLongOrNull()?.convertDateWithMinutes() }
+    val date2 = remember(offer.session?.end) { offer.session?.end?.toLongOrNull()?.convertDateWithMinutes() }
     val d3 = remember(date2) { "$date1 – $date2" }
 
     if(offer.bids?.isNotEmpty() == true && offer.session != null) {

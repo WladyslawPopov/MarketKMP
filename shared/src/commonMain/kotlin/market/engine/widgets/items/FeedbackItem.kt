@@ -141,7 +141,7 @@ fun FeedbackItem(
             }
 
             Text(
-                text = report.feedbackTs.toString().convertDateWithMinutes(),
+                text = report.feedbackTs?.convertDateWithMinutes() ?: "",
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.align(Alignment.End)
             )

@@ -410,7 +410,7 @@ fun OrderFilterContent(
                                         if (it.key == "created_ts" && it.operation == "gte") {
                                             it.copy(
                                                 value = futureTimeInSeconds.toString(),
-                                                interpretation = "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                                                interpretation = "$from: ${futureTimeInSeconds.convertDateWithMinutes()}"
                                             )
                                         } else it.copy()
                                     }
@@ -419,7 +419,7 @@ fun OrderFilterContent(
                                         if (it.key == "created_ts" && it.operation == "lte") {
                                             it.copy(
                                                 value = futureTimeInSeconds.toString(),
-                                                interpretation = "$from: ${futureTimeInSeconds.toString().convertDateWithMinutes()}"
+                                                interpretation = "$from: ${futureTimeInSeconds.convertDateWithMinutes()}"
                                             )
                                         } else it.copy()
                                     }

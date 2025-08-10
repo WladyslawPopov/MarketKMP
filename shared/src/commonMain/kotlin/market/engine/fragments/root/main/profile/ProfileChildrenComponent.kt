@@ -19,7 +19,7 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.fragments.root.main.profile.myOffers.MyOfferConfig
 import market.engine.core.data.types.LotsType
 import market.engine.core.data.types.ProfileSettingsTypes
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.main.profile.myBids.DefaultMyBidsComponent
 import market.engine.fragments.root.main.profile.myBids.MyBidsComponent
@@ -254,7 +254,7 @@ class DefaultProfileChildrenComponent(
                     componentContext = componentContext,
                     type = config.lotsType,
                     offerSelected = { id ->
-                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, nowAsEpochSeconds()))
                     },
                     selectedMyOfferPage = { type ->
                         selectOfferPage(type)
@@ -272,7 +272,7 @@ class DefaultProfileChildrenComponent(
                         navigationProfile.pop()
                     },
                     navigateToProposal = { id, type ->
-                        navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
+                        navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, nowAsEpochSeconds()))
                     },
                     navigateToDynamicSettings = { type, id ->
                         goToDynamicSettings(type, id, null)
@@ -302,13 +302,13 @@ class DefaultProfileChildrenComponent(
                     componentContext = componentContext,
                     type = config.lotsType,
                     offerSelected = { id ->
-                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, nowAsEpochSeconds()))
                     },
                     selectedMyBidsPage = { type ->
                         selectOfferPage(type)
                     },
                     navigateToUser = { userId ->
-                        navigationProfile.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
+                        navigationProfile.pushNew(ProfileConfig.UserScreen(userId, nowAsEpochSeconds(), false))
                     },
                     navigateToPurchases = {
                         navigationProfile.popToFirst()
@@ -316,7 +316,7 @@ class DefaultProfileChildrenComponent(
                     },
                     navigateToDialog = { dialogId ->
                         if (dialogId != null)
-                            navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
+                            navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, nowAsEpochSeconds()))
                         else {
                             navigationProfile.popToFirst()
                             navigationProfile.pushNew(ProfileConfig.ConversationsScreen())
@@ -349,13 +349,13 @@ class DefaultProfileChildrenComponent(
                 DefaultMyProposalsComponent(
                     componentContext,
                     offerSelected = { id ->
-                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate()))
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, nowAsEpochSeconds()))
                     },
                     selectedMyProposalsPage = {
                         selectOfferPage(it)
                     },
                     navigateToUser = { userId ->
-                        navigationProfile.pushNew(ProfileConfig.UserScreen(userId, getCurrentDate(), false))
+                        navigationProfile.pushNew(ProfileConfig.UserScreen(userId, nowAsEpochSeconds(), false))
                     },
                     navigateToDialog = { dialogId ->
                         if (dialogId != null)
@@ -363,7 +363,7 @@ class DefaultProfileChildrenComponent(
                                 ProfileConfig.DialogsScreen(
                                     dialogId,
                                     null,
-                                    getCurrentDate()
+                                    nowAsEpochSeconds()
                                 )
                             )
                         else {
@@ -372,7 +372,7 @@ class DefaultProfileChildrenComponent(
                         }
                     },
                     navigateToProposal = { id, type ->
-                        navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, getCurrentDate()))
+                        navigationProfile.pushNew(ProfileConfig.ProposalScreen(id, type, nowAsEpochSeconds()))
                     },
                     navigateBack = {
                         navigationProfile.pop()
@@ -429,17 +429,17 @@ class DefaultProfileChildrenComponent(
                     type = config.dealType,
                     orderSelected = config.id,
                     offerSelected = { id ->
-                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, getCurrentDate(), true))
+                        navigationProfile.pushNew(ProfileConfig.OfferScreen(id, nowAsEpochSeconds(), true))
                     },
                     navigateToMyOrder = {
                         selectMyOrderPage(it)
                     },
                     navigateToUser = {
-                        navigationProfile.pushNew(ProfileConfig.UserScreen(it, getCurrentDate(), false))
+                        navigationProfile.pushNew(ProfileConfig.UserScreen(it, nowAsEpochSeconds(), false))
                     },
                     navigateToMessenger = { dialogId ->
                         if(dialogId != null)
-                            navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, getCurrentDate()))
+                            navigationProfile.pushNew(ProfileConfig.DialogsScreen(dialogId, null, nowAsEpochSeconds()))
                         else {
                             navigationProfile.popToFirst()
                             navigationProfile.pushNew(ProfileConfig.ConversationsScreen())

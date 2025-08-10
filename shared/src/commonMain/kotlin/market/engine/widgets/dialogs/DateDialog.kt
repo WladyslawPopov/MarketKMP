@@ -30,7 +30,7 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.utils.convertDateOnlyYear
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.toCurrentSystemLocalDateTime
 import market.engine.widgets.buttons.SimpleTextButton
 import org.jetbrains.compose.resources.stringResource
@@ -51,21 +51,21 @@ fun DateDialog(
     )
     {
         val selectedDate = remember { mutableStateOf<String?>(null) }
-        val currentDate = remember { getCurrentDate() }
+        val currentDate = remember { nowAsEpochSeconds() }
 
         val year = remember { currentDate.convertDateOnlyYear().toIntOrNull() }
 
         val selectableDates = remember {
             object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    return utcTimeMillis > currentDate.toLong() * 1000L
+                    return utcTimeMillis > currentDate * 1000L
                 }
             }
         }
 
         val oneDayInMillis = 24 * 60 * 60 * 1000L
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = currentDate.toLong()*1000L + oneDayInMillis,
+            initialSelectedDateMillis = currentDate*1000L + oneDayInMillis,
             yearRange = (year ?: 1900)..((year ?: 2000) + 100),
             selectableDates = if (isSelectableDates) selectableDates else DatePickerDefaults. AllDates
         )

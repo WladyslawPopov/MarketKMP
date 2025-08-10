@@ -22,7 +22,7 @@ import market.engine.core.data.items.PhotoTemp
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.ServerResponse
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import org.koin.mp.KoinPlatform.getKoin
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSData
@@ -75,7 +75,7 @@ class FileUpload {
                     photoTemp.uri = uri.path
                     println("Creating multipart part from local/cloud URI: $uri")
 
-                    val fileName = "image_${photoTemp.tempId ?: getCurrentDate()}.jpg"
+                    val fileName = "image_${photoTemp.tempId ?: nowAsEpochSeconds()}.jpg"
 
                     // If file founded in own place security scope not needed.
                     val normalizedPath = uri.path?.removePrefix("/private")
@@ -99,7 +99,7 @@ class FileUpload {
                     // If needed - download file from URL.
                     val url = photoTemp.url!!
                     println("Creating multipart part by downloading from URL: $url")
-                    val fileName = "image_${photoTemp.tempId ?: getCurrentDate()}.jpg"
+                    val fileName = "image_${photoTemp.tempId ?: nowAsEpochSeconds()}.jpg"
                     val nsUrl = NSURL.URLWithString(url)
                         ?: throw Exception("Invalid URL string: $url")
                     val data = NSData.dataWithContentsOfURL(nsUrl)

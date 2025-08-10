@@ -13,7 +13,7 @@ import market.engine.core.data.globalData.UserData.token
 
 class UserRepository(
     private val settings : SettingsRepository,
-    private val userOperations: UserOperations,
+    private val userOperations: UserOperations
 ) {
     private val analyticsHelper: AnalyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 

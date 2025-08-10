@@ -1,0 +1,18 @@
+CREATE TABLE CachedResponse (
+    requestId TEXT NOT NULL PRIMARY KEY,
+    response TEXT NOT NULL,
+    timestamp INTEGER NOT NULL
+);
+
+insertOrReplace:
+INSERT OR REPLACE INTO CachedResponse(requestId, response, timestamp)
+VALUES (?, ?, ?);
+
+selectByRequestId:
+SELECT * FROM CachedResponse WHERE requestId = ?;
+
+deleteByRequestId:
+DELETE FROM CachedResponse WHERE requestId = ?;
+
+clearAll:
+DELETE FROM CachedResponse;

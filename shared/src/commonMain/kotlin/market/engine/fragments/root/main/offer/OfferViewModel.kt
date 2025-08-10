@@ -33,7 +33,7 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.CabinetOfferRepository
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
@@ -178,9 +178,7 @@ class OfferViewModel(
 
                         getCategoriesHistory(offer.catpath)
                         val initTimer =
-                            ((offer.session.end?.toLongOrNull()
-                                ?: 1L) - (getCurrentDate().toLongOrNull()
-                                ?: 1L)) * 1000
+                            ((offer.session.end?.toLongOrNull() ?: 1L) - nowAsEpochSeconds()) * 1000
 
                         val images = when {
                             offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
@@ -215,10 +213,10 @@ class OfferViewModel(
                                 analyticsHelper.reportEvent("view_item", eventParameters)
                                 when {
                                     (offer.session.start?.toLongOrNull()
-                                        ?: 1L) > getCurrentDate().toLong() -> OfferStates.FUTURE
+                                        ?: 1L) > nowAsEpochSeconds() -> OfferStates.FUTURE
 
                                     (offer.session.end?.toLongOrNull()
-                                        ?: 1L) - getCurrentDate().toLong() > 0 -> OfferStates.ACTIVE
+                                        ?: 1L) - nowAsEpochSeconds() > 0 -> OfferStates.ACTIVE
 
                                     else -> OfferStates.COMPLETED
                                 }
@@ -399,7 +397,7 @@ class OfferViewModel(
 
     private fun startTimerUpdateBids(offer: OfferItem) {
         val initialTime =
-            (offer.session?.end?.toLongOrNull()?.let { it - getCurrentDate().toLong() }
+            (offer.session?.end?.toLongOrNull()?.let { it - nowAsEpochSeconds() }
                 ?: 0L) * 1000
 
         timerBidsJob?.cancel()

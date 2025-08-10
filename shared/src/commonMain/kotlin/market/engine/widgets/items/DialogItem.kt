@@ -153,7 +153,7 @@ fun DialogItem(
                         }
 
                         Text(
-                            text = item.dateTime.toString().convertHoursAndMinutes(),
+                            text = item.dateTime.convertHoursAndMinutes(),
                             style = MaterialTheme.typography.labelSmall,
                             color = colors.grayText,
                             modifier = Modifier.padding(horizontal = dimens.extraSmallPadding)

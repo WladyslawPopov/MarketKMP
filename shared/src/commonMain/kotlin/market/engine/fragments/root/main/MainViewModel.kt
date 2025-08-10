@@ -22,8 +22,9 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.PlatformWindowType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.getIoTread
 import market.engine.core.utils.getMainTread
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
@@ -74,7 +75,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     fun updateNavLists() {
         val userInfo = UserData.userInfo
         val profileNavigation = component.modelNavigation.value.profileNavigation
-        getMainTread {
+        getIoTread {
             _bottomList.value = listOf(
                 NavigationItem(
                     title = getString(strings.homeTitle),
@@ -149,7 +150,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                             profileNavigation.pushNew(
                                 ProfileConfig.UserScreen(
                                     UserData.login,
-                                    getCurrentDate(),
+                                    nowAsEpochSeconds(),
                                     false
                                 )
                             )
@@ -317,13 +318,15 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     }
 
     fun debouncedNavigate(targetConfig : MainConfig) {
-        try {
-            val currentTime = (getCurrentDate().toLongOrNull() ?: 1L)*1000L
-            if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
-                lastNavigationClickTime = currentTime
-                component.navigateToBottomItem(targetConfig)
-            }
-        }catch (_ : Exception){}
+        getMainTread {
+            try {
+                val currentTime = (nowAsEpochSeconds()) * 1000L
+                if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
+                    lastNavigationClickTime = currentTime
+                    component.navigateToBottomItem(targetConfig)
+                }
+            }catch (_ : Exception){}
+        }
     }
 
     fun handleDeepLink(deepLink: DeepLink) {
@@ -332,7 +335,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                 component.modelNavigation.value.homeNavigation.pushNew(
                     HomeConfig.UserScreen(
                         deepLink.userId,
-                        getCurrentDate(),
+                        nowAsEpochSeconds(),
                         false
                     )
                 )
@@ -360,7 +363,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                         false,
                         categoryData.data,
                         categoryData.searchData,
-                        getCurrentDate()
+                        nowAsEpochSeconds()
                     )
                 )
             }
@@ -369,7 +372,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                 component.modelNavigation.value.homeNavigation.pushNew(
                     HomeConfig.OfferScreen(
                         deepLink.offerId,
-                        getCurrentDate()
+                        nowAsEpochSeconds()
                     )
                 )
             }
@@ -398,14 +401,14 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                         component.childHomeStack.value.active.instance is ChildHome.MessagesChild -> {
                             component.modelNavigation.value.homeNavigation.replaceCurrent(
                                 HomeConfig.MessagesScreen(
-                                    deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                    deepLink.dialogId, deepLink.mes, nowAsEpochSeconds()
                                 )
                             )
                         }
                         else -> {
                             component.modelNavigation.value.homeNavigation.pushNew(
                                 HomeConfig.MessagesScreen(
-                                    deepLink.dialogId, deepLink.mes, getCurrentDate()
+                                    deepLink.dialogId, deepLink.mes, nowAsEpochSeconds()
                                 )
                             )
                         }

@@ -17,7 +17,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.FavScreenType
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketConfig
 import market.engine.fragments.root.main.basket.ChildBasket
@@ -160,7 +160,7 @@ class DefaultMainComponent(
                 categoryData.data,
                 categoryData.searchData,
                 true,
-                getCurrentDate()
+                nowAsEpochSeconds()
             ),
             serializer = SearchConfig.serializer(),
             handleBackButton = true,
@@ -290,8 +290,7 @@ class DefaultMainComponent(
                         SearchConfig.ListingScreen(
                             categoryData.data,
                             categoryData.searchData,
-                            true,
-                            getCurrentDate()
+                            true, nowAsEpochSeconds()
                         )
                     )
                 }

@@ -1,6 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -17,6 +15,7 @@ sqldelight {
             packageName.set("market.engine.shared")
             schemaOutputDirectory.set(file("src/main/sqldelight"))
             migrationOutputDirectory.set(file("src/main/sqldelight/migrations"))
+            version = 1
             verifyMigrations.set(true)
         }
     }

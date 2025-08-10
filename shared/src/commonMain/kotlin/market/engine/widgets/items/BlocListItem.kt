@@ -53,7 +53,7 @@ fun BlocListItem(
                 )
 
                 Text(
-                    item.listedAt.toString().convertDateWithMinutes(),
+                    item.listedAt?.convertDateWithMinutes() ?: "",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.black,
                     modifier = Modifier.align(Alignment.End)

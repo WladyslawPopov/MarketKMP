@@ -15,6 +15,7 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -44,7 +45,7 @@ fun VacationSettingsContent(
                 append(
                     (fields.find {
                         it.key == "from_time"
-                    }?.data?.jsonPrimitive?.content ?: "").convertDateWithMinutes()
+                    }?.data?.jsonPrimitive?.longOrNull)?.convertDateWithMinutes()
                 )
             }
         )
@@ -58,7 +59,7 @@ fun VacationSettingsContent(
                 append(
                     (fields.find {
                         it.key == "to_time"
-                    }?.data?.jsonPrimitive?.content ?: "").convertDateWithMinutes()
+                    }?.data?.jsonPrimitive?.longOrNull)?.convertDateWithMinutes()
                 )
             }
         )
@@ -108,7 +109,7 @@ fun VacationSettingsContent(
                     fromThisDateTextState.value = buildString {
                         append(from)
                         append(" ")
-                        append(futureTimeInSeconds.toString().convertDateWithMinutes())
+                        append(futureTimeInSeconds.convertDateWithMinutes())
                     }
                 } else {
                     fields.find {
@@ -117,7 +118,7 @@ fun VacationSettingsContent(
                     toThisDateTextState.value = buildString {
                         append(to)
                         append(" ")
-                        append(futureTimeInSeconds.toString().convertDateWithMinutes())
+                        append(futureTimeInSeconds.convertDateWithMinutes())
                     }
                 }
 

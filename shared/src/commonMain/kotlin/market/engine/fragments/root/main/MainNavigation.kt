@@ -3,24 +3,21 @@ package market.engine.fragments.root.main
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
-import market.engine.core.data.compositions.LocalBottomBarHeight
+import market.engine.core.data.constants.LocalBottomBarHeight
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
@@ -65,78 +62,69 @@ fun MainNavigation(
     val bottomList by viewModel.bottomList.collectAsState()
     val profileNavigationItems by viewModel.publicProfileNavigationItems.collectAsState()
 
-    var bottomBarHeight by mutableStateOf(LocalBottomBarHeight.current)
-    val density = LocalDensity.current
-
     Scaffold {
-        CompositionLocalProvider(LocalBottomBarHeight provides bottomBarHeight) {
-            Children(
-                modifier = modifier,
-                stack = childStack,
-                animation = stackAnimation(),
-            ) { child ->
-                Box {
-                    Row {
-                        if (!showBottomBar) {
-                            RailNavBar(
-                                listItems = bottomList,
-                                currentScreen = currentScreen
+        Children(
+            modifier = modifier,
+            stack = childStack,
+            animation = stackAnimation(),
+        ) { child ->
+            Box {
+                Row {
+                    if (!showBottomBar) {
+                        RailNavBar(
+                            listItems = bottomList,
+                            currentScreen = currentScreen
+                        )
+                    }
+                    when (child.instance) {
+                        is ChildMain.HomeChildMain ->
+                            HomeNavigation(
+                                Modifier.weight(1f),
+                                component.childHomeStack
                             )
-                        }
-                        when (child.instance) {
-                            is ChildMain.HomeChildMain ->
-                                HomeNavigation(
-                                    Modifier.weight(1f),
-                                    component.childHomeStack
-                                )
 
-                            is ChildMain.CategoryChildMain ->
-                                SearchNavigation(Modifier.weight(1f), component.childSearchStack)
+                        is ChildMain.CategoryChildMain ->
+                            SearchNavigation(Modifier.weight(1f), component.childSearchStack)
 
-                            is ChildMain.BasketChildMain ->
-                                BasketNavigation(Modifier.weight(1f), component.childBasketStack)
+                        is ChildMain.BasketChildMain ->
+                            BasketNavigation(Modifier.weight(1f), component.childBasketStack)
 
-                            is ChildMain.FavoritesChildMain ->
-                                FavoritesNavigation(
-                                    Modifier.weight(1f),
-                                    component.childFavoritesStack
-                                )
+                        is ChildMain.FavoritesChildMain ->
+                            FavoritesNavigation(
+                                Modifier.weight(1f),
+                                component.childFavoritesStack
+                            )
 
-                            is ChildMain.ProfileChildMain ->
-                                ProfileNavigation(
-                                    Modifier.weight(1f),
-                                    component.childProfileStack,
-                                    profileNavigationItems
-                                )
-                        }
+                        is ChildMain.ProfileChildMain ->
+                            ProfileNavigation(
+                                Modifier.weight(1f),
+                                component.childProfileStack,
+                                profileNavigationItems
+                            )
                     }
-
-                    if (showBottomBar) {
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .zIndex(300f)
-                                .onSizeChanged {
-                                    bottomBarHeight = with(density) {
-                                        it.height.toDp()
-                                    }
-                                },
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            GetBottomNavBar(bottomList, currentScreen)
-                        }
-                    }
-
-                    LogoutDialog(
-                        showLogoutDialog = showLogoutDialog,
-                        onDismiss = { viewModel.setLogoutDialog(false) },
-                        goToLogin = {
-                            viewModel.setLogoutDialog(false)
-                            viewModel.debouncedNavigate(MainConfig.Home)
-                            goToLogin()
-                        }
-                    )
                 }
+
+                if (showBottomBar) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .height(LocalBottomBarHeight.dp)
+                            .zIndex(300f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        GetBottomNavBar(bottomList, currentScreen)
+                    }
+                }
+
+                LogoutDialog(
+                    showLogoutDialog = showLogoutDialog,
+                    onDismiss = { viewModel.setLogoutDialog(false) },
+                    goToLogin = {
+                        viewModel.setLogoutDialog(false)
+                        viewModel.debouncedNavigate(MainConfig.Home)
+                        goToLogin()
+                    }
+                )
             }
         }
     }

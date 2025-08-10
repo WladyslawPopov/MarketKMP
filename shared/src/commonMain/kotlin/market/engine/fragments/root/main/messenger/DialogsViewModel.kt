@@ -456,12 +456,12 @@ class DialogsViewModel(
                 )
             }
                 .insertSeparators { before: DialogsData.MessageItem?, after: DialogsData.MessageItem? ->
-                    val beforeDate = before?.dateTime.toString().convertDateYear()
-                    val afterDate = after?.dateTime.toString().convertDateYear()
+                    val beforeDate = before?.dateTime?.convertDateYear()
+                    val afterDate = after?.dateTime?.convertDateYear()
 
-                    if (beforeDate != afterDate && before != null) {
+                    if (before != null && beforeDate != afterDate) {
                         DialogsData.SeparatorItem(
-                            dateTime = beforeDate
+                            dateTime = beforeDate!!
                         )
                     } else {
                         null

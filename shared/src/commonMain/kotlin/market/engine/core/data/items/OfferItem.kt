@@ -15,7 +15,7 @@ import market.engine.core.network.networkObjects.Session
 import market.engine.core.network.networkObjects.StandardDescriptions
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.WhoPaysForDelivery
-import market.engine.core.utils.getCurrentDate
+import market.engine.core.utils.nowAsEpochSeconds
 
 @Serializable
 data class OfferItem(
@@ -47,7 +47,7 @@ data class OfferItem(
     val catPath: List<Long> = emptyList(),
     val discount: Int = 0,
     val isPromo: Boolean = false,
-    val createdTs: Long = getCurrentDate().toLongOrNull() ?: 1,
+    val createdTs: Long = nowAsEpochSeconds(),
     val state: String? = null,
     val session: Session? = null,
     val externalImages: List<String>? = null,

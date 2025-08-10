@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS CachedResponse (
+                               requestId TEXT NOT NULL PRIMARY KEY,
+                               response TEXT NOT NULL,
+                               timestamp INTEGER NOT NULL
+                           );

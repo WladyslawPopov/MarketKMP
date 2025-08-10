@@ -211,7 +211,7 @@ fun CabinetOfferItem(
                                     text = buildString {
                                         if (offer.session != null)
                                             append(
-                                                (offer.session?.end ?: "").convertDateWithMinutes()
+                                                offer.session?.end?.toLongOrNull()?.convertDateWithMinutes()
                                             )
                                         else
                                             append(sessionEnd)

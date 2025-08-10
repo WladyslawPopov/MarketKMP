@@ -8,7 +8,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import market.engine.core.data.compositions.LocalBottomBarHeight
+import market.engine.core.data.constants.LocalBottomBarHeight
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.NavigationItem
@@ -18,7 +18,9 @@ fun ProfileDrawer(
     activeTitle: String,
     list: List<NavigationItem>,
 ) {
-    val bottomBarPadding = LocalBottomBarHeight.current
+    val bottomBarPadding = LocalBottomBarHeight.dp
+
+
 
     ModalDrawerSheet(
         modifier = if (!isBigScreen.value){

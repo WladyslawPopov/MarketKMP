@@ -44,7 +44,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.checkValidation
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.getRemainingMinutesTime
+import market.engine.core.utils.getMinutesRemainingUntil
 import market.engine.core.theme.Colors
 import market.engine.core.theme.Strings
 import market.engine.widgets.buttons.SimpleTextButton
@@ -107,10 +107,10 @@ fun ProposalsItemContent(
                 val showBody = remember { mutableStateOf(false) }
                 val showEnd = remember { mutableStateOf(false) }
                 val mayAnsTo =
-                    remember { proposal.tsToEndAnswer.toString().convertDateWithMinutes() }
+                    remember { proposal.tsToEndAnswer.convertDateWithMinutes() }
                 val endingTime = remember {
-                    val total = getRemainingMinutesTime(proposal.tsToEndAnswer)
-                    if (total > 1) {
+                    val total = getMinutesRemainingUntil(proposal.tsToEndAnswer)
+                    if (total != null) {
                         val hours = total / 60
                         val minutes = total % 60
                         "$hours$hourLabel $minutes$minutesLabel"
