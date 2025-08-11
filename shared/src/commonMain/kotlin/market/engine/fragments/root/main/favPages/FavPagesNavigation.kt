@@ -54,6 +54,7 @@ fun FavPagesNavigation(
 
     val uiState by viewModel.favPagesState.collectAsState()
     val customDialogState by viewModel.customDialogState.collectAsState()
+    val isLoading by viewModel.isShowProgress.collectAsState()
 
     val pages by component.componentsPages.subscribeAsState()
 
@@ -194,6 +195,7 @@ fun FavPagesNavigation(
             onDismiss = {
                 viewModel.closeDialog()
             },
+            isLoading = isLoading,
             onSuccessful = {
                 viewModel.onClickOperation(customDialogState.typeDialog, activeFavTabId.value)
                 activeFavTabId.value = 1

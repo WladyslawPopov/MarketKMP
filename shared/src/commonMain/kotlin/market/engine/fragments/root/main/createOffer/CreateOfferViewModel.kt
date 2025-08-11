@@ -86,17 +86,11 @@ class CreateOfferViewModel(
         ListSerializer(Category.serializer())
     )
 
-    private val _isEditCat = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
-        "isEditCat",
-        false,
-        Boolean.serializer()
-    )
 
     private val _selectedDate = savedStateHandle.getSavedStateFlow(
         viewModelScope,
         "selectedDate",
-        _responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull ?: 0,
+        _responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull ?: 1,
         Long.serializer()
     )
     val selectedDate = _selectedDate.state
@@ -111,6 +105,15 @@ class CreateOfferViewModel(
     
     val searchData = categoryViewModel.searchData
 
+
+    private val _isEditCat = savedStateHandle.getSavedStateFlow(
+        viewModelScope,
+        "isEditCat",
+        searchData.value.searchCategoryID,
+        Long.serializer()
+    )
+    val isEditCat = _isEditCat.state
+
     @OptIn(ExperimentalDecomposeApi::class)
     val photoTempViewModel = (component as JetpackComponentContext).viewModel("createOfferPhotoTempViewModel") {
         PhotoTempViewModel(type, savedStateHandle)
@@ -118,10 +121,9 @@ class CreateOfferViewModel(
 
     val createOfferContentState : StateFlow<CreateOfferContentState> = combine(
         _responseGetPage.state,
-        _responseCatHistory.state,
-        _isEditCat.state,
+        _responseCatHistory.state
     )
-    { dynamicPayload, catHistory, openCategory ->
+    { dynamicPayload, catHistory ->
         CreateOfferContentState(
             appBarState = SimpleAppBarData(
                 onBackClick = {
@@ -143,7 +145,6 @@ class CreateOfferViewModel(
             ),
             catHistory = catHistory,
             categoryState = CategoryState(
-                openCategory = openCategory,
                 categoryViewModel = categoryViewModel
             ),
             textState = dynamicPayload.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
@@ -153,7 +154,6 @@ class CreateOfferViewModel(
         SharingStarted.Eagerly,
         CreateOfferContentState(
             categoryState = CategoryState(
-                openCategory = _isEditCat.value,
                 categoryViewModel = categoryViewModel
             )
         )
@@ -163,7 +163,6 @@ class CreateOfferViewModel(
         when(type){
             CreateOfferType.CREATE -> {
                 categoryViewModel.initialize()
-                _isEditCat.value = searchData.value.searchCategoryID == 1L
                 analyticsHelper.reportEvent("add_offer_start", mapOf())
             }
             CreateOfferType.EDIT -> {
@@ -192,41 +191,37 @@ class CreateOfferViewModel(
     fun refreshPage(){
         refresh()
         viewModelScope.launch {
-            if (searchData.value.searchCategoryID != 1L) {
-                getCategoriesHistory(searchData.value.searchCategoryID)
+            // update params after category change
+            if (isEditCat.value != 1L && type != CreateOfferType.CREATE) {
+                val newFields = updateParams(isEditCat.value)
 
-                // update params after category change
-                if (_isEditCat.value && type != CreateOfferType.CREATE) {
-                    val newFields = updateParams(searchData.value.searchCategoryID)
-
-                    _responseGetPage.update { page ->
-                        buildList {
-                            page.filterNot { it.key.toString().contains("par_") }.map {
-                                add(
-                                    if(it.key == "category_id"){
-                                        it.copy(data = JsonPrimitive(searchData.value.searchCategoryID))
-                                    }else{
-                                        it.copy()
-                                    }
-                                )
-                            }
-                            addAll(newFields)
+                _responseGetPage.update { page ->
+                    buildList {
+                        page.filterNot { it.key.toString().contains("par_") }.map {
+                            add(
+                                if(it.key == "category_id"){
+                                    it.copy(data = JsonPrimitive(isEditCat.value))
+                                }else{
+                                    it.copy()
+                                }
+                            )
                         }
+                        addAll(newFields)
                     }
-                } else {
-                    val url = when (type) {
-                        CreateOfferType.CREATE -> "categories/${searchData.value.searchCategoryID}/operations/create_offer"
-                        CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
-                        CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
-                        CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
-                        CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
-                    }
-
-                    getPage(url)
                 }
-
-                _isEditCat.value = false
             }
+
+            getCategoriesHistory(isEditCat.value)
+
+            val url = when (type) {
+                CreateOfferType.CREATE -> "categories/${isEditCat.value}/operations/create_offer"
+                CreateOfferType.EDIT -> "offers/$offerId/operations/edit_offer"
+                CreateOfferType.COPY -> "offers/$offerId/operations/copy_offer"
+                CreateOfferType.COPY_WITHOUT_IMAGE -> "offers/$offerId/operations/copy_offer_without_old_photo"
+                CreateOfferType.COPY_PROTOTYPE -> "offers/$offerId/operations/copy_offer_from_prototype"
+            }
+
+            getPage(url)
         }
     }
 
@@ -262,7 +257,7 @@ class CreateOfferViewModel(
                             payload.fields.find {
                                 it.key == "session_start"
                             }?.let { it.data = JsonPrimitive(2) }
-                            _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 0
+                            _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 1
                         }
                     }
 
@@ -306,6 +301,7 @@ class CreateOfferViewModel(
                         payload.fields.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull
 
                     if (categoryID != null) {
+                        _isEditCat.value = categoryID
                         categoryViewModel.updateFromSearchData(
                             SD(
                                 searchCategoryID = categoryID,
@@ -372,7 +368,7 @@ class CreateOfferViewModel(
         val body = createJsonBody()
         val url = when (type) {
             CreateOfferType.CREATE -> {
-                "categories/${searchData.value.searchCategoryID}/operations/create_offer"
+                "categories/${isEditCat.value}/operations/create_offer"
             }
 
             CreateOfferType.EDIT -> {
@@ -422,7 +418,7 @@ class CreateOfferViewModel(
                             "lot_id" to offerId,
                             "lot_name" to title,
                             "lot_city" to loc,
-                            "lot_category" to "${searchData.value.searchCategoryID}",
+                            "lot_category" to "${isEditCat.value}",
                             "seller_id" to UserData.userInfo?.id
                         )
 
@@ -507,7 +503,7 @@ class CreateOfferViewModel(
         }
     }
 
-    fun setSelectData(data: Long? = null) {
+    fun setSelectData(data: Long = 1) {
         _responseGetPage.update { page ->
             page.map {
                 if (it.key == "future_time") {
@@ -515,7 +511,7 @@ class CreateOfferViewModel(
                 } else it.copy()
             }
         }
-        _selectedDate.value = data ?: 0
+        _selectedDate.value = data
     }
 
     fun setDescription(description: String) {
@@ -531,11 +527,11 @@ class CreateOfferViewModel(
 
     fun openCategory() {
         categoryViewModel.initialize()
-        _isEditCat.value = true
+        _isEditCat.value = 1L
     }
 
     fun closeCategory() {
-        _isEditCat.value = false
+        _isEditCat.value = searchData.value.searchCategoryID
     }
 
     fun createJsonBody() : JsonObject {
@@ -574,13 +570,17 @@ class CreateOfferViewModel(
                     }
 
                     "session_start" -> {
-                        if (selectedDate <= 0L) {
+                        if (selectedDate <= 1L) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }
                     "future_time" ->{
-                        if (selectedDate >= 0 ) {
+                        if (selectedDate > 1L) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
+                        }else{
+                            if (type != CreateOfferType.CREATE && type != CreateOfferType.EDIT) {
+                                put(field.key, field.data ?: JsonPrimitive("null"))
+                            }
                         }
                     }
 

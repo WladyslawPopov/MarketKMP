@@ -462,83 +462,6 @@ class CabinetOfferRepository(
         val fields = customDialogState.value.fields
         val id = customDialogState.value.typeDialog
 
-        when (id) {
-            "edit_offer_in_list" -> {
-                val addList =
-                    customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
-                val removeList =
-                    buildJsonArray {
-                        fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
-                            !addList.toString()
-                                .contains(
-                                    it.code.toString()
-                                )
-                        }
-                            ?.map { it.code }
-                            ?.fastForEach {
-                                if (it != null) {
-                                    add(it)
-                                }
-                            }
-                    }
-                _customDialogState.update { dialog ->
-                    dialog.copy(
-                        fields = buildList {
-                            addAll(
-                                fields.map { field ->
-                                    when (field.key) {
-                                        "offers_list_ids_add" -> {
-                                            field.copy(
-                                                data = addList
-                                            )
-                                        }
-
-                                        "offers_list_ids_remove" -> {
-                                            field.copy(
-                                                data = removeList
-                                            )
-                                        }
-
-                                        else -> {
-                                            field.copy()
-                                        }
-                                    }
-                                })
-                            remove(
-                                fields.find { it.widgetType == "checkbox_group" })
-                        }
-                    )
-                }
-            }
-
-            "create_blank_offer_list" -> {
-                idMethod =
-                    UserData.login
-                method = "users"
-            }
-
-            "activate_offer_for_future" -> {
-                val body =
-                    HashMap<String, JsonElement>()
-                body["future_time"] =
-                    JsonPrimitive(
-                        futureTimeInSeconds.value
-                    )
-                core.postOperationFields(
-                    offerState.value.id,
-                    id,
-                    "offers",
-                    body = body,
-                    onSuccess = {
-                        refreshOffer()
-                        clearDialogFields()
-                    },
-                    errorCallback = {
-                        clearDialogFields()
-                    }
-                )
-            }
-        }
         when(id){
             "send_message" -> {
                 writeToSeller(
@@ -566,6 +489,62 @@ class CabinetOfferRepository(
                 buyNowSuccessDialog(valuesPickerState.value.toIntOrNull() ?: 1)
             }
             else -> {
+                when(id){
+                    "edit_offer_in_list" -> {
+                        val addList =
+                            customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
+                        val removeList =
+                            buildJsonArray {
+                                fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
+                                    !addList.toString()
+                                        .contains(
+                                            it.code.toString()
+                                        )
+                                }
+                                    ?.map { it.code }
+                                    ?.fastForEach {
+                                        if (it != null) {
+                                            add(it)
+                                        }
+                                    }
+                            }
+                        _customDialogState.update { dialog ->
+                            dialog.copy(
+                                fields = buildList {
+                                    addAll(
+                                        fields.map { field ->
+                                            when (field.key) {
+                                                "offers_list_ids_add" -> {
+                                                    field.copy(
+                                                        data = addList
+                                                    )
+                                                }
+
+                                                "offers_list_ids_remove" -> {
+                                                    field.copy(
+                                                        data = removeList
+                                                    )
+                                                }
+
+                                                else -> {
+                                                    field.copy()
+                                                }
+                                            }
+                                        })
+                                    remove(
+                                        fields.find { it.widgetType == "checkbox_group" })
+                                }
+                            )
+                        }
+                    }
+
+                    "create_blank_offer_list" -> {
+                        idMethod =
+                            UserData.login
+                        method = "users"
+                    }
+                }
+
                 customDialogState.value.fields.forEach {
                     if (it.data != null) {
                         body[it.key ?: ""] =
@@ -579,8 +558,8 @@ class CabinetOfferRepository(
                     method,
                     body = body,
                     onSuccess = {
-                        clearDialogFields()
                         refreshOffer()
+                        clearDialogFields()
                     },
                     errorCallback = { errFields ->
                         if (errFields != null) {
@@ -1010,6 +989,22 @@ class CabinetOfferRepository(
 
     fun setFutureTimeInSeconds(text: String) {
         _futureTimeInSeconds.value = text
+
+        _customDialogState.update {
+            it.copy(
+                fields = it.fields.map { oldField ->
+                    if (oldField.key == "future_time"){
+                        oldField.copy(
+                            data = JsonPrimitive(
+                                futureTimeInSeconds.value
+                            )
+                        )
+                    }else{
+                        oldField.copy()
+                    }
+                }
+            )
+        }
     }
 
     fun setNewField(field: Fields){

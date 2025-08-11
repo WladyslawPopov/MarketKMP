@@ -28,10 +28,11 @@ data class CustomDialogState(
 @Composable
 fun CustomDialog(
     uiState: CustomDialogState,
-    onDismiss: () -> Unit,
-    onSuccessful: (() -> Unit)? = null,
+    isLoading: Boolean = false,
     containerColor: Color = colors.primaryColor,
     annotatedString: AnnotatedString? = null,
+    onDismiss: () -> Unit,
+    onSuccessful: (() -> Unit)? = null,
     body: @Composable (uiState: CustomDialogState) -> Unit = {},
 ) {
     val showDialog = uiState.typeDialog
@@ -63,6 +64,7 @@ fun CustomDialog(
                         text = stringResource(strings.acceptAction),
                         backgroundColor = colors.inactiveBottomNavIconColor,
                         textColor = colors.alwaysWhite,
+                        enabled = !isLoading,
                         onClick = {
                             onSuccessful()
                         }

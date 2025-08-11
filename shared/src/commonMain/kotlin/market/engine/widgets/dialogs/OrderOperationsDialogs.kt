@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,28 +31,30 @@ import org.jetbrains.compose.resources.stringResource
 fun OrderOperationsDialog(
     orderRepository: OrderRepository
 ) {
-    val customDialogState = orderRepository.customDialogState.collectAsState()
-    val messageTextState = orderRepository.messageText.collectAsState()
+    val customDialogState by orderRepository.customDialogState.collectAsState()
+    val messageTextState by orderRepository.messageText.collectAsState()
+    val isLoading by orderRepository.core.isShowProgress.collectAsState()
     val annotatedTitle = orderRepository.annotatedTitle
-    val messageText = remember { mutableStateOf(TextFieldValue(messageTextState.value)) }
+    val messageText = remember { mutableStateOf(TextFieldValue(messageTextState)) }
     val order = orderRepository.order
     val typeGroup = orderRepository.typeGroup
     val typeDef = DealTypeGroup.BUY
 
     CustomDialog(
         containerColor = colors.primaryColor,
-        uiState = customDialogState.value,
+        uiState = customDialogState,
         annotatedString = annotatedTitle.value,
+        isLoading = isLoading,
         onDismiss = {
             orderRepository.clearDialogFields()
         },
-        onSuccessful = when(customDialogState.value.typeDialog){
+        onSuccessful = when(customDialogState.typeDialog){
             "order_details","show_report_to_me", "show_my_report" -> {
                 null
             }
             else -> {
                 {
-                    orderRepository.makeOperation(customDialogState.value.typeDialog)
+                    orderRepository.makeOperation(customDialogState.typeDialog)
                 }
             }
         }

@@ -41,6 +41,7 @@ import kotlinx.datetime.Instant
 fun DateDialog(
     showDialog : Boolean,
     isSelectableDates : Boolean = false,
+    isLoading : Boolean = false,
     onDismiss : () -> Unit,
     onSucceed : (Long) -> Unit,
 ) {
@@ -88,6 +89,7 @@ fun DateDialog(
                     text = stringResource(strings.acceptAction),
                     backgroundColor = colors.inactiveBottomNavIconColor,
                     textColor = colors.alwaysWhite,
+                    enabled = !isLoading,
                     onClick = {
                         if (selectedDate.value == null) {
                             val selectedDateMillis = datePickerState.selectedDateMillis

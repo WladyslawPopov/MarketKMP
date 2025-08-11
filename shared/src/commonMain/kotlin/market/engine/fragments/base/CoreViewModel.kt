@@ -153,11 +153,14 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         errorCallback: (List<Fields>?) -> Unit
     )
     {
+        setLoading(true)
         viewModelScope.launch {
             val data = withContext(Dispatchers.IO) { operationsMethods.postOperationFields(id, type, method, body) }
             withContext(Dispatchers.Main) {
                 val res = data.success
                 val error = data.error
+
+                setLoading(false)
                 if (res != null) {
                     if (res.operationResult?.result == "ok") {
                         showToast(

@@ -37,12 +37,14 @@ fun OfferOperationsDialogs(
     val customDialogState by cabinetOfferRepository.customDialogState.collectAsState()
     val myMaximalBid by cabinetOfferRepository.myMaximalBid.collectAsState()
     val messageTextState by cabinetOfferRepository.messageText.collectAsState()
+    val isLoading by cabinetOfferRepository.core.isShowProgress.collectAsState()
     val messageText = remember { mutableStateOf(TextFieldValue(messageTextState)) }
 
     CustomDialog(
-        containerColor = colors.primaryColor,
-        annotatedString = cabinetOfferRepository.annotatedTitle.value,
         uiState = customDialogState,
+        containerColor = colors.primaryColor,
+        isLoading = isLoading,
+        annotatedString = cabinetOfferRepository.annotatedTitle.value,
         onDismiss = {
             cabinetOfferRepository.clearDialogFields()
         },
@@ -68,11 +70,13 @@ fun OfferOperationsDialogs(
                 DateDialog(
                     showDialog = state.typeDialog != "",
                     isSelectableDates = true,
+                    isLoading = isLoading,
                     onDismiss = {
                         cabinetOfferRepository.clearDialogFields()
                     },
                     onSucceed = { futureTimeInSeconds ->
                         cabinetOfferRepository.setFutureTimeInSeconds(futureTimeInSeconds.toString())
+                        cabinetOfferRepository.makeOperations()
                     }
                 )
             }

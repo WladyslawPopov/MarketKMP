@@ -90,7 +90,8 @@ fun CabinetOfferItem(
                 onClick = {
                     events.openCabinetOffer(offer)
                 }
-            ) {
+            )
+            {
                 HeaderOfferBar(
                     offer = offer,
                     defOptions = defOptions,
@@ -102,7 +103,8 @@ fun CabinetOfferItem(
                     modifier = Modifier.padding(dimens.smallPadding).fillMaxWidth(),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
-                ) {
+                )
+                {
                     val imageSize =
                         if (isBigScreen.value) {
                             250.dp
@@ -209,7 +211,7 @@ fun CabinetOfferItem(
 
                                 Text(
                                     text = buildString {
-                                        if (offer.session != null)
+                                        if (offer.session?.start != null)
                                             append(
                                                 offer.session?.end?.toLongOrNull()?.convertDateWithMinutes()
                                             )

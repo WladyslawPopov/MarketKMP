@@ -94,10 +94,7 @@ fun CreateOfferContent(
 
     val newOfferId by viewModel.newOfferId.collectAsState()
 
-    val categorySD by uiState.categoryState.categoryViewModel.searchData.collectAsState()
-    val categoryID = categorySD.searchCategoryID
-
-    val isEditCategory = uiState.categoryState.openCategory
+    val isEditCategory by viewModel.isEditCat.collectAsState()
 
     val selectedDate by viewModel.selectedDate.collectAsState()
     val payloadState by viewModel.responseGetPage.collectAsState()
@@ -185,20 +182,21 @@ fun CreateOfferContent(
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
         when{
-            categoryID == 1L || isEditCategory ->{
+            isEditCategory == 1L ->{
                 CategoryContent(
                     categoryState.categoryViewModel,
                     onClose = {
                         viewModel.closeCategory()
                     },
                     onCompleted = {
+                        viewModel.closeCategory()
                         viewModel.refreshPage()
                     },
                     modifier = Modifier.padding(top = contentPadding.calculateTopPadding())
                 )
             }
 
-            !isEditCategory && payloadState.isNotEmpty() && newOfferId == 1L ->{
+            isEditCategory != 1L && payloadState.isNotEmpty() && newOfferId == 1L ->{
                 LazyColumnWithScrollBars(
                     modifierList = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
@@ -588,12 +586,17 @@ fun CreateOfferContent(
                                                     stringResource(strings.offersGroupStartTSTile)
                                                 )
 
-                                                SessionStartContent(selectedDate, field, onValueChange = {
-                                                    viewModel.setNewFiles(it)
-                                                    viewModel.setSelectData()
-                                                }){
-                                                    viewModel.setSelectData(it)
-                                                }
+                                                SessionStartContent(
+                                                    selectedDate,
+                                                    field,
+                                                    onValueChange = {
+                                                        viewModel.setNewFiles(it)
+                                                        viewModel.setSelectData()
+                                                    },
+                                                    onSetSelectedDate = {
+                                                        viewModel.setSelectData(it)
+                                                    }
+                                                )
                                             }
                                         }
                                     }
@@ -710,13 +713,13 @@ fun SessionStartContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if(selectedDate <= 0 ) {
+                if(selectedDate <= 1 ) {
                     Text(
                         stringResource(strings.selectTimeActiveLabel),
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.black
                     )
-                }else{
+                } else {
                     Text(
                         selectedDate.convertDateWithMinutes(),
                         style = MaterialTheme.typography.titleSmall,
