@@ -29,6 +29,7 @@ data class OfferItem(
     val quantity: Int = 0,
     val currentQuantity: Int = 0,
     val price: String = "",
+    val buyNowPrice: String? = null,
     val minimalAcceptablePrice: String = "0",
     val type: String = "",
     val seller: User = User(),

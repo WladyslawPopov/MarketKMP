@@ -502,15 +502,25 @@ fun OfferContent(
 
                             item {
                                 //simple Price
-                                if ((offerState != OfferStates.ACTIVE && offerState != OfferStates.PROTOTYPE) || isMyOffer) {
+                                if ((offerState != OfferStates.ACTIVE && offerState != OfferStates.PROTOTYPE)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth()
                                             .padding(dimens.smallPadding),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
+                                        val price = if (offer.type == "auction_with_buy_now") {
+                                            if (offer.buyNowPrice != null) {
+                                                offer.buyNowPrice
+                                            } else {
+                                                offer.price
+                                            }
+                                        } else {
+                                            offer.price
+                                        }
+
                                         Text(
-                                            text = offer.price +
+                                            text = price +
                                                     " " + stringResource(strings.currencySign),
                                             style = MaterialTheme.typography.titleLarge.copy(
                                                 fontWeight = FontWeight.Bold
@@ -600,7 +610,7 @@ fun OfferContent(
 
                             item {
                                 //bids price
-                                if (offer.type != "buy_now" && !isMyOffer && offerState == OfferStates.ACTIVE) {
+                                if (offer.type != "buy_now" && offerState == OfferStates.ACTIVE) {
                                     AuctionPriceLayout(
                                         offer = offer,
                                         onAddBidClick = { bid ->
@@ -615,7 +625,7 @@ fun OfferContent(
 
                             item {
                                 //buy now price
-                                if ((offer.type == "buy_now" || offer.type == "auction_with_buy_now") && !isMyOffer) {
+                                if (offer.type == "buy_now" || offer.type == "auction_with_buy_now") {
                                     BuyNowPriceLayout(
                                         offer = offer,
                                         offerState,
@@ -1131,7 +1141,7 @@ fun BuyNowPriceLayout(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = offer.price + " "
+                    text = offer.buyNowPrice + " "
                             + stringResource(strings.currencySign),
                     style = MaterialTheme.typography.titleLarge,
                     color = colors.priceTextColor,

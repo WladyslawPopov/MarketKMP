@@ -246,6 +246,9 @@ class CreateOfferViewModel(
                     val payload: DynamicPayload<OperationResult> =
                         deserializePayload(response.payload, serializer)
 
+
+                    payload.fields.find { it.key == "session_start"  && it.data == null}?.data = JsonPrimitive(0)
+
                     payload.fields.find {
                         it.key == "future_time"
                     }?.let { field ->

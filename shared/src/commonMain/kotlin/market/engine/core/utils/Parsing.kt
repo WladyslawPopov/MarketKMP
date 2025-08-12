@@ -322,6 +322,7 @@ fun OfferItem.setNewParams(offer: Offer) : OfferItem {
         params = offer.params,
         region = offer.region,
         hasTempImages = offer.hasTempImages,
+        buyNowPrice = offer.buyNowPrice,
         minimalAcceptablePrice = offer.minimalAcceptablePrice ?: "0",
         deliveryMethods = offer.deliveryMethods,
         removedBids = offer.removedBids,
@@ -383,6 +384,7 @@ fun Offer.parseToOfferItem() : OfferItem {
         viewsCount = viewsCount,
         publicUrl = publicUrl,
         relistingMode = relistingMode,
+        buyNowPrice = buyNowPrice,
         bids = bids,
         location = buildString {
             freeLocation?.let { append(it) }
