@@ -17,6 +17,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import market.engine.common.Platform
 import market.engine.common.getPermissionHandler
 import market.engine.common.openUrl
+import market.engine.common.syncNotificationsFromUserDefaults
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.baseFilters.SD
@@ -269,6 +270,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         if(_responseOffersPromotedOnMainPage1.value.isEmpty()) {
             updateModel()
         }
+
         analyticsHelper.reportEvent("view_main_page", mapOf())
     }
 
@@ -276,6 +278,8 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         refresh()
 
         updateUserInfo()
+
+        syncNotificationsFromUserDefaults(db)
 
         viewModelScope.launch {
             updateCategoriesFromCacheOrNetwork()
@@ -393,4 +397,5 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
             null
         }
     }
+
 }

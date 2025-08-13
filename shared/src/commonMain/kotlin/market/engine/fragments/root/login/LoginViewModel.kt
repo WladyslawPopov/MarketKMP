@@ -131,7 +131,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
             body["identity"] = email
             body["password"] = password
             body["workstation_data"] = SAPI.workstationData
-            body["test"] = "true"
+            //body["test"] = "true"
 
             if (captcha.isNotBlank() && captKey?.isNotBlank() == true) {
                 body["captcha_key"] = captKey
