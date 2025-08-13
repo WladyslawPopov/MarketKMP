@@ -1,5 +1,7 @@
 package market.engine.fragments.root.main
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
@@ -74,6 +76,10 @@ interface MainComponent {
 class DefaultMainComponent(
     componentContext: JetpackComponentContext,
 ) : MainComponent, JetpackComponentContext by componentContext {
+
+    companion object {
+        var localBottomBarHeight : Dp = 100.dp
+    }
 
     private val _modelNavigation = MutableValue(
         MainComponent.ModelNavigation(

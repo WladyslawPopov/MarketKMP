@@ -62,6 +62,10 @@ class CreateOfferViewModel(
     savedStateHandle: SavedStateHandle
 ) : CoreViewModel(savedStateHandle) {
 
+    companion object {
+        const val INACTIVE_FUTURE_TIME : Long = 1
+    }
+
     val categoryViewModel = component.additionalModels.value.categoryViewModel
 
     private val _responseGetPage = savedStateHandle.getSavedStateFlow(
@@ -86,11 +90,10 @@ class CreateOfferViewModel(
         ListSerializer(Category.serializer())
     )
 
-
     private val _selectedDate = savedStateHandle.getSavedStateFlow(
         viewModelScope,
         "selectedDate",
-        _responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull ?: 1,
+        _responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME,
         Long.serializer()
     )
     val selectedDate = _selectedDate.state
@@ -254,13 +257,13 @@ class CreateOfferViewModel(
                     }?.let { field ->
                         if (
                             field.data != null &&
-                            (field.data?.jsonPrimitive?.longOrNull ?: 1) >
+                            (field.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME) >
                             nowAsEpochSeconds()
                         ) {
                             payload.fields.find {
                                 it.key == "session_start"
                             }?.let { it.data = JsonPrimitive(2) }
-                            _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: 1
+                            _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME
                         }
                     }
 
@@ -506,7 +509,7 @@ class CreateOfferViewModel(
         }
     }
 
-    fun setSelectData(data: Long = 1) {
+    fun setSelectData(data: Long = INACTIVE_FUTURE_TIME) {
         _responseGetPage.update { page ->
             page.map {
                 if (it.key == "future_time") {
@@ -573,12 +576,12 @@ class CreateOfferViewModel(
                     }
 
                     "session_start" -> {
-                        if (selectedDate <= 1L) {
+                        if (selectedDate <= INACTIVE_FUTURE_TIME) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }
                     }
                     "future_time" ->{
-                        if (selectedDate > 1L) {
+                        if (selectedDate > INACTIVE_FUTURE_TIME) {
                             put(field.key, field.data ?: JsonPrimitive("null"))
                         }else{
                             if (type != CreateOfferType.CREATE && type != CreateOfferType.EDIT) {

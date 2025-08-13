@@ -35,6 +35,8 @@ import market.engine.fragments.root.main.home.HomeConfig
 import market.engine.fragments.root.main.profile.ProfileConfig
 import org.jetbrains.compose.resources.getString
 
+const val NAVIGATION_DEBOUNCE_DELAY_MS = 100L
+
 class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
     private val _showBottomBar = savedStateHandle.getSavedStateFlow(
         viewModelScope,

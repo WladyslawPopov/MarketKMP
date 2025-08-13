@@ -27,12 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import market.engine.core.data.constants.LocalBottomBarHeight
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.items.ToastItem
+import market.engine.fragments.root.main.DefaultMainComponent.Companion.localBottomBarHeight
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +52,7 @@ fun EdgeToEdgeScaffold(
 
     val pullToRefreshState: PullToRefreshState = rememberPullToRefreshState()
 
-    val bottomBarHeight = LocalBottomBarHeight.dp
+    val bottomBarHeight = localBottomBarHeight
 
     var topBarHeight by remember { mutableStateOf(dimens.zero) }
 

@@ -3,7 +3,6 @@ package market.engine.fragments.root.main
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -11,14 +10,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
-import market.engine.core.data.constants.LocalBottomBarHeight
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
+import market.engine.fragments.root.main.DefaultMainComponent.Companion.localBottomBarHeight
 import market.engine.fragments.root.main.basket.BasketNavigation
 import market.engine.fragments.root.main.home.HomeNavigation
 import market.engine.fragments.root.main.listing.SearchNavigation
@@ -36,7 +36,6 @@ sealed class ChildMain {
     data object FavoritesChildMain : ChildMain()
     data object ProfileChildMain : ChildMain()
 }
-const val NAVIGATION_DEBOUNCE_DELAY_MS = 100L
 
 @Composable
 fun MainNavigation(
@@ -61,6 +60,7 @@ fun MainNavigation(
     val showBottomBar by viewModel.showBottomBar.collectAsState()
     val bottomList by viewModel.bottomList.collectAsState()
     val profileNavigationItems by viewModel.publicProfileNavigationItems.collectAsState()
+    val density = LocalDensity.current
 
     Scaffold {
         Children(
@@ -108,7 +108,12 @@ fun MainNavigation(
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .height(LocalBottomBarHeight.dp)
+                            .onSizeChanged(
+                                onSizeChanged = {
+                                    val newHeight = with(density) { it.height.toDp() }
+                                    localBottomBarHeight = newHeight
+                                }
+                            )
                             .zIndex(300f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {

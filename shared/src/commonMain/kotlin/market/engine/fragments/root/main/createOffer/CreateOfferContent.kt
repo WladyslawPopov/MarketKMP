@@ -43,6 +43,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import market.engine.common.getPermissionHandler
 import market.engine.core.data.constants.MAX_IMAGE_COUNT
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -64,6 +65,7 @@ import market.engine.widgets.dropdown_menu.DynamicSelect
 import market.engine.fragments.base.SetUpDynamicFields
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.root.main.createOffer.CreateOfferViewModel.Companion.INACTIVE_FUTURE_TIME
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.checkboxs.ThemeCheckBox
 import market.engine.widgets.dialogs.DateDialog
@@ -643,10 +645,9 @@ fun CreateOfferContent(
                 SuccessContent(
                     photoTempViewModel.responseImages.value,
                     title,
-                    payloadState.find { it.key == "session_start" }?.data?.jsonPrimitive?.intOrNull != 1,
-                    modifier = Modifier.padding(contentPadding)
-                        .padding(dimens.mediumPadding),
-                    futureTime = if(selectedDate != 0L) selectedDate else nowAsEpochSeconds(),
+                    payloadState.find { it.key == "session_start" }?.data?.jsonPrimitive?.longOrNull != INACTIVE_FUTURE_TIME,
+                    modifier = Modifier.padding(contentPadding).padding(dimens.mediumPadding),
+                    futureTime = if(selectedDate != INACTIVE_FUTURE_TIME) selectedDate else nowAsEpochSeconds(),
                     goToOffer = {
                         component.goToOffer(newOfferId)
                     },
