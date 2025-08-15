@@ -51,7 +51,7 @@ fun CustomDialog(
             },
             text = {
                 LazyColumnWithScrollBars(
-                    heightMod = Modifier.fillMaxWidth()
+                    containerModifier = Modifier.fillMaxWidth()
                 ) {
                     item {
                         body(uiState)

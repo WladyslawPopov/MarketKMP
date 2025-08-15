@@ -205,7 +205,7 @@ fun OfferFilterContent(
                 )
                 {
                     LazyColumnWithScrollBars(
-                        modifierList = Modifier.fillMaxSize(),
+                        listModifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         contentPadding = PaddingValues(bottom = dimens.extraLargePadding)

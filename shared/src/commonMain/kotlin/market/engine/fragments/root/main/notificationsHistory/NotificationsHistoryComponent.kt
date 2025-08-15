@@ -18,7 +18,7 @@ interface NotificationsHistoryComponent {
         val notificationsHistoryViewModel: NotificationsHistoryViewModel,
         val backHandler: BackHandler
     )
-
+    fun goToOffer(offerId: Long)
     fun onBackClicked()
     fun goToDeepLink(url: DeepLink)
 }
@@ -28,6 +28,7 @@ class DefaultNotificationsHistoryComponent(
     componentContext: JetpackComponentContext,
     val navigateBack: () -> Unit,
     val navigateDeepLink: (DeepLink) -> Unit,
+    val navigateToOffer: (Long) -> Unit,
 ) : NotificationsHistoryComponent, JetpackComponentContext by componentContext {
 
     private val viewModel = viewModel("notificationsHistoryViewModel"){
@@ -44,6 +45,10 @@ class DefaultNotificationsHistoryComponent(
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
 
     override val model = _model
+
+    override fun goToOffer(offerId: Long) {
+        navigateToOffer(offerId)
+    }
 
     override fun onBackClicked() {
         navigateBack()

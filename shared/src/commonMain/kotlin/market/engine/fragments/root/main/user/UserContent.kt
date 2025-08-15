@@ -282,7 +282,8 @@ fun UserContent(
         } else {
             NoItemsFoundLayout(
                 title = stringResource(strings.userDeletedLabel),
-                modifier = Modifier.padding(contentPadding)
+                modifier = Modifier.padding(contentPadding),
+                viewModel = viewModel,
             ) {
                 viewModel.getUserInfo()
             }

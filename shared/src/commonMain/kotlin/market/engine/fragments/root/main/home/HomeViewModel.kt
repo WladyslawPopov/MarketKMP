@@ -279,6 +279,8 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
         updateUserInfo()
 
+        getHistory(1L)
+
         syncNotificationsFromUserDefaults(db)
 
         viewModelScope.launch {

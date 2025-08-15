@@ -108,12 +108,10 @@ fun EdgeToEdgeScaffold(
             {
                 when {
                     noFound != null -> {
-                        LazyColumnWithScrollBars(
-                            contentPadding = contentPadding
+                        Column(
+                            modifier = Modifier.align(Alignment.Center).padding(contentPadding)
                         ) {
-                            item {
-                                noFound()
-                            }
+                            noFound()
                         }
                     }
 

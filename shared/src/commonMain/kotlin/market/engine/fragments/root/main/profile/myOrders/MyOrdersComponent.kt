@@ -11,7 +11,6 @@ import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.DealType
-import market.engine.core.network.networkObjects.Offer
 import market.engine.fragments.base.listing.ListingBaseViewModel
 
 interface MyOrdersComponent {
@@ -28,7 +27,7 @@ interface MyOrdersComponent {
         val backHandler: BackHandler
     )
     fun goToUser(id : Long)
-    fun goToOffer(offer: Offer)
+    fun goToOffer(id: Long)
     fun selectMyOrderPage(select : DealType)
     fun goToMessenger(dialogId : Long?)
     fun onRefresh()
@@ -97,8 +96,8 @@ class DefaultMyOrdersComponent(
         }
     }
 
-    override fun goToOffer(offer: Offer) {
-        offerSelected(offer.snapshotId)
+    override fun goToOffer(id: Long) {
+        offerSelected(id)
     }
 
     override fun goToUser(id: Long) {

@@ -508,6 +508,11 @@ fun createProfileChild(
                         DialogsScreen(id,message, nowAsEpochSeconds())
                     )
                 },
+                navigateToOffer = {
+                    profileNavigation.pushNew(
+                        OfferScreen(it, nowAsEpochSeconds())
+                    )
+                }
             )
         )
 

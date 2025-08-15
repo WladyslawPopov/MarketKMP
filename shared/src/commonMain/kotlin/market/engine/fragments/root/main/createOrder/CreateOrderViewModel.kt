@@ -26,10 +26,10 @@ import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.states.CreateOrderState
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.AdditionalDataForNewOrder
 import market.engine.core.network.networkObjects.DynamicPayload
@@ -43,15 +43,6 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 
-data class CreateOrderState(
-    val appBarData: SimpleAppBarData = SimpleAppBarData(),
-    val responseGetOffers: List<OfferItem> = emptyList(),
-    val responseGetAdditionalData: AdditionalDataForNewOrder? = null,
-    val selectDeliveryMethod: Int = 0,
-    val selectDealType: Int = 0,
-    val selectPaymentType: Int = 0
-)
-
 class CreateOrderViewModel(
     val basketItem:  Pair<Long, List<SelectedBasketItem>>,
     val component: CreateOrderComponent,
@@ -59,7 +50,6 @@ class CreateOrderViewModel(
 ): CoreViewModel(savedStateHandle) {
 
     val userOperations : UserOperations by lazy { getKoin().get() }
-    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     val deliveryCardsViewModel = component.additionalModels.value.deliveryCardsViewModel
 

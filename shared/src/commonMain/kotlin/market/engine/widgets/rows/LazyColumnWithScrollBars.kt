@@ -18,8 +18,8 @@ import market.engine.core.data.globalData.ThemeResources.dimens
 
 @Composable
 fun LazyColumnWithScrollBars(
-    heightMod : Modifier = Modifier.fillMaxSize(),
-    modifierList: Modifier = Modifier,
+    containerModifier : Modifier = Modifier.fillMaxSize(),
+    listModifier: Modifier = Modifier,
     state: LazyListState = rememberLazyListState(),
     contentPadding : PaddingValues = PaddingValues(dimens.smallPadding),
     verticalArrangement : Arrangement.Vertical = Arrangement.spacedBy(dimens.smallPadding),
@@ -29,11 +29,11 @@ fun LazyColumnWithScrollBars(
     content: LazyListScope.() -> Unit
 ) {
     Box(
-       modifier = heightMod
+       modifier = containerModifier
     ) {
         LazyColumn(
             state = state,
-            modifier = modifierList,
+            modifier = listModifier,
             flingBehavior = flingBehavior,
             contentPadding = contentPadding,
             verticalArrangement = verticalArrangement,

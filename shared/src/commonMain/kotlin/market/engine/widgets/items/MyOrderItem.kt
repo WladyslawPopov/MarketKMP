@@ -33,7 +33,6 @@ import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.states.MyOrderItemState
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.utils.convertDateWithMinutes
-import market.engine.core.utils.parseToOfferItem
 import market.engine.widgets.items.offer_Items.OfferPartItem
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.buttons.SmallIconButton
@@ -254,10 +253,10 @@ fun MyOrderItem(
                             )
 
                             OfferPartItem(
-                                offer = offer.parseToOfferItem(),
+                                offer = offer,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                events.onGoToOffer(offer)
+                                events.onGoToOffer(offer.snapshotId)
                             }
                         }
                     }

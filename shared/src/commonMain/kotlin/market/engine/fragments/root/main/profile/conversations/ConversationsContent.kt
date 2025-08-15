@@ -91,7 +91,11 @@ fun ConversationsContent(
                     @Composable {
                         if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
                             NoItemsFoundLayout(
-                                textButton = stringResource(strings.resetLabel)
+                                textButton = stringResource(strings.resetLabel),
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer.id)
+                                }
                             ) {
                                 listingBaseViewModel.clearAllFilters()
                                 viewModel.refresh()
@@ -99,7 +103,11 @@ fun ConversationsContent(
                         } else {
                             NoItemsFoundLayout(
                                 title = stringResource(strings.simpleNotFoundLabel),
-                                icon = drawables.dialogIcon
+                                icon = drawables.dialogIcon,
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer.id)
+                                }
                             ) {
                                 viewModel.refresh()
                             }

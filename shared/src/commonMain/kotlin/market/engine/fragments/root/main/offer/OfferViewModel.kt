@@ -6,7 +6,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.LD
@@ -20,15 +19,13 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.SelectedBasketItem
+import market.engine.core.data.states.OfferViewState
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Offer
-import market.engine.core.network.networkObjects.Payload
-import market.engine.core.utils.deserializePayload
 import market.engine.core.data.types.OfferStates
 import market.engine.core.data.types.ProposalType
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
@@ -42,21 +39,6 @@ import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.toString
 
-@Serializable
-data class OfferViewState(
-    val statusList: List<String> = emptyList(),
-    val images: List<String> = emptyList(),
-    val columns: StaggeredGridCells = StaggeredGridCells.Fixed(1),
-    val countString : String = "",
-    val buyNowCounts : List<String> = emptyList(),
-    val dealTypeString : String = "",
-    val deliveryMethodString : String = "",
-    val paymentMethodString : String = "",
-
-    val isMyOffer: Boolean = false,
-    val offerState: OfferStates = OfferStates.ACTIVE
-)
-
 class OfferViewModel(
     private val dataBase: AuctionMarketDb,
     private val component: OfferComponent,
@@ -65,10 +47,6 @@ class OfferViewModel(
     savedStateHandle: SavedStateHandle
 ) : CoreViewModel(savedStateHandle)
 {
-    private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
-    val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
-    private val _responseOurChoice = MutableStateFlow<List<OfferItem>>(emptyList())
-    val responseOurChoice: StateFlow<List<OfferItem>> = _responseOurChoice.asStateFlow()
     private val _responseCatHistory = MutableStateFlow<List<Category>>(emptyList())
     val responseCatHistory: StateFlow<List<Category>> = _responseCatHistory.asStateFlow()
 
@@ -79,7 +57,6 @@ class OfferViewModel(
     val scrollPosition: StateFlow<Int> = _scrollPosition.asStateFlow()
 
     val userOperations : UserOperations by lazy { getKoin().get() }
-    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private var timerJob: Job? = null
     private var timerBidsJob: Job? = null
@@ -313,28 +290,6 @@ class OfferViewModel(
         }
     }
 
-    private fun getHistory(currentId: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val queries = dataBase.offerVisitedHistoryQueries
-
-                val historyIds = queries.selectAll(UserData.login).executeAsList()
-                    .filter { it != currentId }
-
-                val offerItems = historyIds.mapNotNull { id ->
-                    try {
-                        offerOperations.getOffer(id).success?.parseToOfferItem()
-                    } catch (_: Exception) {
-                        null
-                    }
-                }
-
-                _responseHistory.value = offerItems
-
-            } catch (_: Exception) { }
-        }
-    }
-
     suspend fun addHistory(offerId: Long) {
         withContext(Dispatchers.IO) {
             val queries = dataBase.offerVisitedHistoryQueries
@@ -351,19 +306,6 @@ class OfferViewModel(
                         queries.deleteById(oldId, UserData.login)
                     }
                 }
-            }
-        }
-    }
-
-    private fun getOurChoice(id: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val response = apiService.getOurChoiceOffers(id)
-                val serializer = Payload.serializer(Offer.serializer())
-                val ourChoice = deserializePayload(response.payload, serializer).objects
-                _responseOurChoice.value = ourChoice.map { it.parseToOfferItem() }.toList()
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
             }
         }
     }

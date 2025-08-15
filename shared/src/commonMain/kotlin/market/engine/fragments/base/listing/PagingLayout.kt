@@ -100,7 +100,7 @@ fun <T : Any> PagingLayout(
             horizontalAlignment = Alignment.Start,
             contentPadding = contentPadding,
             reverseLayout = isReversingPaging.value,
-            modifierList = Modifier
+            listModifier = Modifier
                 .fillMaxSize()
                 .align(align)
         )

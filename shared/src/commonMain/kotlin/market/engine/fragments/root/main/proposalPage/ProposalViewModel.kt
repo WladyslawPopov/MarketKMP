@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -24,9 +23,9 @@ import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.MesHeaderItem
+import market.engine.core.data.items.ProposalItem
 import market.engine.core.data.types.ProposalType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
@@ -39,13 +38,8 @@ import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
 
-@Serializable
-data class ProposalItem(
-    val userId: Long,
-    val fields: List<Fields>,
-)
+
 
 class ProposalViewModel(
     val type: ProposalType,
@@ -53,8 +47,6 @@ class ProposalViewModel(
     val component: ProposalComponent,
     savedStateHandle: SavedStateHandle
 ): CoreViewModel(savedStateHandle) {
-
-    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private var _responseGetOffer = savedStateHandle.getSavedStateFlow(
         viewModelScope,

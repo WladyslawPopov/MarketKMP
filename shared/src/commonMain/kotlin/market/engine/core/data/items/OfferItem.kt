@@ -20,6 +20,7 @@ import market.engine.core.utils.nowAsEpochSeconds
 @Serializable
 data class OfferItem(
     val id: Long = 1L,
+    val snapshotId: Long = 1L,
     val title: String = "",
     val images: List<String> = emptyList(),
     val note: String? = null,

@@ -36,7 +36,6 @@ import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.ServerErrorException
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Options
 import market.engine.core.network.networkObjects.Payload
@@ -51,7 +50,6 @@ import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
-import org.koin.mp.KoinPlatform.getKoin
 
 import kotlin.String
 import kotlin.time.Duration.Companion.days
@@ -63,8 +61,6 @@ class ListingViewModel(
 ) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
-
-    val offerOperations: OfferOperations = getKoin().get()
 
     private val _regionOptions = savedStateHandle.getSavedStateFlow(
         viewModelScope,

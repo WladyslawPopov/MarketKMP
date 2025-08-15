@@ -28,6 +28,7 @@ interface ConversationsComponent {
 
     fun goToMessenger(conversation : Conversations)
     fun onBackClick()
+    fun goToOffer(offerId : Long)
 }
 
 @OptIn(ExperimentalDecomposeApi::class)
@@ -36,8 +37,8 @@ class DefaultConversationsComponent(
     componentContext: JetpackComponentContext,
     val navigateBack : () -> Unit,
     val navigateToMessenger : (Long, String?) -> Unit,
+    val navigateToOffer : (Long) -> Unit,
 ) : ConversationsComponent, JetpackComponentContext by componentContext {
-
 
     val listingBaseVM = viewModel("conversationBaseViewModel") {
         ListingBaseViewModel(deleteSelectedItems = {
@@ -54,7 +55,7 @@ class DefaultConversationsComponent(
     override val additionalModels: Value<ConversationsComponent.AdditionalModels>
         get() = _additionalModels
 
-    private val viewModel = viewModel("conversationViewModel"){
+    private val viewModel = viewModel("conversationViewModel") {
         ConversationsViewModel(this@DefaultConversationsComponent, createSavedStateHandle())
     }
 
@@ -72,7 +73,7 @@ class DefaultConversationsComponent(
     init {
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
-            if (UserData.token == ""){
+            if (UserData.token == "") {
                 navigateBack()
             }
             if (updateBackHandlerItem.value != 1L) {
@@ -83,8 +84,8 @@ class DefaultConversationsComponent(
     }
 
 
-    override fun goToMessenger(conversation : Conversations){
-        if (conversation.countUnreadMessages > 0){
+    override fun goToMessenger(conversation: Conversations) {
+        if (conversation.countUnreadMessages > 0) {
             viewModel.markReadConversation(conversation.id)
         }
         updateBackHandlerItem.value = conversation.id
@@ -95,4 +96,9 @@ class DefaultConversationsComponent(
     override fun onBackClick() {
         navigateBack()
     }
+
+    override fun goToOffer(offerId: Long) {
+        navigateToOffer(offerId)
+    }
 }
+

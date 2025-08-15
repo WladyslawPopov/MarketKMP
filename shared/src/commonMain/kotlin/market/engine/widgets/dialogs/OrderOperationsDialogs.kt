@@ -120,7 +120,7 @@ fun OrderOperationsDialog(
                 val index = order.deliveryAddress?.zip.orEmpty()
 
                 LazyColumnWithScrollBars(
-                    heightMod = Modifier.fillMaxWidth().heightIn(max = 500.dp),
+                    containerModifier = Modifier.fillMaxWidth().heightIn(max = 500.dp),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(dimens.smallPadding)
                 ) {

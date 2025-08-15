@@ -85,7 +85,7 @@ fun RegistrationContent(
         onRefresh = { model.getRegFields() }
     ) { contentPadding ->
         LazyColumnWithScrollBars(
-            modifierList = Modifier
+            listModifier = Modifier
                 .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f),
             contentPadding = contentPadding,
             verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
@@ -121,7 +121,8 @@ fun RegistrationContent(
                     NoItemsFoundLayout(
                         icon = drawables.mail,
                         title = stringResource(strings.registrationSuccessLabel),
-                        textButton = stringResource(strings.goBackLabel)
+                        textButton = stringResource(strings.goBackLabel),
+                        viewModel = model,
                     ) {
                         component.onBack()
                     }

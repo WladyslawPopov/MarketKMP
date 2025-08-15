@@ -69,7 +69,11 @@ fun SubscriptionsContent(
                     @Composable {
                         NoItemsFoundLayout(
                             title = stringResource(strings.emptySubscriptionsLabel),
-                            image = drawables.emptyFavoritesImage
+                            image = drawables.emptyFavoritesImage,
+                            viewModel = viewModel,
+                            goToOffer = { offer ->
+                                component.goToOffer(offer.id)
+                            }
                         ) {
                             listingBaseViewModel.refresh()
                         }

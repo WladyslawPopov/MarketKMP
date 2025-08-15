@@ -142,7 +142,7 @@ fun CreateOrderContent(
 
                     //offers
                     LazyColumnWithScrollBars(
-                        heightMod = Modifier.heightIn(max = 2000.dp),
+                        containerModifier = Modifier.heightIn(max = 2000.dp),
                     ) {
                         items(
                             offers.size,

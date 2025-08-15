@@ -106,7 +106,7 @@ fun BasketItemContent(
 
         //offers list
         LazyColumnWithScrollBars(
-            heightMod = Modifier.heightIn(min = 150.dp, max = 2000.dp),
+            containerModifier = Modifier.heightIn(min = 150.dp, max = 2000.dp),
         ) {
             val itemsToShow = bodes.take(state.showItemsCount)
             items(

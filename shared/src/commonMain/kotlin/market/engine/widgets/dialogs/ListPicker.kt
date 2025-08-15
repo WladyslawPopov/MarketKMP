@@ -96,7 +96,7 @@ fun ListPicker(
                 state = listState,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 flingBehavior = flingBehavior,
-                heightMod = Modifier
+                containerModifier = Modifier
                     .fillMaxWidth()
                     .height(itemHeightDp * visibleItemsCount)
                     .fadingEdge(fadingEdgeGradient)

@@ -57,6 +57,10 @@ fun BasketContent(
                     image = drawables.cartEmptyIcon,
                     title = stringResource(strings.cardIsEmptyLabel),
                     textButton = stringResource(strings.startShoppingLabel),
+                    viewModel = viewModel,
+                    goToOffer = { offer ->
+                        component.goToOffer(offer.id)
+                    }
                 ) {
                     //go to listing
                     component.goToListing()
@@ -116,7 +120,7 @@ fun BasketContent(
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
         LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxSize(),
+            listModifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             state = scrollState.scrollState,
             contentPadding = contentPadding,

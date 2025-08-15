@@ -37,15 +37,16 @@ interface SubscriptionsComponent {
 
     fun goToCreateNewSubscription(editId : Long? = null)
     fun goToListing(item : Subscription)
+    fun goToOffer(id : Long)
 }
 
 @OptIn(ExperimentalDecomposeApi::class)
 class DefaultSubscriptionsComponent(
     componentContext: JetpackComponentContext,
     favType : FavScreenType,
-
     val navigateToCreateNewSubscription : (Long?) -> Unit,
     val navigateToListing : (ListingData) -> Unit,
+    val navigateToOffer : (Long) -> Unit,
 ) : SubscriptionsComponent, JetpackComponentContext by componentContext {
 
     val listingBaseVM = viewModel("subBaseViewModel"){
@@ -171,5 +172,9 @@ class DefaultSubscriptionsComponent(
                 navigateToListing(ld)
             }
         }
+    }
+
+    override fun goToOffer(id: Long) {
+        navigateToOffer(id)
     }
 }

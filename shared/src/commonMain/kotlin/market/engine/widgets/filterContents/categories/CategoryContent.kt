@@ -63,6 +63,7 @@ fun CategoryContent(
                 NoItemsFoundLayout(
                     textButton = if (searchData.searchCategoryID != 1L) stringResource(strings.resetLabel)
                     else stringResource(strings.refreshButton),
+                    viewModel = viewModel
                 ) {
                     viewModel.resetToRoot()
                 }
@@ -130,7 +131,7 @@ fun CategoryContent(
         )
         {
             LazyColumnWithScrollBars(
-                modifierList = Modifier
+                listModifier = Modifier
                     .fillMaxWidth(if (isBigScreen.value) 0.8f else 1f)
                     .align(Alignment.TopCenter),
                 horizontalAlignment = Alignment.CenterHorizontally,

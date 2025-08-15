@@ -2,8 +2,11 @@ package market.engine.fragments.root.main.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DrawerValue
@@ -33,8 +36,10 @@ import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
 import market.engine.widgets.bars.appBars.DrawerAppBar
 import market.engine.widgets.items.CategoryItem
+import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import market.engine.widgets.rows.LazyRowWithScrollBars
+import market.engine.widgets.texts.SeparatorLabel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -141,6 +146,33 @@ fun HomeContent(
                             }
                         )
                     }
+
+                    // visited list offers
+                    item {
+                        val offerVisitedHistory by viewModel.responseHistory.collectAsState()
+
+                        if (offerVisitedHistory.isNotEmpty()) {
+                            Column {
+                                SeparatorLabel(stringResource(strings.lastViewedOffers))
+
+                                LazyRowWithScrollBars(
+                                    heightMod = Modifier.fillMaxSize().heightIn(max = 300.dp).padding(
+                                        bottom = dimens.largePadding,
+                                        top = dimens.mediumPadding
+                                    ),
+                                ) {
+                                    items(offerVisitedHistory) { offer ->
+                                        PromoOfferRowItem(
+                                            offer
+                                        ) {
+                                            component.goToOffer(offer.id)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     item {
                         GridPopularCategory(listTopCategory) { topCategory ->
                             viewModel.goToCategory(topCategory)

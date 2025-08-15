@@ -272,6 +272,7 @@ fun OfferItem.setNewParams(offer: Offer) : OfferItem {
 
     return this.copy(
         id = offer.id,
+        snapshotId = offer.snapshotId,
         title = offer.title ?: "",
         images = buildList {
             when {
@@ -359,6 +360,7 @@ fun Offer.parseToOfferItem() : OfferItem {
 
     return OfferItem(
         id = id,
+        snapshotId = snapshotId,
         title = title ?: "",
         images = buildList {
              when {

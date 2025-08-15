@@ -68,7 +68,11 @@ fun FavoritesContent(
                     @Composable {
                         if (ld.filters.any { it.interpretation?.isNotBlank() == true }) {
                             NoItemsFoundLayout(
-                                textButton = stringResource(strings.resetLabel)
+                                textButton = stringResource(strings.resetLabel),
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer)
+                                }
                             ) {
                                 listingBaseViewModel.clearListingData()
                                 viewModel.refresh()
@@ -76,7 +80,11 @@ fun FavoritesContent(
                         } else {
                             NoItemsFoundLayout(
                                 title = stringResource(strings.emptyFavoritesLabel),
-                                image = drawables.emptyFavoritesImage
+                                image = drawables.emptyFavoritesImage,
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer)
+                                }
                             ) {
                                 viewModel.refresh()
                             }

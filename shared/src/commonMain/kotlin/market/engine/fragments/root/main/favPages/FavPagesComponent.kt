@@ -143,6 +143,13 @@ class DefaultFavPagesComponent(
                                             nowAsEpochSeconds()
                                         )
                                     )
+                                },
+                                navigateToOffer = { id ->
+                                    favoritesNavigation.pushNew(
+                                        FavoritesConfig.OfferScreen(
+                                            id, nowAsEpochSeconds()
+                                        )
+                                    )
                                 }
                             )
                         )

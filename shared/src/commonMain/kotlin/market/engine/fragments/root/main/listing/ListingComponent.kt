@@ -144,6 +144,9 @@ class DefaultListingComponent(
                             },
                             navigateToListing = {
                                 navigateToListing(listingData)
+                            },
+                            navigateToOffer = { idOffer ->
+                                selectOffer(idOffer)
                             }
                         )
                     )

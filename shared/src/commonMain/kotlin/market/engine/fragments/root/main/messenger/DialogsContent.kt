@@ -105,7 +105,11 @@ fun DialogsContent(
             {
                 NoItemsFoundLayout(
                     title = stringResource(strings.simpleNotFoundLabel),
-                    icon = drawables.dialogIcon
+                    icon = drawables.dialogIcon,
+                    viewModel = viewModel,
+                    goToOffer = { offer ->
+                        component.goToOffer(offer.id)
+                    }
                 ) {
                     viewModel.update()
                 }

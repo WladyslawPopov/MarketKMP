@@ -21,22 +21,27 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
+import market.engine.core.data.globalData.UserData
+import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.ScrollDataState
 import market.engine.core.data.types.ToastType
 import market.engine.core.network.APIService
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.CategoryOperations
+import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.network.networkObjects.AdditionalData
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getSavedStateFlow
+import market.engine.core.utils.parseToOfferItem
 import market.engine.shared.AuctionMarketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
@@ -72,6 +77,13 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val userRepository: UserRepository by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
+
+    private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
+    val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
+    private val _responseOurChoice = MutableStateFlow<List<OfferItem>>(emptyList())
+    val responseOurChoice: StateFlow<List<OfferItem>> = _responseOurChoice.asStateFlow()
+
+    val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private val _scrollState = savedStateHandle.getSavedStateFlow(
         scope = viewModelScope,
@@ -307,6 +319,45 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     if (error != null)
                         onError(error)
                 }
+            }
+        }
+    }
+
+    fun getHistory(currentId: Long? = null) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val queries = db.offerVisitedHistoryQueries
+
+                val historyIds = queries.selectAll(UserData.login).executeAsList()
+                    .filter { it != currentId }
+
+                val offerItems = historyIds.mapNotNull { id ->
+                    try {
+                        offerOperations.getOffer(id).success?.parseToOfferItem()
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+
+                _responseHistory.value = offerItems
+
+                if(currentId == null){
+                    getOurChoice(offerItems.lastOrNull()?.id ?: 1L)
+                }
+
+            } catch (_: Exception) { }
+        }
+    }
+
+    fun getOurChoice(id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val response = apiService.getOurChoiceOffers(id)
+                val serializer = Payload.serializer(Offer.serializer())
+                val ourChoice = deserializePayload(response.payload, serializer).objects
+                _responseOurChoice.value = ourChoice.map { it.parseToOfferItem() }.toList()
+            } catch (e: Exception) {
+                onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
             }
         }
     }

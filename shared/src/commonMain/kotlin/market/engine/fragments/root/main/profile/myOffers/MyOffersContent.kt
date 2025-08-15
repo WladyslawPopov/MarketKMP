@@ -57,7 +57,11 @@ fun MyOffersContent(
                     @Composable {
                         if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
                             NoItemsFoundLayout(
-                                textButton = stringResource(strings.resetLabel)
+                                textButton = stringResource(strings.resetLabel),
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer)
+                                }
                             ) {
                                 listingBaseViewModel.clearAllFilters()
                                 viewModel.refresh()
@@ -65,7 +69,11 @@ fun MyOffersContent(
                         } else {
                             NoItemsFoundLayout(
                                 title = stringResource(strings.simpleNotFoundLabel),
-                                icon = drawables.emptyOffersIcon
+                                icon = drawables.emptyOffersIcon,
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer)
+                                }
                             ) {
                                 viewModel.refresh()
                             }

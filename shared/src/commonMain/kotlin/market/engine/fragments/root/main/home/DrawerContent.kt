@@ -56,8 +56,8 @@ fun DrawerContent(
         modifier = if(!isBigScreen.value) Modifier.fillMaxWidth(0.8f).zIndex(100f) else Modifier.wrapContentWidth(),
     ) {
         LazyColumnWithScrollBars(
-            heightMod = Modifier.fillMaxSize().zIndex(100f),
-            modifierList = Modifier.fillMaxWidth().zIndex(100f)
+            containerModifier = Modifier.fillMaxSize().zIndex(100f),
+            listModifier = Modifier.fillMaxWidth().zIndex(100f)
         ) {
             item {
                 Row(

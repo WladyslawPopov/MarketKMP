@@ -51,11 +51,11 @@ import market.engine.core.data.items.PhotoSave
 import market.engine.core.data.items.PhotoTemp
 import market.engine.core.data.states.MessengerBarState
 import market.engine.core.data.items.SimpleAppBarData
+import market.engine.core.data.states.DialogContentState
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.MessageType
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
-import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OrderOperations
 import market.engine.core.network.functions.PrivateMessagesOperation
 import market.engine.core.network.networkObjects.Conversations
@@ -79,14 +79,6 @@ import kotlin.collections.map
 import kotlin.getValue
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-
-data class DialogContentState(
-    val appBarState: SimpleAppBarData = SimpleAppBarData(),
-    val responseGetOfferInfo: Offer? = null,
-    val responseGetOrderInfo: Order? = null,
-    val conversations: Conversations? = null,
-    val mesHeader : MesHeaderItem? = null
-)
 
 class DialogsViewModel(
     val dialogId: Long,
@@ -169,7 +161,6 @@ class DialogsViewModel(
     )
 
     private val conversationsOperations : ConversationsOperations by lazy { getKoin().get() }
-    private val offerOperations : OfferOperations by lazy { getKoin().get() }
     private val orderOperations : OrderOperations by lazy { getKoin().get() }
 
     val messageBarEvents = MessageBarEventsImpl(this)

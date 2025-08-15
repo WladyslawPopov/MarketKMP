@@ -67,6 +67,10 @@ fun ProposalContent(
                 NoItemsFoundLayout(
                     icon = drawables.proposalIcon,
                     title = stringResource(strings.notFoundProposalsLabel),
+                    viewModel = viewModel,
+                    goToOffer = { offer ->
+                        component.goToOffer(offer.id)
+                    }
                 ) {
                     viewModel.update()
                 }

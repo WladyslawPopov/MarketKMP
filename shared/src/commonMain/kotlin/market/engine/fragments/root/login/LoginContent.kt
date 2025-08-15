@@ -131,7 +131,7 @@ fun LoginContent(
             }
         ){
             LazyColumnWithScrollBars(
-                heightMod = Modifier.background(colors.white)
+                containerModifier = Modifier.background(colors.white)
                     .fillMaxSize(),
                 state = scrollState,
                 contentPadding = contentPadding,

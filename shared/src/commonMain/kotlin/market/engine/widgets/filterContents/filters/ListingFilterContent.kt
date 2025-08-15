@@ -160,7 +160,7 @@ fun FilterListingContent(
         ) { contentPadding ->
             Box(modifier = Modifier.padding(contentPadding).fillMaxSize()) {
                 LazyColumnWithScrollBars(
-                    modifierList = Modifier.fillMaxSize(),
+                    listModifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     contentPadding = PaddingValues(bottom = dimens.extraLargePadding),

@@ -23,7 +23,6 @@ import market.engine.core.data.states.MyOrderItemState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.data.types.DealType
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.OrderRepository
 import market.engine.core.repositories.PagingRepository
@@ -168,9 +167,9 @@ data class MyOrderItemEventsImpl(
         }
     }
 
-    override fun onGoToOffer(offer: Offer) {
+    override fun onGoToOffer(id: Long) {
         viewModel.getMainTread {
-            component.goToOffer(offer)
+            component.goToOffer(id)
         }
     }
 

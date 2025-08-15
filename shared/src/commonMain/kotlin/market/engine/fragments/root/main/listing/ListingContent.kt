@@ -93,12 +93,21 @@ fun ListingContent(
                         if (listingData.filters.any { it.interpretation?.isNotBlank() == true } ||
                             searchData.userSearch || searchData.searchString.isNotEmpty()) {
                             NoItemsFoundLayout(
-                                textButton = stringResource(strings.resetLabel)
+                                textButton = stringResource(strings.resetLabel),
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer)
+                                }
                             ) {
                                 listingBaseModel.clearListingData()
                             }
                         } else {
-                            NoItemsFoundLayout {
+                            NoItemsFoundLayout(
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer)
+                                }
+                            ) {
                                 listingBaseModel.refresh()
                             }
                         }

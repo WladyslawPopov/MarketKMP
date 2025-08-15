@@ -560,6 +560,11 @@ fun createHomeChild(
                     },
                     navigateDeepLink = {
                         navigateToDeepLink(it)
+                    },
+                    navigateToOffer = {
+                        homeNavigation.pushNew(
+                            OfferScreen(it, nowAsEpochSeconds())
+                        )
                     }
                 )
             )

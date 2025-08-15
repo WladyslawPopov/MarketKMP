@@ -89,9 +89,9 @@ fun HistoryLayout(
         }
 
         LazyColumnWithScrollBars(
-            heightMod = Modifier.fillMaxWidth()
+            containerModifier = Modifier.fillMaxWidth()
                 .background(color = colors.primaryColor),
-            modifierList = Modifier.fillMaxWidth(),
+            listModifier = Modifier.fillMaxWidth(),
 //            contentPadding = dimens.mediumPadding,
             verticalArrangement = Arrangement.spacedBy(dimens.smallPadding),
             horizontalAlignment = Alignment.Start

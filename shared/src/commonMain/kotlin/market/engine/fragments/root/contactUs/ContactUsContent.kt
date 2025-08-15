@@ -1,6 +1,5 @@
 package market.engine.fragments.root.contactUs
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -128,7 +127,7 @@ fun ContactUsContent(
         onRefresh = { model.getFields() }
     ) { contentPadding ->
         LazyColumnWithScrollBars(
-            modifierList = Modifier
+            listModifier = Modifier
                 .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = contentPadding

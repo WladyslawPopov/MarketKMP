@@ -200,7 +200,7 @@ fun CreateOfferContent(
 
             isEditCategory != 1L && payloadState.isNotEmpty() && newOfferId == 1L ->{
                 LazyColumnWithScrollBars(
-                    modifierList = Modifier.fillMaxSize()
+                    listModifier = Modifier.fillMaxSize()
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = {
                                 focusManager.clearFocus()

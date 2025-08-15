@@ -163,7 +163,7 @@ class ListingBaseViewModel(
 
     init {
         if (listingComponent != null){
-            getHistory()
+            getSearchHistory()
         }
     }
 
@@ -496,7 +496,7 @@ class ListingBaseViewModel(
         listingComponent?.onTabSelect(tab)
     }
 
-    fun getHistory(searchString : String = ""){
+    fun getSearchHistory(searchString : String = ""){
         try {
             val sh = db.searchHistoryQueries
             val searchHistory : List<SearchHistory> =
@@ -573,7 +573,7 @@ class ListingBaseViewModel(
     fun searchRefresh() {
         setLoading(true)
         onError(ServerErrorException())
-        getHistory(_searchString.value)
+        getSearchHistory(_searchString.value)
         setSearchFilters()
         viewModelScope.launch {
             delay(1000)
@@ -635,7 +635,7 @@ class ListingBaseViewModel(
 
     fun onUpdateSearchString(value: String) {
         _searchString.value = value
-        getHistory(value)
+        getSearchHistory(value)
     }
 
     fun deleteHistory() {

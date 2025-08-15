@@ -69,7 +69,11 @@ fun MyOrdersContent(
                     @Composable {
                         if (listingData.filters.any { it.interpretation != null && it.interpretation != "" }) {
                             NoItemsFoundLayout(
-                                textButton = stringResource(strings.resetLabel)
+                                textButton = stringResource(strings.resetLabel),
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer.id)
+                                }
                             ) {
                                 listingBaseViewModel.clearAllFilters()
                                 viewModel.refresh()
@@ -77,7 +81,11 @@ fun MyOrdersContent(
                         } else {
                             NoItemsFoundLayout(
                                 title = stringResource(strings.simpleNotFoundLabel),
-                                icon = if (typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon
+                                icon = if (typeGroup == DealTypeGroup.SELL) drawables.purchasesIcon else drawables.salesIcon,
+                                viewModel = viewModel,
+                                goToOffer = { offer ->
+                                    component.goToOffer(offer.id)
+                                }
                             ) {
                                 viewModel.refresh()
                             }

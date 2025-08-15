@@ -103,13 +103,15 @@ fun FeedbacksContent(
                 if (listingData.filters.find { it.key == "evaluation" }?.value == "") {
                     NoItemsFoundLayout(
                         title = stringResource(strings.notFoundFeedbackLabel),
-                        textButton = stringResource(strings.refreshButton)
+                        textButton = stringResource(strings.refreshButton),
+                        viewModel = viewModel,
                     ) {
                         viewModel.updatePage()
                     }
                 } else {
                     NoItemsFoundLayout(
-                        textButton = stringResource(strings.resetLabel)
+                        textButton = stringResource(strings.resetLabel),
+                        viewModel = viewModel,
                     ) {
                         viewModel.refreshListing()
                     }

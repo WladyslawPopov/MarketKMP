@@ -56,7 +56,12 @@ fun NotificationsHistoryContent(
     val noFound = remember(responseGetPage) {
         if (responseGetPage.isEmpty()) {
             @Composable {
-                NoItemsFoundLayout {
+                NoItemsFoundLayout(
+                    viewModel = viewModel,
+                    goToOffer = { offer ->
+                        component.goToOffer(offer.id)
+                    }
+                ) {
                     viewModel.getPage()
                 }
             }
@@ -98,7 +103,7 @@ fun NotificationsHistoryContent(
         modifier = Modifier.fillMaxSize()
     ) { contentPadding ->
         LazyColumnWithScrollBars(
-            modifierList = Modifier.fillMaxSize(),
+            listModifier = Modifier.fillMaxSize(),
             contentPadding = contentPadding,
         ) {
             items(responseGetPage, key = { i -> i.id }) { item ->
