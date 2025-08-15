@@ -78,7 +78,7 @@ class DefaultMainComponent(
 ) : MainComponent, JetpackComponentContext by componentContext {
 
     companion object {
-        var localBottomBarHeight : Dp = 100.dp
+        var localBottomBarHeight : Dp = 10.dp
     }
 
     private val _modelNavigation = MutableValue(

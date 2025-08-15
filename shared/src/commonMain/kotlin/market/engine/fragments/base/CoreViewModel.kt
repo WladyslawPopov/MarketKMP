@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
 import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.LD
@@ -39,13 +40,16 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
+import market.engine.core.utils.CacheRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getSavedStateFlow
+import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
 import market.engine.shared.AuctionMarketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.getValue
+import kotlin.time.Duration.Companion.days
 
 open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
@@ -322,16 +326,23 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             }
         }
     }
-
     fun getHistory(currentId: Long? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val queries = db.offerVisitedHistoryQueries
+                val cacheRepository = CacheRepository(db)
+                val cacheKey = "viewed_offers"
+                val listSerializer = ListSerializer(OfferItem.serializer())
 
+                val cachedOffers = cacheRepository.get(cacheKey, listSerializer)
+                if (cachedOffers != null) {
+                    _responseHistory.value = cachedOffers
+                }
+
+                val queries = db.offerVisitedHistoryQueries
                 val historyIds = queries.selectAll(UserData.login).executeAsList()
                     .filter { it != currentId }
 
-                val offerItems = historyIds.mapNotNull { id ->
+                val freshOfferItems = historyIds.mapNotNull { id ->
                     try {
                         offerOperations.getOffer(id).success?.parseToOfferItem()
                     } catch (_: Exception) {
@@ -339,10 +350,15 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     }
                 }
 
-                _responseHistory.value = offerItems
+                _responseHistory.value = freshOfferItems
+
+
+                val lifetime = 30.days
+                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+                cacheRepository.put(cacheKey, freshOfferItems, expirationTimestamp, listSerializer)
 
                 if(currentId == null){
-                    getOurChoice(offerItems.lastOrNull()?.id ?: 1L)
+                    getOurChoice(freshOfferItems.lastOrNull()?.id ?: 1L)
                 }
 
             } catch (_: Exception) { }
@@ -352,13 +368,27 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun getOurChoice(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val cacheRepository = CacheRepository(db)
+                val cacheKey = "ourChoice_offers"
+                val listSerializer = ListSerializer(OfferItem.serializer())
+
+                val cachedOffers = cacheRepository.get(cacheKey, listSerializer)
+                if (cachedOffers != null) {
+                    _responseOurChoice.value = cachedOffers
+                }
+
                 val response = apiService.getOurChoiceOffers(id)
                 val serializer = Payload.serializer(Offer.serializer())
                 val ourChoice = deserializePayload(response.payload, serializer).objects
-                _responseOurChoice.value = ourChoice.map { it.parseToOfferItem() }.toList()
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "Error fetching our choice", ""))
-            }
+                val freshOffers = ourChoice.map { it.parseToOfferItem() }.toList()
+
+                _responseOurChoice.value = freshOffers
+
+                val lifetime = 30.days
+                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+                cacheRepository.put(cacheKey, freshOffers, expirationTimestamp, listSerializer)
+
+            } catch (_: Exception) { }
         }
     }
 }

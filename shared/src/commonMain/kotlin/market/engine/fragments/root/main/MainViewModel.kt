@@ -429,6 +429,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
 
             is DeepLink.Unknown -> {}
         }
+        component.modelNavigation.value.mainNavigation.replaceCurrent(MainConfig.Home)
     }
 
     fun updateOrientation(orientation: Int) {

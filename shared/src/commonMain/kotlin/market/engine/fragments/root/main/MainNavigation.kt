@@ -111,7 +111,10 @@ fun MainNavigation(
                             .onSizeChanged(
                                 onSizeChanged = {
                                     val newHeight = with(density) { it.height.toDp() }
-                                    localBottomBarHeight = newHeight
+
+                                    if(localBottomBarHeight.value < newHeight.value) {
+                                        localBottomBarHeight = newHeight
+                                    }
                                 }
                             )
                             .zIndex(300f),

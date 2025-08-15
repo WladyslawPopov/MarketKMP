@@ -43,6 +43,7 @@ import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.listing.PagingLayout
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.NoItemsFoundLayout
+import market.engine.fragments.root.main.DefaultMainComponent.Companion.localBottomBarHeight
 import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.bars.DialogsHeader
 import market.engine.widgets.bars.MessengerBar
@@ -223,7 +224,7 @@ fun DialogsContent(
                             val newHeight = with(density) { it.height.toDp() }
                             mesBarHeight = newHeight
                         }
-                        .padding(bottom = contentPadding.calculateBottomPadding())
+                        .padding(bottom = localBottomBarHeight)
                         .zIndex(15f)
                 ) {
                     MessengerBar(
