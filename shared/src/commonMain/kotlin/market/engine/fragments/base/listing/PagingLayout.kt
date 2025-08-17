@@ -200,40 +200,41 @@ fun <T : Any> PagingLayout(
 
             item {  }
         }
-
-        PagingCounterBar(
-            currentPage = currentIndex,
-            totalPages = totalCount.value,
-            modifier = Modifier.align(Alignment.BottomStart)
-                .padding(bottom = contentPadding.calculateBottomPadding())
-                .padding(dimens.smallPadding),
-            showUpButton = showUpButton,
-            showDownButton = showDownButton,
-            onClick = {
-                when {
-                    showUpButton -> {
-                        scope.launch {
-                            withContext(Dispatchers.Main) {
-                                prevIndex = currentIndex
-                                state.scrollToItem(0)
-                                showUpButton = false
-                                showDownButton = true
+        if(viewModel.showItemsCounter) {
+            PagingCounterBar(
+                currentPage = currentIndex,
+                totalPages = totalCount.value,
+                modifier = Modifier.align(Alignment.BottomStart)
+                    .padding(bottom = contentPadding.calculateBottomPadding())
+                    .padding(dimens.smallPadding),
+                showUpButton = showUpButton,
+                showDownButton = showDownButton,
+                onClick = {
+                    when {
+                        showUpButton -> {
+                            scope.launch {
+                                withContext(Dispatchers.Main) {
+                                    prevIndex = currentIndex
+                                    state.scrollToItem(0)
+                                    showUpButton = false
+                                    showDownButton = true
+                                }
                             }
                         }
-                    }
 
-                    showDownButton -> {
-                        scope.launch {
-                            withContext(Dispatchers.Main) {
-                                state.scrollToItem(prevIndex ?: 1)
-                                prevIndex = null
-                                showDownButton = false
-                                showUpButton = true
+                        showDownButton -> {
+                            scope.launch {
+                                withContext(Dispatchers.Main) {
+                                    state.scrollToItem(prevIndex ?: 1)
+                                    prevIndex = null
+                                    showDownButton = false
+                                    showUpButton = true
+                                }
                             }
                         }
                     }
                 }
-            }
-        )
+            )
+        }
     }
 }

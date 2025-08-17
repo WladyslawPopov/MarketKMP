@@ -8,7 +8,7 @@ import market.engine.core.network.networkObjects.User
 import coil3.Uri
 
 object UserData {
-    var login : Long = 0
+    var login : Long = 1
     private var picUri : Uri? = null
     var token : String = ""
 

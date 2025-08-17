@@ -15,7 +15,6 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.serialization.Serializable
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
@@ -67,7 +66,7 @@ class DefaultListingComponent(
             listingData,
             isOpenSearch,
             true,
-            this@DefaultListingComponent,
+            listingComponent = this@DefaultListingComponent,
             savedStateHandle = createSavedStateHandle()
         )
     }
@@ -109,7 +108,7 @@ class DefaultListingComponent(
     override val model: Value<ListingComponent.Model> = _model
 
     private val searchData = listingData.searchData
-    private val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
+    private val analyticsHelper = listingViewModel.analyticsHelper
 
     private val updateBackHandlerItem = MutableValue(1L)
 
@@ -142,8 +141,8 @@ class DefaultListingComponent(
                             navigateToCreateNewSubscription = {
                                 navigateToNewSubscription(it)
                             },
-                            navigateToListing = {
-                                navigateToListing(listingData)
+                            navigateToListing = { ld ->
+                                navigateToListing(ld)
                             },
                             navigateToOffer = { idOffer ->
                                 selectOffer(idOffer)

@@ -1,5 +1,6 @@
 package market.engine.fragments.root.main.home
 
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import market.engine.core.network.ServerErrorException
 import market.engine.core.network.networkObjects.Offer
@@ -9,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,7 +41,6 @@ import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
-import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.time.Duration.Companion.days
@@ -91,6 +92,8 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         val messageString = getString(strings.messageTitle)
         val notificationString = getString(strings.notificationTitle)
 
+        val unreadCount = getUnreadNotificationsCount() ?: 0
+
         HomeUiState(
             categories = categories.map {
                 TopCategory(
@@ -103,7 +106,6 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
             },
             promoOffers1 = promoOffers1,
             promoOffers2 = promoOffers2,
-            unreadNotificationsCount = getUnreadNotificationsCount(),
             appBarData = SimpleAppBarData(
                 listItems = listOf(
                     NavigationItem(
@@ -144,9 +146,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     ),
                     NavigationItem(
                         title = notificationString,
-                        isVisible = (getUnreadNotificationsCount() ?: 0) > 0,
+                        isVisible = unreadCount > 0,
                         hasNews = false,
-                        badgeCount = getUnreadNotificationsCount(),
+                        badgeCount = unreadCount,
                         icon = drawables.notification,
                         tint = colors.titleTextColor,
                         onClick = {
@@ -266,10 +268,18 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     init {
         getPermissionHandler().askPermissionNotification()
         userRepository.updateToken()
-        printLogD("start viewModel", _responseOffersPromotedOnMainPage1.value.toString())
         if(_responseOffersPromotedOnMainPage1.value.isEmpty()) {
             updateModel()
         }
+
+        try {
+            viewModelScope.launch {
+                snapshotFlow { UserData.userInfo }
+                    .collectLatest { newInfo ->
+                        updatePage()
+                    }
+            }
+        }catch (_ : Exception) {}
 
         analyticsHelper.reportEvent("view_main_page", mapOf())
     }
@@ -394,10 +404,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     fun getUnreadNotificationsCount() : Int? {
         return try {
             val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
-            if (list.isEmpty()) null else list.filter { it.isRead < 1 || it.isRead > 1 }.size
+            if (list.isEmpty()) null else list.filter { it.isRead == 0L }.size
         }catch (_ : Exception){
             null
         }
     }
-
 }

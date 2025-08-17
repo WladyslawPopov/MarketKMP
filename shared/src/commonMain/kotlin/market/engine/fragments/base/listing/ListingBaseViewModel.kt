@@ -74,6 +74,7 @@ class ListingBaseViewModel(
     listingData: ListingData = ListingData(),
     isOpenSearch : Boolean = false,
     showSwipeTabs : Boolean = false,
+    val showItemsCounter : Boolean = true,
     val listingComponent: ListingComponent? = null,
     val deleteSelectedItems: () -> Unit = {},
     savedStateHandle: SavedStateHandle,

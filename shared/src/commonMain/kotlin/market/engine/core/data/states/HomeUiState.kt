@@ -9,7 +9,6 @@ data class HomeUiState(
     val categories: List<TopCategory> = emptyList(),
     val promoOffers1: List<OfferItem> = emptyList(),
     val promoOffers2: List<OfferItem> = emptyList(),
-    val unreadNotificationsCount: Int? = null,
     val appBarData : SimpleAppBarData = SimpleAppBarData(),
     val listFooter: List<TopCategory> = emptyList(),
     val drawerList: List<NavigationItem> = emptyList(),

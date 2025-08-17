@@ -165,7 +165,6 @@ class DialogsViewModel(
 
     val messageBarEvents = MessageBarEventsImpl(this)
 
-
     val listingBaseViewModel = component.additionalModels.value.listingBaseViewModel
 
     val listingData = listingBaseViewModel.listingData
@@ -385,6 +384,7 @@ class DialogsViewModel(
         updatePage
     ) { conversations, listingData, _ ->
         resetScroll()
+        markReadConversation(dialogId)
         Pair(conversations, listingData)
     }
 
@@ -467,7 +467,6 @@ class DialogsViewModel(
 
     fun update(){
         setLoading(true)
-        markReadConversation(dialogId)
         listingBaseViewModel.setReversingPaging(true)
         listingBaseViewModel.setListingData(
             ListingData(

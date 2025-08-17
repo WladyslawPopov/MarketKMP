@@ -50,7 +50,7 @@ class DefaultDialogsComponent(
 ) : DialogsComponent, JetpackComponentContext by componentContext {
 
     val listingBaseVM = viewModel("dialogsBaseViewModel") {
-        ListingBaseViewModel(savedStateHandle = createSavedStateHandle())
+        ListingBaseViewModel(showItemsCounter = false, savedStateHandle = createSavedStateHandle())
     }
 
     private val _additionalModels = MutableValue(

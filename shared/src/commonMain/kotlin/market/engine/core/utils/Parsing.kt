@@ -5,7 +5,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.util.fastForEach
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
@@ -237,27 +236,6 @@ fun NotificationItem.getDeepLinkByType() : DeepLink? {
         println("Error in getDeepLinkByType: ${e.message}")
         e.printStackTrace()
         return null
-    }
-}
-
-fun deleteReadNotifications() {
-    try {
-        val db : AuctionMarketDb = getKoin().get()
-        db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList().
-        filter { it.isRead == 1L }.fastForEach {
-            when(it.type){
-                "message about offer" ->{
-                    db.notificationsHistoryQueries.deleteNotificationById(it.id)
-                }
-                "message about order" ->{
-                    db.notificationsHistoryQueries.deleteNotificationById(it.id)
-                }
-            }
-        }
-    } catch (e: Exception) {
-        // Log.error("Failed to delete read notifications", e) // Using a hypothetical logger
-        println("Error in deleteReadNotifications: ${e.message}")
-        e.printStackTrace()
     }
 }
 
