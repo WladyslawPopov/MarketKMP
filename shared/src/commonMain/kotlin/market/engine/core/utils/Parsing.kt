@@ -228,7 +228,12 @@ fun NotificationItem.getDeepLinkByType() : DeepLink? {
             }
 
             else -> {
-                null
+                val url = je.jsonObject["url"]?.jsonPrimitive?.content
+                if (url != null) {
+                    parseDeepLink(url)
+                } else {
+                    null
+                }
             }
         }
     } catch (e: Exception) {

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -69,12 +67,10 @@ fun SearchContent(
                     modifier = Modifier,
                     data = appBarData
                 ) {
-                    val searchString = remember { mutableStateOf(TextFieldValue(searchStringState, selection = TextRange(searchStringState.length))) }
                     SearchTextField(
                         !openCategory,
-                        searchString.value,
+                        TextFieldValue(searchStringState, selection = TextRange(searchStringState.length)),
                         onValueChange = { newVal ->
-                            searchString.value = newVal
                             searchEvents.updateSearch(
                                 newVal.text
                             )

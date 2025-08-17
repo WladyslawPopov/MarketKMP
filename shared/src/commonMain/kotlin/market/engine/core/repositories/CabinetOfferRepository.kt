@@ -53,6 +53,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
@@ -714,7 +715,9 @@ class CabinetOfferRepository(
                     }
                 )
             } else {
-                goToLogin()
+                core.getMainTread {
+                    goToLogin()
+                }
             }
         }
     }
@@ -793,7 +796,9 @@ class CabinetOfferRepository(
                 )
             }
         } else {
-            goToLogin()
+            core.getMainTread {
+                goToLogin()
+            }
         }
     }
     fun buyNowSuccessDialog(valuesPicker: Int){
@@ -829,7 +834,9 @@ class CabinetOfferRepository(
                 events.goToCreateOrder(item)
             }
         } else {
-            goToLogin()
+            core.getMainTread {
+                goToLogin()
+            }
         }
     }
 

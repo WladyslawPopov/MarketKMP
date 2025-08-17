@@ -26,14 +26,14 @@ actual fun syncNotificationsFromUserDefaults(db: AuctionMarketDb) {
         val title = dict.objectForKey("title") as? String
         val body = dict.objectForKey("body") as? String
         val type = dict.objectForKey("type") as? String
-        val timestemp = dict.objectForKey("timestemp") as? Long
+        val timestamp = dict.objectForKey("timestamp") as? Long
         val data = dict.objectForKey("data") as? String
         val isRead = dict.objectForKey("isRead") as? Long
 
-        if (id != null && owner != null && title != null && body != null && type != null && timestemp != null && data != null && isRead != null) {
+        if (id != null && owner != null && title != null && body != null && type != null && timestamp != null && data != null && isRead != null) {
             notificationsToSync.add(mapOf(
                 "id" to id, "owner" to owner, "title" to title, "body" to body,
-                "type" to type, "timestemp" to timestemp, "data" to data, "isRead" to isRead
+                "type" to type, "timestamp" to timestamp, "data" to data, "isRead" to isRead
             ))
         }
     }
@@ -47,7 +47,7 @@ actual fun syncNotificationsFromUserDefaults(db: AuctionMarketDb) {
                     title = notification["title"] as String,
                     body = notification["body"] as String,
                     type = notification["type"] as String,
-                    timestemp = notification["timestemp"] as Long,
+                    timestemp = notification["timestamp"] as Long,
                     data_ = notification["data"] as String,
                     isRead = notification["isRead"] as Long
                 )

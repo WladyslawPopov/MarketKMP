@@ -51,8 +51,8 @@ fun RegistrationContent(
     val error: (@Composable () -> Unit)? = remember(err) {
         if (err.humanMessage != "") {
             { OnError(err) {
-                model.getRegFields()
                 model.refresh()
+                model.getRegFields()
             } }
         } else {
             null

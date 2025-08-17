@@ -46,7 +46,7 @@ fun HistoryLayout(
     goToListing: (SearchHistoryItem) -> Unit
 ) {
     val showClearHistory = remember { mutableStateOf(false) }
-    val showClearHistoryItem = remember { mutableStateOf(1L) }
+    val itemToDeleteId = remember { mutableStateOf<Long?>(null) }
 
     if (historyItems.isEmpty()) {
         return
@@ -101,11 +101,9 @@ fun HistoryLayout(
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { dismissValue ->
                         if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                            showClearHistoryItem.value = historyItem.id
-                            false
-                        } else {
-                            false
+                            itemToDeleteId.value = historyItem.id
                         }
+                        false
                     }
                 )
                 AnimatedVisibility(
@@ -140,15 +138,18 @@ fun HistoryLayout(
         )
 
         AccessDialog(
-            showClearHistoryItem.value != 1L,
+            itemToDeleteId.value != null,
             title = buildAnnotatedString {
                 append(stringResource(strings.warningDeleteHistory))
             },
             onSuccess = {
-                onDeleteItem(showClearHistoryItem.value)
+                itemToDeleteId.value?.let { id ->
+                    onDeleteItem(id)
+                }
+                itemToDeleteId.value = null
             },
             onDismiss = {
-                showClearHistoryItem.value = 1L
+                itemToDeleteId.value = null
             }
         )
     }

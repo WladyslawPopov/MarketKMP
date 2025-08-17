@@ -71,8 +71,7 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
     }
 
     fun deleteNotification(id: String) {
-        viewModelScope.launch {
-            db.notificationsHistoryQueries.deleteNotificationById(id)
-        }
+        db.notificationsHistoryQueries.deleteNotificationById(id)
+        getPage()
     }
 }

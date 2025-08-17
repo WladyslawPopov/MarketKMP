@@ -478,7 +478,7 @@ class ListingBaseViewModel(
             )
             analyticsHelper.reportEvent("open_search_listing", eventParameters)
 
-            getHistory()
+            getSearchHistory()
 
             setActiveWindowType(ActiveWindowListingType.SEARCH)
         }else{
@@ -607,7 +607,7 @@ class ListingBaseViewModel(
     fun deleteItemHistory(id: Long) {
         val sh = db.searchHistoryQueries
         sh.deleteById(id, UserData.login)
-        getHistory()
+        getSearchHistory()
     }
 
     fun addHistory(searchString: String, isUsersSearch : Boolean = false, isFinished : Boolean = false) {
@@ -642,7 +642,7 @@ class ListingBaseViewModel(
     fun deleteHistory() {
         val sh = db.searchHistoryQueries
         sh.deleteAll()
-        getHistory()
+        getSearchHistory()
     }
 
     fun setPromoList(list : List<OfferItem>){

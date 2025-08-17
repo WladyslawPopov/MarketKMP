@@ -1,10 +1,15 @@
 package market.engine.fragments.root.main.notificationsHistory
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +28,7 @@ import market.engine.fragments.base.EdgeToEdgeScaffold
 import market.engine.fragments.base.screens.OnError
 import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.appBars.SimpleAppBar
+import market.engine.widgets.ilustrations.dismissBackground
 import market.engine.widgets.items.NotificationsHistoryItem
 import market.engine.widgets.rows.LazyColumnWithScrollBars
 import org.jetbrains.compose.resources.stringResource
@@ -107,13 +113,35 @@ fun NotificationsHistoryContent(
             contentPadding = contentPadding,
         ) {
             items(responseGetPage, key = { i -> i.id }) { item ->
-                NotificationsHistoryItem(item) {
-                    val link = item.getDeepLinkByType()
-                    if (link != null) {
-                        component.goToDeepLink(link)
-                    }else{
-                        viewModel.deleteNotification(item.id)
-                        component.onBackClicked()
+                val dismissState = rememberSwipeToDismissBoxState(
+                    confirmValueChange = { dismissValue ->
+                        if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                            viewModel.deleteNotification(item.id)
+                        }
+                        true
+                    }
+                )
+                AnimatedVisibility(
+                    dismissState.currentValue != SwipeToDismissBoxValue.EndToStart,
+                    enter = expandIn(),
+                ) {
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = { dismissBackground() },
+                        modifier = Modifier.fillMaxWidth(),
+                        enableDismissFromStartToEnd = false,
+                        enableDismissFromEndToStart = true,
+                        gesturesEnabled = true,
+                    ){
+                        NotificationsHistoryItem(item) {
+                            val link = item.getDeepLinkByType()
+
+                            if (link != null) {
+                                component.goToDeepLink(link)
+                            }else{
+                                component.onBackClicked()
+                            }
+                        }
                     }
                 }
             }

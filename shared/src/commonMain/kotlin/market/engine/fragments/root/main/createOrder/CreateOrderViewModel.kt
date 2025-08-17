@@ -36,6 +36,7 @@ import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
@@ -416,7 +417,9 @@ class CreateOrderViewModel(
                 }
             }
         }else{
-            goToLogin()
+            getMainTread {
+                goToLogin()
+            }
         }
     }
 }

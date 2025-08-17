@@ -8,7 +8,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
-import market.engine.common.AnalyticsFactory
 import market.engine.core.data.items.DeepLink
 
 interface NotificationsHistoryComponent {
@@ -42,9 +41,13 @@ class DefaultNotificationsHistoryComponent(
         )
     )
 
-    val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
-
     override val model = _model
+
+    init {
+        lifecycle.doOnResume {
+            viewModel.getPage()
+        }
+    }
 
     override fun goToOffer(offerId: Long) {
         navigateToOffer(offerId)
@@ -56,8 +59,5 @@ class DefaultNotificationsHistoryComponent(
 
     override fun goToDeepLink(url: DeepLink) {
         navigateDeepLink(url)
-        lifecycle.doOnResume {
-            viewModel.getPage()
-        }
     }
 }
