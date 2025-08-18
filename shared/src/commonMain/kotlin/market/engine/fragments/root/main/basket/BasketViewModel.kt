@@ -4,7 +4,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -148,7 +147,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                         icon = drawables.menuIcon,
                         tint = colors.black,
                         onClick = {
-                            refresh()
+                            _isMenuVisibility.value = true
                         }
                     )
                 ),
@@ -159,9 +158,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                             title = clearBasketString,
                             icon = drawables.deleteIcon,
                             onClick = {
-                                clearBasket {
-                                    refresh()
-                                }
+                                clearBasket()
                             }
                         )
                     ),
@@ -341,7 +338,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
         }
     }
 
-    fun clearBasket(onSuccess : () -> Unit) {
+    fun clearBasket() {
         if (UserData.token != "") {
             viewModelScope.launch {
                 val resObj = withContext(Dispatchers.IO) {
@@ -360,7 +357,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                     showToast(
                         successToastItem.copy(message = getString(strings.operationSuccess))
                     )
-                    onSuccess()
+                    refreshPage()
                 } else {
                     if (resErr != null) {
                         onError(resErr)
@@ -384,8 +381,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
     }
 
     fun deleteItems(
-        deleteIds: List<Long>,
-        onSuccess: () -> Unit
+        deleteIds: List<Long>
     ) {
         val offerIds = arrayListOf<JsonPrimitive>()
 
@@ -438,9 +434,9 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                     showToast(
                         successToastItem.copy(message = getString(strings.operationSuccess))
                     )
-                    delay(1000)
                     uncheckAll(userId)
-                    onSuccess()
+                    clearDeleteIds()
+                    refreshPage()
                 } else {
                     if (error != null) {
                         onError(error)
@@ -469,7 +465,6 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                 showToast(
                     successToastItem.copy(message = getString(strings.operationSuccess))
                 )
-                delay(1000)
                 updateQuantityInState(offerId, newQuantity)
 
             } else {

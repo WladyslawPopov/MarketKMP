@@ -148,10 +148,7 @@ fun BasketContent(
             onSuccess = {
                 viewModel.deleteItems(
                     deleteIds
-                ) {
-                    viewModel.clearDeleteIds()
-                    viewModel.refresh()
-                }
+                )
             }
         )
     }
