@@ -84,17 +84,18 @@ fun RegistrationContent(
         isLoading = isLoading,
         onRefresh = { model.getRegFields() }
     ) { contentPadding ->
-        LazyColumnWithScrollBars(
-            listModifier = Modifier
-                .fillMaxWidth(if(isBigScreen.value) 0.7f else 1f),
-            contentPadding = contentPadding,
-            verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
-            if (!showSuccessReg){
+        if (!showSuccessReg) {
+            LazyColumnWithScrollBars(
+                containerModifier = Modifier.fillMaxSize(),
+                listModifier = Modifier
+                    .fillMaxWidth(if (isBigScreen.value) 0.7f else 1f),
+                contentPadding = contentPadding,
+                verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            )
+            {
                 item {
-                    SetUpDynamicFields(fields){
+                    SetUpDynamicFields(fields) {
                         model.setNewField(it)
                     }
                 }
@@ -104,7 +105,7 @@ fun RegistrationContent(
                         stringResource(strings.registration),
                         backgroundColor = colors.brightGreen,
                         textStyle = MaterialTheme.typography.titleMedium,
-                    ){
+                    ) {
                         model.postRegistration()
                     }
                 }
@@ -116,17 +117,15 @@ fun RegistrationContent(
                         color = colors.grayText
                     )
                 }
-            } else {
-                item {
-                    NoItemsFoundLayout(
-                        icon = drawables.mail,
-                        title = stringResource(strings.registrationSuccessLabel),
-                        textButton = stringResource(strings.goBackLabel),
-                        viewModel = model,
-                    ) {
-                        component.onBack()
-                    }
-                }
+            }
+        } else {
+            NoItemsFoundLayout(
+                icon = drawables.mail,
+                title = stringResource(strings.registrationSuccessLabel),
+                textButton = stringResource(strings.goBackLabel),
+                viewModel = model,
+            ) {
+                component.onBack()
             }
         }
     }

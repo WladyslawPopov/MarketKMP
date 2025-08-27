@@ -7,7 +7,6 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.baseFilters.ListingData
-import market.engine.core.utils.deleteReadNotifications
 import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.essenty.backhandler.BackCallback
@@ -65,8 +64,7 @@ class DefaultHomeComponent(
     init {
         model.value.backHandler.register(backCallback)
         lifecycle.doOnResume {
-            deleteReadNotifications()
-            homeViewModel.updatePage()
+            homeViewModel.updateModel()
         }
     }
 

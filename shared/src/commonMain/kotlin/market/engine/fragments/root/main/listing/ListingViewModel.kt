@@ -81,7 +81,7 @@ class ListingViewModel(
     val ld = listingBaseVM.listingData
     val activeType = listingBaseVM.activeWindowType
 
-    val cacheRepository = CacheRepository(db)
+    val cacheRepository = CacheRepository(db, mutex)
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         ld,

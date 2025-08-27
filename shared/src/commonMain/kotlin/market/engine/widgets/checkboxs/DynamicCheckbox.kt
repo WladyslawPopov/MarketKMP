@@ -33,7 +33,9 @@ fun DynamicCheckbox(
         { select ->
             onValueChange(field.copy(
                 data = if(initialSelected == null)
-                    select ?: JsonPrimitive(0)
+                    select ?:
+                    if(field.validators?.firstOrNull()?.type == "boolean") JsonPrimitive(true)
+                    else JsonPrimitive( 0)
                 else null
             ))
         }

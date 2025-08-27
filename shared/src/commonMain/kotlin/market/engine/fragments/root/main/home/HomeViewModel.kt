@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import market.engine.common.Platform
@@ -37,6 +38,7 @@ import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.utils.CacheRepository
+import market.engine.core.utils.deleteReadNotifications
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
@@ -77,7 +79,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
     private val ld = ListingData()
 
-    private val cacheRepository = CacheRepository(db)
+    private val cacheRepository = CacheRepository(db, mutex)
 
     val uiState: StateFlow<HomeUiState> = combine(
         updatePage,
@@ -291,9 +293,10 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
         getHistory(1L)
 
-        syncNotificationsFromUserDefaults(db)
+        syncNotificationsFromUserDefaults(db, mutex)
 
         viewModelScope.launch {
+            deleteReadNotifications(db, mutex)
             updateCategoriesFromCacheOrNetwork()
             getOffersPromotedOnMainPage(0, 16)
             getOffersPromotedOnMainPage(1, 16)
@@ -401,12 +404,14 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         }
     }
 
-    fun getUnreadNotificationsCount() : Int? {
-        return try {
-            val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
-            if (list.isEmpty()) null else list.filter { it.isRead == 0L }.size
-        }catch (_ : Exception){
-            null
+    suspend fun getUnreadNotificationsCount() : Int? {
+        return mutex.withLock {
+            try {
+                val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
+                if (list.isEmpty()) null else list.filter { it.isRead == 0L }.size
+            }catch (_ : Exception){
+                null
+            }
         }
     }
 }

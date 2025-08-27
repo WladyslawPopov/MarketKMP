@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
@@ -54,6 +55,7 @@ import kotlin.time.Duration.Companion.days
 open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val db : AuctionMarketDb by lazy { getKoin().get() }
+    val mutex : Mutex by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
     val apiService by lazy {  getKoin().get<APIService>() }
 
@@ -329,7 +331,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun getHistory(currentId: Long? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val cacheRepository = CacheRepository(db)
+                val cacheRepository = CacheRepository(db, mutex)
                 val cacheKey = "viewed_offers"
                 val listSerializer = ListSerializer(OfferItem.serializer())
 
@@ -368,7 +370,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun getOurChoice(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val cacheRepository = CacheRepository(db)
+                val cacheRepository = CacheRepository(db, mutex)
                 val cacheKey = "ourChoice_offers"
                 val listSerializer = ListSerializer(OfferItem.serializer())
 

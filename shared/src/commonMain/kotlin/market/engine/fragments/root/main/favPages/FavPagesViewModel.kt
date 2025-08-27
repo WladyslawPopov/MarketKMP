@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -216,6 +217,10 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 offersListOperations.getOffersList()
             }
 
+            val positionsFromDb = mutex.withLock {
+                db.favoritesTabListItemQueries.selectAll(UserData.login).executeAsList()
+            }
+
             withContext(Dispatchers.Main) {
                 val res = data.success
                 val buf = mutableListOf<FavoriteListItem>()
@@ -223,9 +228,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
 
                 newList.addAll(buf)
 
-                val listPosition = db.favoritesTabListItemQueries
-                val lh = listPosition.selectAll(UserData.login).executeAsList()
-                lh.forEach { favoritesTabListItem ->
+                positionsFromDb.forEach { favoritesTabListItem ->
                     newList.find { it.id == favoritesTabListItem.itemId }?.position =
                         favoritesTabListItem.position.toInt()
                 }
@@ -252,13 +255,15 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                     )
                 }
 
-                withContext(Dispatchers.Unconfined) {
-                    list.forEachIndexed { index, it ->
-                        db.favoritesTabListItemQueries.insertEntry(
-                            itemId = it.id,
-                            owner = UserData.login,
-                            position = index.toLong()
-                        )
+                mutex.withLock {
+                    db.transaction {
+                        list.forEachIndexed { index, it ->
+                            db.favoritesTabListItemQueries.insertEntry(
+                                itemId = it.id,
+                                owner = UserData.login,
+                                position = index.toLong()
+                            )
+                        }
                     }
                 }
             }  catch (e: ServerErrorException) {

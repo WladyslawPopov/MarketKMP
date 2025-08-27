@@ -3,6 +3,7 @@ package market.engine.fragments.root.main.notificationsHistory
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NotificationItem
@@ -33,11 +34,12 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
         viewModelScope.launch {
             setLoading(true)
             try {
-                deleteReadNotifications()
-                val buf = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
-
+                val notificationsFromDb = mutex.withLock {
+                    deleteReadNotifications(db, mutex)
+                    db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
+                }
                 _responseGetPage.value = buildList {
-                    addAll(buf.groupBy { it.body to it.data_ }
+                    addAll(notificationsFromDb.groupBy { it.body to it.data_ }
                         .map { (_, group) ->
                             val latestNotification = group.maxByOrNull { it.timestemp }!!
 
@@ -71,7 +73,11 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
     }
 
     fun deleteNotification(id: String) {
-        db.notificationsHistoryQueries.deleteNotificationById(id)
-        getPage()
+        viewModelScope.launch {
+            mutex.withLock {
+                db.notificationsHistoryQueries.deleteNotificationById(id)
+            }
+            getPage()
+        }
     }
 }
