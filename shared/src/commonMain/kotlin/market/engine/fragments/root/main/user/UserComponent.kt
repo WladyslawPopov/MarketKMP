@@ -12,6 +12,7 @@ import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
@@ -73,6 +74,12 @@ class DefaultUserComponent(
     )
 
     override val model = _model
+
+    init {
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
+        }
+    }
 
     override fun selectAllOffers(user : User) {
         val ld = ListingData()

@@ -7,6 +7,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.items.DeepLink
 
@@ -46,6 +47,10 @@ class DefaultNotificationsHistoryComponent(
     init {
         lifecycle.doOnResume {
             viewModel.getPage()
+        }
+
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
         }
     }
 

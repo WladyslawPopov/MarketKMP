@@ -10,6 +10,7 @@ import market.engine.core.data.baseFilters.ListingData
 import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 
 
 interface HomeComponent {
@@ -65,6 +66,9 @@ class DefaultHomeComponent(
         model.value.backHandler.register(backCallback)
         lifecycle.doOnResume {
             homeViewModel.updateModel()
+        }
+        lifecycle.doOnDestroy {
+            homeViewModel.onClear()
         }
     }
 

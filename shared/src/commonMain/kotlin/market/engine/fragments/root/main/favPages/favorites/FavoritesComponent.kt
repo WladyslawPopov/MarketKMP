@@ -7,6 +7,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
@@ -94,6 +95,11 @@ class DefaultFavoritesComponent(
                 favViewModel.setUpdateItem(updateBackHandlerItem.value)
                 updateBackHandlerItem.value = 1L
             }
+        }
+
+        lifecycle.doOnDestroy {
+            favViewModel.onClear()
+            listingCategoryModel.onClear()
         }
     }
 

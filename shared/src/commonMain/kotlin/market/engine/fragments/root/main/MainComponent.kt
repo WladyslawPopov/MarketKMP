@@ -15,6 +15,7 @@ import com.arkivanov.decompose.router.stack.replaceCurrent
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.types.DealTypeGroup
@@ -109,6 +110,12 @@ class DefaultMainComponent(
     override val model = _model
 
     private var openPage: String? = null
+
+    init {
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
+        }
+    }
 
     // Stacks
     override val childMainStack: Value<ChildStack<*, ChildMain>> =

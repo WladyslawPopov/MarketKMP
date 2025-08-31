@@ -6,6 +6,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.ReportPageType
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -68,6 +69,13 @@ class DefaultFeedbacksComponent(
     )
 
     override val model = _model
+
+    init {
+        lifecycle.doOnDestroy {
+            feedbacksViewModel.onClear()
+            listingBaseVM.onClear()
+        }
+    }
 
     override fun goToOrder(orderId: Long, type: DealTypeGroup) {
         navigateToOrder(orderId, type)

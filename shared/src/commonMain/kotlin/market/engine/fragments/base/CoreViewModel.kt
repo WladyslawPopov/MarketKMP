@@ -3,7 +3,7 @@ package market.engine.fragments.base
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
@@ -76,8 +76,6 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     private val _updateItem = MutableStateFlow<Long?>(null)
     val updateItem : StateFlow<Long?> = _updateItem.asStateFlow()
-
-    val viewModelScope = CoroutineScope(Dispatchers.Default)
 
     val operationsMethods: OperationsMethods by lazy { getKoin().get() }
 
@@ -388,5 +386,9 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
             } catch (_: Exception) { }
         }
+    }
+
+    fun onClear() {
+        onCleared()
     }
 }

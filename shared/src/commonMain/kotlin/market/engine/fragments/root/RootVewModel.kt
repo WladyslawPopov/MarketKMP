@@ -1,6 +1,7 @@
 package market.engine.fragments.root
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.arkivanov.decompose.router.stack.active
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

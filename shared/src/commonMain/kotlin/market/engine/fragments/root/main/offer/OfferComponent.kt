@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.offer
 
 import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
@@ -88,7 +89,6 @@ class DefaultOfferComponent(
         )
     )
     override val model: Value<OfferComponent.Model> = _model
-    private val offerViewModel = model.value.offerViewModel
 
     private val shouldRefreshOnResume = MutableValue(false)
 
@@ -101,10 +101,12 @@ class DefaultOfferComponent(
         }
 
         lifecycle.doOnDestroy {
-            offerViewModel.viewModelScope.launch {
-                offerViewModel.addHistory(model.value.id)
+            viewModel.viewModelScope.launch {
+                viewModel.addHistory(model.value.id)
             }
-            offerViewModel.clearTimers()
+            viewModel.clearTimers()
+
+            viewModel.onClear()
         }
     }
 

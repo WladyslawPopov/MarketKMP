@@ -8,6 +8,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
@@ -96,6 +97,12 @@ class DefaultMyBidsComponent(
                 viewModel.setUpdateItem(updateBackHandlerItem.value)
                 updateBackHandlerItem.value = 1L
             }
+        }
+
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
+            listingBaseVM.onClear()
+            listingCategoryModel.onClear()
         }
     }
 

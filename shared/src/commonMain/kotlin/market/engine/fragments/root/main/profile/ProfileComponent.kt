@@ -12,6 +12,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
@@ -61,9 +62,15 @@ class DefaultProfileComponent(
 
     init {
         model.value.backHandler.register(backCallback)
+
         lifecycle.doOnResume {
             viewModel.updateUserInfo()
         }
+
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
+        }
+
         val params = selectedPage?.split("/", limit = 2)
 
         val currentPage = params?.firstOrNull() ?: ""

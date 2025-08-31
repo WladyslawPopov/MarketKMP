@@ -15,6 +15,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import market.engine.core.data.items.Tab
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.utils.nowAsEpochSeconds
@@ -70,6 +71,10 @@ class DefaultFavPagesComponent(
 
     init {
         model.value.backHandler.register(backCallback)
+
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
+        }
     }
 
     override fun updateNavigationPages(){

@@ -8,6 +8,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.items.SelectedBasketItem
 
@@ -62,6 +63,9 @@ class DefaultBasketComponent(
         lifecycle.doOnResume {
             basketViewModel.updateUserInfo()
             basketViewModel.getUserCart()
+        }
+        lifecycle.doOnDestroy {
+            basketViewModel.onClear()
         }
     }
 

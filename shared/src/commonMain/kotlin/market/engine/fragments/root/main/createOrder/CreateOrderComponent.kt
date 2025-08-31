@@ -7,6 +7,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.SelectedBasketItem
@@ -74,6 +75,10 @@ class DefaultCreateOrderComponent(
             if (UserData.token == ""){
                 navigateBack()
             }
+        }
+        lifecycle.doOnDestroy {
+            createOrderViewModel.onClear()
+            deliveryCardsViewModel.onClear()
         }
     }
 

@@ -14,6 +14,7 @@ import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import market.engine.core.data.items.DeepLink
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
@@ -55,8 +56,14 @@ class DefaultRootComponent(
     componentContext: JetpackComponentContext,
 ) : RootComponent, JetpackComponentContext by componentContext {
 
-    val viewModel =  viewModel("rootViewModel") {
+    val viewModel = viewModel("rootViewModel") {
         RootVewModel(this@DefaultRootComponent, createSavedStateHandle())
+    }
+
+    init {
+        lifecycle.doOnDestroy {
+            viewModel.onClear()
+        }
     }
 
     override val childStack: Value<ChildStack<*, RootComponent.Child>> by lazy {

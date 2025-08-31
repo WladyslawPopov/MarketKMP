@@ -7,6 +7,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 
 interface VerificationComponent {
     val model : Value<Model>
@@ -43,4 +44,10 @@ class DefaultVerificationComponent(
     )
 
     override val model = _model
+
+    init {
+        lifecycle.doOnDestroy {
+            verificationViewModel.onClear()
+        }
+    }
 }

@@ -91,6 +91,8 @@ class DefaultDialogsComponent(
         lifecycle.doOnDestroy {
             updateMessenger = null
             activeDialog = null
+            dialogsViewModel.onClear()
+            listingBaseVM.onClear()
         }
 
         dialogsViewModel.analyticsHelper.reportEvent("view_dialogs", mapOf())

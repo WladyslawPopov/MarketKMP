@@ -13,6 +13,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.serialization.Serializable
 import market.engine.core.data.baseFilters.ListingData
@@ -164,6 +165,13 @@ class DefaultListingComponent(
                 listingViewModel.setUpdateItem(updateBackHandlerItem.value)
                 updateBackHandlerItem.value = 1L
             }
+        }
+
+        lifecycle.doOnDestroy {
+            listingViewModel.onClear()
+            listingBaseVM.onClear()
+            listingCategoryModel.onClear()
+            searchCategoryModel.onClear()
         }
     }
 

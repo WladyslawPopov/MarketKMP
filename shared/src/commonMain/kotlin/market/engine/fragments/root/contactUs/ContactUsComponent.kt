@@ -7,6 +7,7 @@ import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 
 interface ContactUsComponent {
@@ -46,5 +47,11 @@ class DefaultContactUsComponent(
 
     override fun onBack() {
         goBack()
+    }
+
+    init {
+        lifecycle.doOnDestroy {
+            contactUsViewModel.onClear()
+        }
     }
 }

@@ -1,12 +1,14 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
 import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,6 +89,11 @@ class DefaultSubscriptionsComponent(
                 subViewModel.setUpdateItem(updateBackHandlerItem.value)
                 updateBackHandlerItem.value = 1L
             }
+        }
+
+        lifecycle.doOnDestroy {
+            subViewModel.onClear()
+            listingBaseVM.onClear()
         }
 
         analyticsHelper.reportEvent("open_subscribes", mapOf())
