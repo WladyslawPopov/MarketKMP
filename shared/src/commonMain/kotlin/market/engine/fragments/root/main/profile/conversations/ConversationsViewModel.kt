@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.conversations
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -71,10 +72,10 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             listingBaseViewModel.setListingData(
                 listingBaseViewModel.listingData.value.copy(
                     data = LD(
@@ -138,7 +139,7 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
 
     fun deleteSelectsItems() {
         val selectItems = listingBaseViewModel.selectItems
-        viewModelScope.launch {
+        scope.launch {
             selectItems.value.forEach { item ->
                 deleteConversation(item){
                     listingBaseViewModel.removeSelectItem(item)
@@ -152,7 +153,7 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
     }
 
     fun markReadConversation(id : Long) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 withContext(Dispatchers.Unconfined) {
                     conversationsOperations.postMarkAsReadByInterlocutor(id)
@@ -166,7 +167,7 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
     }
 
     fun deleteConversation(id : Long, onSuccess : () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 conversationsOperations.postDeleteForInterlocutor(id)
             }
@@ -182,7 +183,7 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
     }
 
     fun getConversation(id : Long, onSuccess: (Conversations) -> Unit, error: () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val res = withContext(Dispatchers.IO) {
                     conversationsOperations.getConversation(id)

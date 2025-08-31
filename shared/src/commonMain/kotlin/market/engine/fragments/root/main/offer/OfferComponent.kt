@@ -1,7 +1,7 @@
 package market.engine.fragments.root.main.offer
 
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
+
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
@@ -101,7 +101,7 @@ class DefaultOfferComponent(
         }
 
         lifecycle.doOnDestroy {
-            viewModel.viewModelScope.launch {
+            viewModel.scope.launch {
                 viewModel.addHistory(model.value.id)
             }
             viewModel.clearTimers()

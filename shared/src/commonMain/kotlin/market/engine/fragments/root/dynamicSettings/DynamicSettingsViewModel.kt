@@ -6,6 +6,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.SavedStateHandle
+
 import com.mohamedrejeb.ksoup.entities.KsoupEntities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -70,7 +71,7 @@ class DynamicSettingsViewModel(
     private val userOperations : UserOperations by lazy { getKoin().get() }
 
     private val _dynamicSettingsState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "dynamicSettingsState",
         DynamicSettingsData(),
         DynamicSettingsData.serializer()
@@ -122,7 +123,7 @@ class DynamicSettingsViewModel(
             )
         )
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
         initialValue = DynamicSettingsUIState()
     )
@@ -139,7 +140,7 @@ class DynamicSettingsViewModel(
 
     fun setUpPage(){
         refresh()
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
 
@@ -292,7 +293,7 @@ class DynamicSettingsViewModel(
     }
 
     fun postSubmit() {
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             userRepository.updateToken()
 
@@ -480,7 +481,7 @@ class DynamicSettingsViewModel(
     }
 
     fun getBlocList() {
-        viewModelScope.launch {
+        scope.launch {
             val res =  withContext(Dispatchers.IO){
                 val body = HashMap<String, JsonElement>()
                 when(settingsType){
@@ -513,7 +514,7 @@ class DynamicSettingsViewModel(
     }
 
     fun deleteFromBlocList(id : Long) {
-        viewModelScope.launch {
+        scope.launch {
             val list = when(settingsType){
                 "add_to_seller_blacklist" -> {
                     "seller_blacklist"
@@ -558,7 +559,7 @@ class DynamicSettingsViewModel(
     }
 
     fun cancelAllBids(field : Fields) {
-        viewModelScope.launch {
+        scope.launch {
             val body = HashMap<String, JsonElement>()
             body["comment"] = field.data ?: JsonPrimitive("")
 
@@ -605,7 +606,7 @@ class DynamicSettingsViewModel(
     }
 
     fun disabledWatermark() {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
@@ -646,7 +647,7 @@ class DynamicSettingsViewModel(
     }
 
     fun enabledWatermark() {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
@@ -702,7 +703,7 @@ class DynamicSettingsViewModel(
     }
 
     fun enabledBlockRating() {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
@@ -758,7 +759,7 @@ class DynamicSettingsViewModel(
     }
 
     fun disabledBlockRating() {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,

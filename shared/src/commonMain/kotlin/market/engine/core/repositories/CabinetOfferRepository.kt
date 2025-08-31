@@ -304,7 +304,7 @@ class CabinetOfferRepository(
             )
         }
     }.stateIn(
-        core.viewModelScope,
+        core.scope,
         SharingStarted.Eagerly,
         emptyList()
     )
@@ -343,13 +343,13 @@ class CabinetOfferRepository(
             )
         }
     }.stateIn(
-        core.viewModelScope,
+        core.scope,
         SharingStarted.Eagerly,
         emptyList()
     )
 
     init {
-        core.viewModelScope.launch {
+        core.scope.launch {
             _offerState.collectLatest {
                 updateOperations()
             }
@@ -414,7 +414,7 @@ class CabinetOfferRepository(
     fun updateItem() {
         updateOperations()
         if(listingData.data.methodServer.isNotBlank()) {
-            core.viewModelScope.launch {
+            core.scope.launch {
                 val buf = withContext(Dispatchers.IO) {
                     getItem()
                 }
@@ -437,7 +437,7 @@ class CabinetOfferRepository(
     }
 
     fun updateOperations(){
-        core.viewModelScope.launch {
+        core.scope.launch {
             getOfferOperations(
                 offerState.value.id
             ) { list ->
@@ -586,7 +586,7 @@ class CabinetOfferRepository(
         onSuccess: () -> Unit,
         onDismiss: () -> Unit
     ) {
-        core.viewModelScope.launch {
+        core.scope.launch {
             val res = withContext(Dispatchers.IO) {
                 core.operationsMethods.postOperationAdditionalData(
                     offer.id,
@@ -634,7 +634,7 @@ class CabinetOfferRepository(
 
     fun getOffersList(onSuccess: (List<FavoriteListItem>) -> Unit) {
         val offersListOperations = OffersListOperations( core.apiService)
-        core.viewModelScope.launch {
+        core.scope.launch {
             val data = withContext(Dispatchers.IO) { offersListOperations.getOffersList() }
 
             withContext(Dispatchers.Main) {
@@ -652,7 +652,7 @@ class CabinetOfferRepository(
     }
 
     fun openMesDialog() {
-        core.viewModelScope.launch {
+        core.scope.launch {
             if (UserData.token != "") {
                 val sellerLabel = getString(strings.sellerLabel)
                 val conversationTitle = getString(strings.createConversationLabel)
@@ -723,7 +723,7 @@ class CabinetOfferRepository(
     }
 
     fun writeToSeller(offerId : Long, messageText : String, onSuccess: (Long?) -> Unit){
-        core.viewModelScope.launch(Dispatchers.IO) {
+        core.scope.launch(Dispatchers.IO) {
             val res = core.operationsMethods.postOperationAdditionalData(
                 offerId,
                 "write_to_seller",
@@ -757,7 +757,7 @@ class CabinetOfferRepository(
         tag : String = "default",
         onSuccess: (List<Operations>) -> Unit
     ) {
-        core.viewModelScope.launch {
+        core.scope.launch {
             val res = withContext(Dispatchers.IO) {
                 offerOperations.getOperationsOffer(offerId, tag)
             }
@@ -786,7 +786,7 @@ class CabinetOfferRepository(
         if (UserData.token != "") {
             _myMaximalBid.value = bid
 
-            core.viewModelScope.launch {
+            core.scope.launch {
                 val conversationTitle = getString(strings.acceptAddBidsAction)
 
                 _customDialogState.value = CustomDialogState(
@@ -904,7 +904,7 @@ class CabinetOfferRepository(
     }
 
     fun getFieldsCreateBlankOfferList(onSuccess: (title: String, List<Fields>) -> Unit){
-        core.viewModelScope.launch {
+        core.scope.launch {
             val data = withContext(Dispatchers.IO) {
                 core.operationsMethods.getOperationFields(
                     UserData.login,

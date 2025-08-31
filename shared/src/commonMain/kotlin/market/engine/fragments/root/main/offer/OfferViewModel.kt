@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.offer
 
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -92,13 +93,13 @@ class OfferViewModel(
     }
 
     fun editNote(){
-        viewModelScope.launch {
+        scope.launch {
             cabinetOfferRepository.menuList.value.find { it.id == "edit_note" }?.onClick()
         }
     }
 
     fun deleteNote(id: Long){
-        viewModelScope.launch {
+        scope.launch {
             this@OfferViewModel.deleteNote(id) {
                 refreshPage()
             }
@@ -106,7 +107,7 @@ class OfferViewModel(
     }
 
     fun deleteNote(offerId: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(offerId, "delete_note", "offers")
             }
@@ -139,7 +140,7 @@ class OfferViewModel(
     }
 
     fun getOffer(offerId: Long, isSnapshot: Boolean = false) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
                 getHistory(offerId)
@@ -311,7 +312,7 @@ class OfferViewModel(
     }
 
     private fun getCategoriesHistory(catPath: List<Long>) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val categories = withContext(Dispatchers.IO) {
                     catPath.reversed().mapNotNull { id ->
@@ -328,7 +329,7 @@ class OfferViewModel(
     private fun startTimer(initialTime: Long, onFinish: () -> Unit) {
         _remainingTime.value = initialTime
         timerJob?.cancel()
-        timerJob = viewModelScope.launch {
+        timerJob = scope.launch {
             while (_remainingTime.value > 0) {
                 delay(1000L)
                 _remainingTime.value -= 1000L
@@ -343,7 +344,7 @@ class OfferViewModel(
                 ?: 0L) * 1000
 
         timerBidsJob?.cancel()
-        timerBidsJob = viewModelScope.launch {
+        timerBidsJob = scope.launch {
             var millisUntilFinished = initialTime
             var currentInterval = calculateNewInterval(millisUntilFinished)
 
@@ -362,7 +363,7 @@ class OfferViewModel(
     }
 
     fun updateUserState(id: Long){
-        viewModelScope.launch {
+        scope.launch {
             val user = withContext(Dispatchers.IO) {
                 getUserInfo(id)
             }
@@ -388,7 +389,7 @@ class OfferViewModel(
     }
 
     fun updateBidsInfo(offer: OfferItem) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
                     offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
@@ -434,7 +435,7 @@ class OfferViewModel(
     }
 
     fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
@@ -487,7 +488,7 @@ class OfferViewModel(
         onSuccess: () -> Unit,
         errorCallback: (String) -> Unit
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             val response = operationsMethods.getOperationFields(
                 UserData.login,
                 "create_subscription",

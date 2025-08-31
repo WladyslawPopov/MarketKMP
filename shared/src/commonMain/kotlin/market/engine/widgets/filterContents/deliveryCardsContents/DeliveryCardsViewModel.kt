@@ -1,6 +1,7 @@
 package market.engine.widgets.filterContents.deliveryCardsContents
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -24,7 +25,7 @@ import org.koin.mp.KoinPlatform
 
 class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(savedStateHandle) {
     private val _deliveryCards = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "deliveryCards",
         emptyList(),
         ListSerializer(DeliveryAddress.serializer())
@@ -32,7 +33,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     val deliveryCardsState = _deliveryCards.state
 
     private val _deliveryFields = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "deliveryFields",
         emptyList(),
         ListSerializer(Fields.serializer())
@@ -40,7 +41,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     val deliveryFieldsState = _deliveryFields.state
 
     private val _showFields = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "showFields",
         false,
         Boolean.serializer()
@@ -48,7 +49,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     val showFieldsState = _showFields.state
 
     private val _selectedCard = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectedCard",
         1L,
         Long.serializer()
@@ -70,7 +71,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     fun setDeliveryFields(selectedId : Long?) {
         val cards = _deliveryCards.value
 
-        viewModelScope.launch {
+        scope.launch {
             val cards = cards
             val card = cards.find { it.id == selectedId }
             _deliveryFields.value = if (card != null) {
@@ -126,7 +127,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     }
 
     fun getDeliveryCards() {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
                     userOperations.getUsersOperationsAddressCards(UserData.login)
@@ -164,7 +165,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
         val cards = _deliveryCards.value
         val deliveryFields = _deliveryFields.value
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             val jsonBody : HashMap<String, JsonElement> = hashMapOf()
             deliveryFields.forEach { field ->
                 when (field.widgetType) {
@@ -236,7 +237,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     }
 
     fun addNewDeliveryCard(){
-        viewModelScope.launch {
+        scope.launch {
             _deliveryFields.value = getDeliveryFields() ?: emptyList()
             _showFields.value = true
         }
@@ -309,7 +310,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     }
 
     fun updateDeleteCard(card: DeliveryAddress, onSuccess: () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val b = HashMap<String, JsonElement>()
             b["id_as_ts"] = JsonPrimitive(card.id)
 
@@ -340,7 +341,7 @@ class DeliveryCardsViewModel(savedStateHandle: SavedStateHandle): CoreViewModel(
     }
 
     fun updateDefaultCard(card: DeliveryAddress, onSuccess: () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val b = HashMap<String, JsonElement>()
             b["id_as_ts"] = JsonPrimitive(card.id)
 

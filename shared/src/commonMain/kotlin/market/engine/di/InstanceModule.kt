@@ -17,12 +17,12 @@ import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.OperationsMethods
 import market.engine.core.repositories.CacheRepository
 import market.engine.core.repositories.FavoritesTabListRepository
+import market.engine.core.repositories.NotificationsRepository
 import market.engine.core.repositories.OfferVisitedHistoryRepository
 import market.engine.core.repositories.SearchRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.shared.AuctionMarketDb
-import market.engine.shared.NotificationsHistory
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -68,7 +68,7 @@ val repositoryModule = module {
     singleOf(::UserRepository)
     singleOf(::SearchRepository)
     singleOf(::OfferVisitedHistoryRepository)
-    singleOf(::NotificationsHistory)
+    singleOf(::NotificationsRepository)
     singleOf(::FavoritesTabListRepository)
     singleOf(::CacheRepository)
 }

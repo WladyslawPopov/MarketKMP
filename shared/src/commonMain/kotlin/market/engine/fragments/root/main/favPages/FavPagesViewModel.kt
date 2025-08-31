@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.favPages
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,7 +49,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     private val offersListOperations : OffersListOperations = getKoin().get()
 
     private val _tabsDataList = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "favoritesTabList",
         emptyList(),
         ListSerializer(FavoriteListItem.serializer())
@@ -67,13 +68,13 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
             )
         }
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Eagerly,
         emptyList()
     )
 
     private val _initPosition = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "initPosition",
         0,
         Int.serializer()
@@ -81,7 +82,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     val initPosition = _initPosition.state
 
     private val _customDialogState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "customDialogState",
         CustomDialogState(),
         CustomDialogState.serializer()
@@ -89,14 +90,14 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     val customDialogState = _customDialogState.state
 
     private val _isDragMode = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "isDragMode",
         false,
         Boolean.serializer()
     )
 
     private val _isMenuVisible = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "isMenuVisible",
         false,
         Boolean.serializer()
@@ -174,7 +175,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
             isDragMode = isDragMode
         )
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Eagerly,
         FavPagesState()
     )
@@ -182,7 +183,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     init {
         getFavTabList()
 
-        viewModelScope.launch {
+        scope.launch {
             favoritesTabList.collect { updatedList ->
                 withContext(Dispatchers.Main){
                     component.updateNavigationPages()
@@ -192,7 +193,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     }
 
     fun getFavTabList() {
-        viewModelScope.launch {
+        scope.launch {
             val newList = arrayListOf(
                 FavoriteListItem(
                     id = 111,
@@ -243,7 +244,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     }
 
     fun updateFavTabList(list: List<Tab>){
-        viewModelScope.launch {
+        scope.launch {
             try {
                 _tabsDataList.value = list.map { item ->
                     FavoriteListItem(
@@ -361,7 +362,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                             tabs.filter { it.id != id }
                         }
                         getFavTabList()
-                        viewModelScope.launch {
+                        scope.launch {
                             offerListRepository.deleteFavoritesTabListById(id)
                         }
                     },

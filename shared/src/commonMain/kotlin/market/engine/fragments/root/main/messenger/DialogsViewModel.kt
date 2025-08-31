@@ -4,6 +4,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import androidx.paging.map
@@ -90,55 +91,55 @@ class DialogsViewModel(
     private val pagingRepository: PagingRepository<Dialog> = PagingRepository()
 
     private val _responseGetConversation = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetConversation",
         Conversations(),
         Conversations.serializer()
     )
 
     private val _responseGetOfferInfo = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetOfferInfo",
         Offer(),
         Offer.serializer()
     )
 
     private val _responseGetOrderInfo = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetOrderInfo",
         Order(),
         Order.serializer()
     )
 
     private val _responseImages = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseImages",
         emptyList(),
         ListSerializer(PhotoSave.serializer())
     )
 
     private val _messageTextState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "messageTextState",
         "",
         String.serializer()
     )
 
     private val _isDisabledSendMes = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "isDisabledSendMes",
         true,
         Boolean.serializer()
     )
     private val _isDisabledAddPhotos = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "isDisabledAddPhotos",
         true,
         Boolean.serializer()
     )
 
     private val _selectedImageIndex = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectedImageIndex",
         0,
         Int.serializer()
@@ -146,7 +147,7 @@ class DialogsViewModel(
     val selectedImageIndex = _selectedImageIndex.state
 
     private val _images = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "images",
         emptyList(),
         ListSerializer(String.serializer())
@@ -154,7 +155,7 @@ class DialogsViewModel(
     val images = _images.state
 
     private val _isMenuVisible = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "isMenuVisible",
         false,
         Boolean.serializer()
@@ -182,7 +183,7 @@ class DialogsViewModel(
             messageTextState = messageTextState
         )
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Lazily,
         MessengerBarState()
     )
@@ -373,7 +374,7 @@ class DialogsViewModel(
             conversations = conversation
         )
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Lazily,
         DialogContentState()
     )
@@ -459,7 +460,7 @@ class DialogsViewModel(
                     }
                 }
         }
-    }.cachedIn(viewModelScope)
+    }.cachedIn(scope)
 
     init {
         update()
@@ -507,7 +508,7 @@ class DialogsViewModel(
     }
 
     fun markReadConversation(id : Long) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 withContext(Dispatchers.Unconfined) {
                     conversationsOperations.postMarkAsReadByInterlocutor(id)
@@ -521,7 +522,7 @@ class DialogsViewModel(
     }
 
     fun deleteConversation(id : Long, onSuccess : () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 conversationsOperations.postDeleteForInterlocutor(id)
             }
@@ -537,7 +538,7 @@ class DialogsViewModel(
     }
 
     fun getConversation(id : Long, onSuccess: (Conversations) -> Unit, error: () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val res = withContext(Dispatchers.IO) {
                     conversationsOperations.getConversation(id)
@@ -564,7 +565,7 @@ class DialogsViewModel(
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(files: PlatformFiles) {
-        viewModelScope.launch {
+        scope.launch {
             val newImages = files.map { file ->
                 val barr = file.readBytes()
                 val resizeImage = compressImage(barr, 40)
@@ -600,7 +601,7 @@ class DialogsViewModel(
     }
 
     fun sendMessage() {
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
 
             val userId = _responseGetConversation.value.interlocutor?.id
@@ -661,7 +662,7 @@ class DialogsViewModel(
     fun updateDialogInfo(
         conversations: Conversations,
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             if (conversations.aboutObjectClass == "offer") {
                 val buffer = offerOperations.getOffer(conversations.aboutObjectId ?: 1L)
                 val res = buffer.success
@@ -679,7 +680,7 @@ class DialogsViewModel(
     }
 
     fun deleteMessage(id: Long) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 privateMessagesOperation.postDeleteForInterlocutor(id)
             }

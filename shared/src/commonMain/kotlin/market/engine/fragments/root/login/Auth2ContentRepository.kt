@@ -1,6 +1,7 @@
 package market.engine.fragments.root.login
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -27,7 +28,7 @@ class Auth2ContentRepository(
 )
 {
     private val _leftTimerState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
+        core.scope,
         "leftTimerState",
         0,
         Int.serializer()
@@ -35,7 +36,7 @@ class Auth2ContentRepository(
     val leftTimerState = _leftTimerState.state
 
     private val _codeState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
+        core.scope,
         "codeState",
         "",
         String.serializer()
@@ -43,7 +44,7 @@ class Auth2ContentRepository(
     val codeState = _codeState.state
 
     private val _auth2ContentState = savedStateHandle.getSavedStateFlow(
-        core.viewModelScope,
+        core.scope,
         "auth2ContentState",
         initData,
         Auth2ContentData.serializer()
@@ -51,7 +52,7 @@ class Auth2ContentRepository(
     val auth2ContentState = _auth2ContentState.state
 
     init {
-        core.viewModelScope.launch {
+        core.scope.launch {
             _auth2ContentState.state.collectLatest {
                 if (it.lastRequestByIdentity != null) {
                     startTimer(it.lastRequestByIdentity)
@@ -62,7 +63,7 @@ class Auth2ContentRepository(
 
     fun startTimer(leftTimer : Int){
         _leftTimerState.value = leftTimer
-        core.viewModelScope.launch {
+        core.scope.launch {
             while (_leftTimerState.value > 0){
                 delay(1000)
                 _leftTimerState.value--
@@ -92,7 +93,7 @@ class Auth2ContentRepository(
 
     fun onCodeSubmit() {
         core.setLoading(true)
-        core.viewModelScope.launch {
+        core.scope.launch {
             try {
                 val body = HashMap<String, String>()
                 body["user_id"] = auth2ContentState.value.user.toString()

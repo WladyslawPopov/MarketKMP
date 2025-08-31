@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.listing
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.cachedIn
 import androidx.paging.map
 import app.cash.paging.PagingData
@@ -62,7 +63,7 @@ class ListingViewModel(
     private val pagingRepository: PagingRepository<Offer> = PagingRepository()
 
     private val _regionOptions = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "regionOptions",
         emptyList(),
         ListSerializer(Options.serializer())
@@ -136,10 +137,10 @@ class ListingViewModel(
                 )
             }
         }
-    }.cachedIn(viewModelScope)
+    }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             val ld = listingBaseVM.listingData.value
             ld.data.methodServer = "get_public_listing"
             ld.data.objServer = "offers"
@@ -281,7 +282,7 @@ class ListingViewModel(
     }
 
     private fun getOffersRecommendedInListing(categoryID:Long) {
-        viewModelScope.launch{
+        scope.launch{
             try {
                 val response = withContext(Dispatchers.IO){
                     apiService.getOffersRecommendedInListing(categoryID)
@@ -339,7 +340,7 @@ class ListingViewModel(
     }
 
     fun updateOffer(id : Long, onSuccess: (Offer) -> Unit){
-        viewModelScope.launch {
+        scope.launch {
             val res = offerOperations.getOffer(id)
             val offer = res.success
             if (offer != null) {
@@ -349,7 +350,7 @@ class ListingViewModel(
     }
 
     private fun getRegions(){
-        viewModelScope.launch {
+        scope.launch {
             val cacheKey = "regions"
             val serializer = ListSerializer(Options.serializer())
             val cacheRegions = cacheRepository.get(cacheKey, serializer)
@@ -379,7 +380,7 @@ class ListingViewModel(
         onSuccess: () -> Unit,
         errorCallback: (String) -> Unit
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             val response = operationsMethods.getOperationFields(
                 UserData.login,
                 "create_subscription",

@@ -1,7 +1,7 @@
 package market.engine.fragments.root
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
+
 import com.arkivanov.decompose.router.stack.active
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -16,7 +16,7 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToMain
 
 class RootVewModel(val component: RootComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
     init {
-        viewModelScope.launch {
+        scope.launch {
             val isFirstLaunch = settings.getSettingValue("isFirstLaunch", true)
             if (isFirstLaunch == true) {
                 settings.setSettingValue("isFirstLaunch", false)
@@ -41,7 +41,7 @@ class RootVewModel(val component: RootComponent, savedStateHandle: SavedStateHan
     }
 
     fun goToDeepLink(url : DeepLink){
-        viewModelScope.launch {
+        scope.launch {
             try {
                 delay(300)
                 withContext(Dispatchers.Main) {

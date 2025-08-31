@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createSubscription
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -48,14 +49,14 @@ class CreateSubscriptionViewModel(
 ) : CoreViewModel(savedStateHandle) {
 
     private val _responseGetFields = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetFields",
         emptyList(),
         ListSerializer(Fields.serializer())
     )
 
     private val _openCat = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "openCat",
         false,
         Boolean.serializer()
@@ -110,7 +111,7 @@ class CreateSubscriptionViewModel(
             )
         )
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.Lazily,
         initialValue = CreateSubDataState(
             categoryState = CategoryState(
@@ -144,7 +145,7 @@ class CreateSubscriptionViewModel(
     }
 
     fun clearCategory(){
-        viewModelScope.launch {
+        scope.launch {
             categoryViewModel.updateFromSearchData(SD())
             _responseGetFields.asyncUpdate { page ->
                 page.map {
@@ -173,7 +174,7 @@ class CreateSubscriptionViewModel(
 
     fun getPage(editId : Long?){
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             val buffer = withContext(Dispatchers.IO){
                 if(editId == null)
                     operationsMethods.getOperationFields(UserData.login, "create_subscription", "users")
@@ -195,7 +196,7 @@ class CreateSubscriptionViewModel(
     }
 
     fun postPage(editId : Long?, onSuccess : () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
 
             val body = HashMap<String, JsonElement>()

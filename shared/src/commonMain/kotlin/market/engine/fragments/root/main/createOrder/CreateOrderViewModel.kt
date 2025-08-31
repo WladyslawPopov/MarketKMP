@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createOrder
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,35 +56,35 @@ class CreateOrderViewModel(
     val deliveryCardsViewModel = component.additionalModels.value.deliveryCardsViewModel
 
     private val _responseGetOffers = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetOffers",
         emptyList(),
         ListSerializer(OfferItem.serializer())
     )
 
     private val _responseGetAdditionalData = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetAdditionalData",
         AdditionalDataForNewOrder(),
         AdditionalDataForNewOrder.serializer()
     )
 
     private val _selectDeliveryMethod = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectDeliveryMethod",
         0,
         Int.serializer()
     )
 
     private val _selectDealType = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectDealType",
         0,
         Int.serializer()
     )
 
     private val _selectPaymentType = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectPaymentType",
         0,
         Int.serializer()
@@ -122,7 +123,7 @@ class CreateOrderViewModel(
             selectPaymentType = selectPaymentType
         )
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.Lazily,
         initialValue = CreateOrderState()
     )
@@ -166,7 +167,7 @@ class CreateOrderViewModel(
     }
 
     fun getOffers(listOffersId : List<Long>) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     _responseGetOffers.value = emptyList()
@@ -190,7 +191,7 @@ class CreateOrderViewModel(
     }
 
     fun getAdditionalFields(sellerId: Long, lotIds: List<Long>?, lotCounts: List<Int>?, goBack: () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             try {
                 val additionalBody = buildJsonObject {
@@ -291,7 +292,7 @@ class CreateOrderViewModel(
         )
         analyticsHelper.reportEvent("click_submit_order", eventParameters)
 
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
                 val response = withContext(Dispatchers.IO) {
@@ -366,7 +367,7 @@ class CreateOrderViewModel(
     fun addToFavorites(offer : OfferItem)
     {
         if(UserData.token != "") {
-            viewModelScope.launch {
+            scope.launch {
                 val buf = withContext(Dispatchers.IO) {
                     operationsMethods.postOperationFields(
                         offer.id,

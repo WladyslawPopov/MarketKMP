@@ -5,6 +5,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
@@ -316,7 +317,7 @@ fun OfferItem.setNewParams(offer: Offer) : OfferItem {
 }
 
 fun CoreViewModel.getMainTread(content : suspend () -> Unit): Job {
-    return viewModelScope.launch {
+    return scope.launch {
         withContext(Dispatchers.Main) {
             content()
         }
@@ -324,7 +325,7 @@ fun CoreViewModel.getMainTread(content : suspend () -> Unit): Job {
 }
 
 fun CoreViewModel.getIoTread(content : suspend () -> Unit): Job {
-    return viewModelScope.launch {
+    return scope.launch {
         withContext(Dispatchers.IO) {
             content()
         }

@@ -2,6 +2,7 @@ package market.engine.fragments.root.main
 
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
+
 import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
@@ -39,7 +40,7 @@ const val NAVIGATION_DEBOUNCE_DELAY_MS = 100L
 
 class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
     private val _showBottomBar = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "showBottomBar",
         checkShowBar(),
         Boolean.serializer()
@@ -56,7 +57,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
 
     init {
         try {
-            viewModelScope.launch {
+            scope.launch {
                 snapshotFlow { UserData.userInfo }
                     .collectLatest { newInfo ->
                         updateNavLists()

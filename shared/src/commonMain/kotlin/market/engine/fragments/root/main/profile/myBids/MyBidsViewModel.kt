@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myBids
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -78,10 +79,10 @@ class MyBidsViewModel(
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             listingBaseViewModel.setListingData(
                 listingBaseViewModel.listingData.value.copy(
                     data = LD(

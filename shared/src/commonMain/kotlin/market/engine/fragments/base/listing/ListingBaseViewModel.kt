@@ -1,6 +1,7 @@
 package market.engine.fragments.base.listing
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -85,7 +86,7 @@ class ListingBaseViewModel(
     private val searchRepository : SearchRepository = getKoin().get()
 
     private val _selectItems = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "selectItems",
         initialValue = emptyList(),
         serializer = ListSerializer(
@@ -95,7 +96,7 @@ class ListingBaseViewModel(
     val selectItems: StateFlow<List<Long>> = _selectItems.state
 
     private val _totalCount = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "totalCount",
         initialValue = 0,
         serializer = Int.serializer()
@@ -103,7 +104,7 @@ class ListingBaseViewModel(
     val totalCount: StateFlow<Int> = _totalCount.state
 
     private val _listingType = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "listingType",
         initialValue = 0,
         serializer = Int.serializer()
@@ -111,7 +112,7 @@ class ListingBaseViewModel(
     val listingType: StateFlow<Int> = _listingType.state
 
     private val _listingData = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "listingData",
         initialValue = listingData,
         serializer = ListingData.serializer()
@@ -119,7 +120,7 @@ class ListingBaseViewModel(
     val listingData: StateFlow<ListingData> = _listingData.state
 
     private val _activeWindowType = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "activeWindowType",
         initialValue = if (isOpenSearch) ActiveWindowListingType.SEARCH else ActiveWindowListingType.LISTING,
         serializer = ActiveWindowListingType.serializer()
@@ -127,21 +128,21 @@ class ListingBaseViewModel(
     val activeWindowType: StateFlow<ActiveWindowListingType> = _activeWindowType.state
 
     private val _changeSearchTab = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "changeSearchTab",
         initialValue = 0,
         serializer = Int.serializer()
     )
 
     private val _responseHistory = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "responseHistory",
         initialValue = emptyList(),
         serializer = ListSerializer(SearchHistoryItem.serializer())
     )
 
     private val _promoList = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "promoList",
         initialValue = emptyList(),
         serializer = ListSerializer(OfferItem.serializer())
@@ -149,7 +150,7 @@ class ListingBaseViewModel(
     val promoList: StateFlow<List<OfferItem>> = _promoList.state
 
     private val _isReversingPaging = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "isReversingPaging",
         initialValue = false,
         serializer = Boolean.serializer()
@@ -159,14 +160,14 @@ class ListingBaseViewModel(
     private val _listItemsNavigationFilterBar = MutableStateFlow<List<NavigationItem>>(emptyList())
 
     private val _searchString = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "searchString",
         initialValue = "",
         serializer = String.serializer()
     )
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             if (listingComponent != null) {
                 getSearchHistory()
             }
@@ -345,7 +346,7 @@ class ListingBaseViewModel(
             }
         )
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.Eagerly,
         initialValue = FilterBarUiState()
     )
@@ -407,7 +408,7 @@ class ListingBaseViewModel(
             null
         }
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Eagerly,
         null
     )
@@ -489,7 +490,7 @@ class ListingBaseViewModel(
                 "user_finished" to sd.searchFinished
             )
             analyticsHelper.reportEvent("open_search_listing", eventParameters)
-            viewModelScope.launch {
+            scope.launch {
                 getSearchHistory()
             }
 
@@ -585,7 +586,7 @@ class ListingBaseViewModel(
         setLoading(true)
         onError(ServerErrorException())
         setSearchFilters()
-        viewModelScope.launch {
+        scope.launch {
             getSearchHistory(_searchString.value)
             delay(1000)
             setLoading(false)
@@ -615,7 +616,7 @@ class ListingBaseViewModel(
     }
 
     fun deleteItemHistory(id: Long) {
-        viewModelScope.launch {
+        scope.launch {
             searchRepository.deleteHistoryItemById(id)
             getSearchHistory()
         }
@@ -626,7 +627,7 @@ class ListingBaseViewModel(
         isUsersSearch: Boolean = false,
         isFinished: Boolean = false
     ) {
-        viewModelScope.launch {
+        scope.launch {
             if (searchString != "") {
                 val s =
                     searchString.trim() + if (isUsersSearch) " _user" else "" + if (isFinished) " _finished" else ""
@@ -653,13 +654,13 @@ class ListingBaseViewModel(
 
     fun onUpdateSearchString(value: String) {
         _searchString.value = value
-        viewModelScope.launch {
+        scope.launch {
             getSearchHistory(value)
         }
     }
 
     fun deleteHistory() {
-        viewModelScope.launch {
+        scope.launch {
             searchRepository.clearHistory()
             getSearchHistory()
         }
@@ -776,7 +777,7 @@ class ListingBaseViewModel(
     }
 
     fun clearListingData() {
-        viewModelScope.launch {
+        scope.launch {
             _listingData.asyncUpdate { listingData ->
                 val sd = listingData.searchData.copy()
                 sd.clear(getString(strings.categoryMain))
@@ -812,7 +813,7 @@ class ListingBaseViewModel(
     }
 
     fun clearSearchCategory() {
-        viewModelScope.launch {
+        scope.launch {
             _listingData.asyncUpdate { currentListingData ->
                 currentListingData.searchData.clear(getString(strings.categoryMain))
                 currentListingData.copy()

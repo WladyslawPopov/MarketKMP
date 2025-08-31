@@ -3,11 +3,13 @@ package market.engine.fragments.base
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +51,7 @@ import market.engine.core.utils.parseToOfferItem
 import market.engine.shared.AuctionMarketDb
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
+import kotlin.coroutines.CoroutineContext
 import kotlin.getValue
 import kotlin.time.Duration.Companion.days
 
@@ -59,6 +62,11 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val settings : SettingsRepository by lazy { getKoin().get() }
     val apiService by lazy {  getKoin().get<APIService>() }
 
+    private val job = Job()
+
+    private val mainContext: CoroutineContext by lazy { job + Dispatchers.Main }
+
+    val scope: CoroutineScope by lazy { CoroutineScope(mainContext) }
     private val _updatePage = MutableStateFlow(0)
     val updatePage: StateFlow<Int> = _updatePage.asStateFlow()
 
@@ -93,7 +101,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val offerOperations : OfferOperations by lazy { getKoin().get() }
 
     private val _scrollState = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = "scroll",
         initialValue = ScrollDataState(),
         serializer = ScrollDataState.serializer()
@@ -131,7 +139,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun showToast(newToast: ToastItem) {
         _toastItem.value = newToast
-        viewModelScope.launch {
+        scope.launch {
             delay(2000)
             _toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
         }
@@ -144,7 +152,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         onSuccess: (title: String, List<Fields>) -> Unit
     )
     {
-        viewModelScope.launch {
+        scope.launch {
             val data = withContext(Dispatchers.IO) {
                 operationsMethods.getOperationFields(id, type, method)
             }
@@ -173,7 +181,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     )
     {
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             val data = withContext(Dispatchers.IO) { operationsMethods.postOperationFields(id, type, method, body) }
             withContext(Dispatchers.Main) {
                 val res = data.success
@@ -225,7 +233,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun updateUserInfo()
     {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 withContext(Dispatchers.Unconfined) {
                     userRepository.updateToken()
@@ -298,7 +306,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         body: HashMap<String, JsonElement> = hashMapOf(),
         onSuccess: (PayloadExistence<AdditionalData>?) -> Unit
     ) {
-        viewModelScope.launch {
+        scope.launch {
             val data = withContext(Dispatchers.IO) { operationsMethods.postOperationAdditionalData(id, type, method, body) }
             withContext(Dispatchers.Main) {
                 val res = data.success
@@ -327,7 +335,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
     fun getHistory(currentId: Long? = null) {
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             try {
                 val cacheKey = "viewed_offers"
                 val listSerializer = ListSerializer(OfferItem.serializer())
@@ -363,7 +371,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun getOurChoice(id: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             try {
                 val cacheKey = "ourChoice_offers"
                 val listSerializer = ListSerializer(OfferItem.serializer())
@@ -389,6 +397,6 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun onClear() {
-        onCleared()
+        scope.cancel()
     }
 }

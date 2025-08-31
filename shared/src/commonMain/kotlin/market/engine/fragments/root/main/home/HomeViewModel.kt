@@ -56,21 +56,21 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     }
 
     private val _responseOffersPromotedOnMainPage1 = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = PROMO_1_KEY,
         initialValue = emptyList(),
         serializer = ListSerializer(OfferItem.serializer())
     )
 
     private val _responseOffersPromotedOnMainPage2 = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = PROMO_2_KEY,
         initialValue = emptyList(),
         serializer = ListSerializer(OfferItem.serializer())
     )
 
     private val _responseCategory = savedStateHandle.getSavedStateFlow(
-        scope = viewModelScope,
+        scope = scope,
         key = CATEGORIES_KEY,
         initialValue = emptyList(),
         serializer = ListSerializer(Category.serializer())
@@ -261,7 +261,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
             )
         )
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.Eagerly,
         initialValue = HomeUiState()
     )
@@ -274,7 +274,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         }
 
         try {
-            viewModelScope.launch {
+            scope.launch {
                 snapshotFlow { UserData.userInfo }
                     .collectLatest { newInfo ->
                         updatePage()
@@ -294,7 +294,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
         syncNotificationsFromUserDefaults(db, mutex)
 
-        viewModelScope.launch {
+        scope.launch {
             notificationsRepository.deleteReadNotifications()
             updateCategoriesFromCacheOrNetwork()
             getOffersPromotedOnMainPage(0, 16)
@@ -303,7 +303,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     }
 
     fun updateCategoriesFromCacheOrNetwork() {
-        viewModelScope.launch {
+        scope.launch {
             val cacheKey = "categories_home"
             val listSerializer = ListSerializer(Category.serializer())
             val lifetime = 30.days
@@ -320,7 +320,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     }
 
     fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
 

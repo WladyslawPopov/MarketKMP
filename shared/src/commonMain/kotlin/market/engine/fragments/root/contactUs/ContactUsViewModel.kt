@@ -1,6 +1,7 @@
 package market.engine.fragments.root.contactUs
 
 import androidx.lifecycle.SavedStateHandle
+
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +34,7 @@ class ContactUsViewModel(
 ) : CoreViewModel(savedStateHandle) {
 
     private val _responseGetFields = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetFields",
         emptyList(),
         ListSerializer(Fields.serializer()),
@@ -41,7 +42,7 @@ class ContactUsViewModel(
     val responseGetFields = _responseGetFields.state
 
     private val _dataImage = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "dataImage",
         "",
         String.serializer(),
@@ -55,7 +56,7 @@ class ContactUsViewModel(
 
     fun getFields() {
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     setLoading(true)
@@ -93,7 +94,7 @@ class ContactUsViewModel(
     }
 
     fun postContactUs(onSuccess : () -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val body = HashMap<String, JsonElement>()
             responseGetFields.value.forEach {
                 if (it.data != null && it.widgetType != "captcha_image") {
@@ -151,7 +152,7 @@ class ContactUsViewModel(
     }
 
     fun uploadPhotoTemp(item : PhotoTemp) {
-        viewModelScope.launch {
+        scope.launch {
             val res = uploadFile(item)
 
             if (res.success != null) {

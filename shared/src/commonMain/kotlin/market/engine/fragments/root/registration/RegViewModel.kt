@@ -1,6 +1,7 @@
 package market.engine.fragments.root.registration
 
 import androidx.lifecycle.SavedStateHandle
+
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ import org.jetbrains.compose.resources.getString
 
 class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
     private val _responseGetRegFields = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetRegFields",
         emptyList(),
         ListSerializer(Fields.serializer())
@@ -30,7 +31,7 @@ class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStat
     val responseGetRegFields= _responseGetRegFields.state
 
     private val _showSuccessReg = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "showSuccessReg",
         false,
         Boolean.serializer()
@@ -45,7 +46,7 @@ class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStat
 
     fun getRegFields() {
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     setLoading(true)
@@ -71,7 +72,7 @@ class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStat
     }
 
     fun postRegistration(){
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             val body = HashMap<String, JsonElement>()
             responseGetRegFields.value.forEach {

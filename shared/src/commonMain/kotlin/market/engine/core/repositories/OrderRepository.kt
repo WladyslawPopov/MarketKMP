@@ -127,7 +127,7 @@ class OrderRepository(
             )
         }
     }.stateIn(
-        core.viewModelScope,
+        core.scope,
         SharingStarted.Eagerly,
         emptyList()
     )
@@ -197,7 +197,7 @@ class OrderRepository(
 
     fun updateItem(oldOrder: Order) {
         getOperations()
-        core.viewModelScope.launch {
+        core.scope.launch {
             val buf = withContext(Dispatchers.IO) {
                 getItem(oldOrder.id)
             }
@@ -223,7 +223,7 @@ class OrderRepository(
     }
 
     fun getOperations() {
-        core.viewModelScope.launch {
+        core.scope.launch {
             getOrderOperations(order.id) { listOperations ->
                 _operationsList.value = listOperations
             }
@@ -231,7 +231,7 @@ class OrderRepository(
     }
 
     fun getOrderOperations(orderId : Long, onSuccess: (List<Operations>) -> Unit){
-        core.viewModelScope.launch {
+        core.scope.launch {
             val res = withContext(Dispatchers.IO) { orderOperations.getOperationsOrder(orderId) }
             withContext(Dispatchers.Main){
                 val buf = res.success?.filter {
@@ -249,7 +249,7 @@ class OrderRepository(
     }
 
     fun copyTrackId() {
-        core.viewModelScope.launch {
+        core.scope.launch {
             val idString = getString(strings.idCopied)
             clipBoardEvent(order.trackId.toString())
 
@@ -264,7 +264,7 @@ class OrderRepository(
     }
 
     fun copyOrderId() {
-        core.viewModelScope.launch {
+        core.scope.launch {
             val idString = getString(strings.idCopied)
             clipBoardEvent(order.id.toString())
 
@@ -283,7 +283,7 @@ class OrderRepository(
     }
 
     fun sendMessage() {
-        core.viewModelScope.launch {
+        core.scope.launch {
             val userName = if (typeGroup != DealTypeGroup.BUY) {
                 order.sellerData?.login ?: ""
             } else {
@@ -344,7 +344,7 @@ class OrderRepository(
     }
 
     fun openOrderDetails() {
-        core.viewModelScope.launch {
+        core.scope.launch {
             _customDialogState.value = CustomDialogState(
                 title = getString(strings.paymentAndDeliveryLabel),
                 typeDialog = "order_details",
@@ -401,7 +401,7 @@ class OrderRepository(
 
     fun showReportDialog(type : String){
         run {
-            core.viewModelScope.launch {
+            core.scope.launch {
                 val def = getString(strings.toMeFeedbacksLabel)
 
                 val eventParameters = mapOf(

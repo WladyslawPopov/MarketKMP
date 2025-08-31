@@ -1,7 +1,7 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
+
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
@@ -107,7 +107,7 @@ class DefaultSubscriptionsComponent(
     }
 
     override fun goToListing(item: Subscription) {
-        subViewModel.viewModelScope.launch {
+        subViewModel.scope.launch {
             val price = getString(strings.priceParameterName)
             val from = getString(strings.fromAboutParameterName)
             val to = getString(strings.toAboutParameterName)

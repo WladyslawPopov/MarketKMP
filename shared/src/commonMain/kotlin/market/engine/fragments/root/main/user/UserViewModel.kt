@@ -2,6 +2,7 @@ package market.engine.fragments.root.main.user
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -29,7 +30,7 @@ import kotlin.getValue
 class UserViewModel(val userId: Long, val component: UserComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
     private val _userInfo = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "user",
         User(),
         User.serializer()
@@ -37,7 +38,7 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
     val userInfo : StateFlow<User> = _userInfo.state
 
     private val _statusList = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "statusList",
         listOf(),
         ListSerializer(String.serializer())
@@ -56,7 +57,7 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
 
 
     private fun initializeUserData(user: User) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 _statusList.value = checkStatusSeller(user.id)
             } catch (e: Exception) {
@@ -85,7 +86,7 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
 
     fun getUserInfo() {
         refresh()
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val res =  withContext(Dispatchers.IO){
                     userOperations.getUsers(userId)
@@ -115,7 +116,7 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
         onSuccess: () -> Unit,
         errorCallback: (String) -> Unit
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             val response = operationsMethods.getOperationFields(
                 UserData.login,
                 "create_subscription",

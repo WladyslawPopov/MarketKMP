@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.profileSettings
 
 import androidx.lifecycle.SavedStateHandle
+
 import io.github.vinceglb.filekit.core.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -26,7 +27,7 @@ import org.jetbrains.compose.resources.getString
 class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
     private val _genderSelects = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "genderSelects",
         emptyList(),
         ListSerializer(Choices.serializer())
@@ -38,7 +39,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
     val blackListItems = mutableListOf<NavigationItem>()
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             sellerSettingsItems.addAll(listOf(
                 NavigationItem(
                     title = getString(strings.pageAboutMeParameterName),
@@ -136,7 +137,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
 
     fun refreshPage(){
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             updateUserInfo()
             delay(2000)
             setLoading(false)
@@ -145,7 +146,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
     }
 
     fun getGenderSelects(){
-        viewModelScope.launch {
+        scope.launch {
             val buffer = withContext(Dispatchers.IO) {
                 operationsMethods.getOperationFields(
                     UserData.login,
@@ -175,7 +176,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
                 body["new_gender"] = i.code ?: JsonPrimitive(0)
             }
 
-            viewModelScope.launch {
+            scope.launch {
                 val buffer = withContext(Dispatchers.IO) {
                     operationsMethods.postOperationFields(
                         UserData.login,
@@ -207,7 +208,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
     }
 
     fun uploadNewAvatar(file : PlatformFile){
-        viewModelScope.launch {
+        scope.launch {
             if (UserData.token != "") {
                 val barr = file.readBytes()
                 val resizeImage = compressImage(barr, 60)
@@ -246,7 +247,7 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
 
     fun deleteAvatar(){
         if(UserData.token != "") {
-            viewModelScope.launch {
+            scope.launch {
                 val buffer = withContext(Dispatchers.IO) {
                     operationsMethods.postOperationFields(
                         UserData.login,

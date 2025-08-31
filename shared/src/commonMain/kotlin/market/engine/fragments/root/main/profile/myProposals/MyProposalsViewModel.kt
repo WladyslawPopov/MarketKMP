@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myProposals
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -76,10 +77,10 @@ class MyProposalsViewModel(
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             listingBaseViewModel.setListingData(
                 ListingData(
                     data = LD(

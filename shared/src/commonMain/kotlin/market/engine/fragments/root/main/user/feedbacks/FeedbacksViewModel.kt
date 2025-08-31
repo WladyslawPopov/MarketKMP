@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.user.feedbacks
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +34,7 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long, component
     private val listingData = listingBaseViewModel.listingData
 
     private val _filters = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "filters",
         emptyList(),
         ListSerializer(String.serializer())
@@ -41,7 +42,7 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long, component
     val filters = _filters.state
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             withContext(Dispatchers.IO) {
                 _filters.value = listOf(
                     getString(strings.allFilterParams),
@@ -75,7 +76,7 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long, component
                 listingBaseViewModel.setTotalCount(it)
             }
         )
-    }.cachedIn(viewModelScope)
+    }.cachedIn(scope)
 
     fun refreshListing(){
         refresh()

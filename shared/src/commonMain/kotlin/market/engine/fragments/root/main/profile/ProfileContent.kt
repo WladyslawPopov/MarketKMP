@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import market.engine.core.data.items.NavigationItem
@@ -28,7 +29,7 @@ fun ProfileContent(
        modifier = modifier.padding(top = TopAppBarDefaults.TopAppBarExpandedHeight).fillMaxSize(),
        isLoading = isLoading,
        onRefresh = {
-           viewModel.viewModelScope.launch {
+           viewModel.scope.launch {
                viewModel.setLoading(true)
                viewModel.refresh()
                delay(2000)

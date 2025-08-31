@@ -1,7 +1,7 @@
 package market.engine.fragments.root.main.profile.myOffers
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
+
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -77,10 +77,10 @@ class MyOffersViewModel(
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             listingBaseViewModel.setListingData(
                 listingBaseViewModel.listingData.value.copy(
                     data = LD(

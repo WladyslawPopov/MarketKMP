@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
+
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -123,7 +124,7 @@ fun FavPagesNavigation(
                                 favTabList.value = newList
                             },
                             onLongClick = { id ->
-                                viewModel.viewModelScope.launch {
+                                viewModel.scope.launch {
                                     activeFavTabId.value = id
                                     if (id > 1000) {
                                         menuList.value = viewModel.getOperationFavTab(id)

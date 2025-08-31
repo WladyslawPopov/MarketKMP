@@ -55,20 +55,20 @@ import kotlin.getValue
 class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHandle): CoreViewModel(savedStateHandle) {
 
     private val responseGetUserCart = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetUserCart",
         emptyList(),
         ListSerializer(BasketItem.serializer())
     )
 
     private val selectedOffers = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectedOffers",
         emptyList(),
         ListSerializer(SelectedBasketList.serializer())
     )
     private val showExpanded = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "showExpanded",
         emptyList(),
         ListSerializer(ShowBasketItem.serializer())
@@ -79,13 +79,13 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
     private val _isMenuVisibility = MutableStateFlow(false)
 
     private val _subtitle = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "subtitle",
         "",
         String.serializer()
     )
     private val _deleteIds = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "deleteIds",
         emptyList(),
         ListSerializer(Long.serializer())
@@ -113,7 +113,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
             )
         }
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
@@ -173,7 +173,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
             deleteIds = deleteIds
         )
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.Eagerly,
         initialValue = BasketUiState(
             basketEvents = basketsEvents
@@ -181,7 +181,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
     )
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             val oneOffer = getString(strings.oneOfferLabel)
             val manyOffers = getString(strings.manyOffersLabel)
             val exManyOffers = getString(strings.exManyOffersLabel)
@@ -217,7 +217,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
     }
 
     fun getUserCart(){
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
                 updateUserInfo()
@@ -340,7 +340,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
 
     fun clearBasket() {
         if (UserData.token != "") {
-            viewModelScope.launch {
+            scope.launch {
                 val resObj = withContext(Dispatchers.IO) {
                     operationsMethods.postOperationFields(
                         UserData.login,
@@ -401,7 +401,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
         val userId = curItem?.user?.id ?: 1L
         val lotData = curItem?.offerList?.find { it.id == deleteIds.firstOrNull() }
 
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
@@ -447,7 +447,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
     }
 
     fun addOfferToBasket(body : HashMap<String, JsonElement>, newQuantity : Int, offerId: Long) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     UserData.login,
@@ -478,7 +478,7 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
     fun addToFavorites(offer : OfferItem)
     {
         if(UserData.token != "") {
-            viewModelScope.launch {
+            scope.launch {
                 val buf = withContext(Dispatchers.IO) {
                     operationsMethods.postOperationFields(
                         offer.id,

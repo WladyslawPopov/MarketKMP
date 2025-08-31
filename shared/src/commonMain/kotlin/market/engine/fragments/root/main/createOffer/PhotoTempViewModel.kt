@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createOffer
 
 import androidx.lifecycle.SavedStateHandle
+
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -31,7 +32,7 @@ class PhotoTempViewModel(
 ) : CoreViewModel(savedStateHandle){
 
     private val _deleteImages = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "deleteImages",
         emptyList(),
         ListSerializer(JsonPrimitive.serializer())
@@ -39,7 +40,7 @@ class PhotoTempViewModel(
     val deleteImages = _deleteImages.state
 
     private val _responseImages = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseImages",
         emptyList(),
         ListSerializer(PhotoSave.serializer())
@@ -48,7 +49,7 @@ class PhotoTempViewModel(
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(pickImagesRaw : PlatformFiles) {
-        viewModelScope.launch {
+        scope.launch {
             val photos = pickImagesRaw.map { file ->
                 PhotoTemp(
                     file = file,
@@ -119,7 +120,7 @@ class PhotoTempViewModel(
     }
 
     fun uploadPhotoTemp(item : PhotoTemp) {
-        viewModelScope.launch {
+        scope.launch {
             val res = uploadFile(item)
 
             if (res.success != null) {

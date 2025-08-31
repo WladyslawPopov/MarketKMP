@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.profile.myOrders
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.map
 import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
@@ -79,10 +80,10 @@ class MyOrdersViewModel(
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             listingBaseViewModel.setListingData(
                 listingBaseViewModel.listingData.value.copy(
                     data = LD(
@@ -174,7 +175,7 @@ data class MyOrderItemEventsImpl(
     }
 
     override fun goToDialog(dialogId: Long?) {
-        viewModel.viewModelScope.launch {
+        viewModel.scope.launch {
             withContext(Dispatchers.Main) {
                 component.goToMessenger(dialogId)
             }

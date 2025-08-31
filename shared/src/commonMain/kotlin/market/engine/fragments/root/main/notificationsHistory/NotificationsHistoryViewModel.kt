@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.notificationsHistory
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
@@ -16,7 +17,7 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
     private val notificationsRepository : NotificationsRepository = getKoin().get()
 
     private var _responseGetPage = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetPage",
         emptyList(),
         ListSerializer(NotificationItem.serializer())
@@ -31,7 +32,7 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
 
     fun getPage() {
         refresh()
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             try {
                 val notificationsFromDb = notificationsRepository.getNotificationList()
@@ -70,7 +71,7 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
     }
 
     fun deleteNotification(id: String) {
-        viewModelScope.launch {
+        scope.launch {
             notificationsRepository.deleteNotificationById(id)
             getPage()
         }

@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -44,14 +45,14 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     val activeWindowType = listingBaseViewModel.activeWindowType
 
     val deleteId = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "deleteId",
         1L,
         Long.serializer()
     )
 
     val titleDialog = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "titleDialog",
         "",
         String.serializer()
@@ -107,10 +108,10 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             listingBaseViewModel.setListingData(
                 ListingData(
                     data = LD(
@@ -123,7 +124,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     }
 
     fun getSubscription(subId : Long, onSuccess : (Subscription?) -> Unit ) {
-         viewModelScope.launch {
+         scope.launch {
              val buffer = withContext(Dispatchers.IO) {
                  subOperations.getSubscription(
                      subId
@@ -137,7 +138,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     }
 
     fun enableSubscription(subId : Long) {
-        viewModelScope.launch {
+        scope.launch {
             val buffer = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     subId,
@@ -160,7 +161,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     }
 
     fun disableSubscription(subId : Long) {
-        viewModelScope.launch {
+        scope.launch {
             val buffer = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(
                     subId,
@@ -184,7 +185,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     }
 
     fun deleteSubscription(subId : Long) {
-        viewModelScope.launch {
+        scope.launch {
             val ops = getString(strings.operationSuccess)
 
             postOperationFields(
@@ -221,7 +222,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     }
 
     fun updateItem(sub : Subscription){
-        viewModelScope.launch {
+        scope.launch {
             getSubscription(sub.id){ item ->
                 if (item != null) {
                     sub.catpath = item.catpath
@@ -241,7 +242,7 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
     }
 
     fun getSubOperations(subId : Long, onSuccess: (List<Operations>) -> Unit) {
-        viewModelScope.launch {
+        scope.launch {
             val res = withContext(Dispatchers.IO) { subOperations.getOperationsSubscription(subId) }
             withContext(Dispatchers.Main) {
                 val buf = res.success

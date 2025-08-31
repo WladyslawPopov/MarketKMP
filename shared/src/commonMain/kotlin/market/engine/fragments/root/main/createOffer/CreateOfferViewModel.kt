@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.createOffer
 
 import androidx.lifecycle.SavedStateHandle
+
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.jetpackcomponentcontext.JetpackComponentContext
 import com.arkivanov.decompose.jetpackcomponentcontext.viewModel
@@ -69,7 +70,7 @@ class CreateOfferViewModel(
     val categoryViewModel = component.additionalModels.value.categoryViewModel
 
     private val _responseGetPage = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetPage",
         emptyList(),
         ListSerializer(Fields.serializer())
@@ -77,21 +78,21 @@ class CreateOfferViewModel(
     val responseGetPage = _responseGetPage.state
 
     private val _responsePostPage = savedStateHandle.getSavedStateFlow<DynamicPayload<OperationResult>>(
-        viewModelScope,
+        scope,
         "responsePostPage",
         DynamicPayload(),
         DynamicPayload.serializer(OperationResult.serializer())
     )
 
     private val _responseCatHistory = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseCatHistory",
         emptyList(),
         ListSerializer(Category.serializer())
     )
 
     private val _selectedDate = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "selectedDate",
         _responseGetPage.value.find { it.key == "future_time" }?.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME,
         Long.serializer()
@@ -99,7 +100,7 @@ class CreateOfferViewModel(
     val selectedDate = _selectedDate.state
 
     private val _newOfferId = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "newOfferId",
         1L,
         Long.serializer()
@@ -110,7 +111,7 @@ class CreateOfferViewModel(
 
 
     private val _isEditCat = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "isEditCat",
         searchData.value.searchCategoryID,
         Long.serializer()
@@ -153,7 +154,7 @@ class CreateOfferViewModel(
             textState = dynamicPayload.find { it.key == "title" }?.data?.jsonPrimitive?.content ?: ""
         )
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Eagerly,
         CreateOfferContentState(
             categoryState = CategoryState(
@@ -193,7 +194,7 @@ class CreateOfferViewModel(
 
     fun refreshPage(){
         refresh()
-        viewModelScope.launch {
+        scope.launch {
             // update params after category change
             if (isEditCat.value != 1L && type != CreateOfferType.CREATE) {
                 val newFields = updateParams(isEditCat.value)
@@ -235,7 +236,7 @@ class CreateOfferViewModel(
     fun getPage(url: String) {
         updateUserInfo()
 
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
 
@@ -394,7 +395,7 @@ class CreateOfferViewModel(
             }
         }
         setLoading(true)
-        viewModelScope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) {
             try {
                 val response = apiService.postCreateOfferPage(url, body)
 
@@ -486,7 +487,7 @@ class CreateOfferViewModel(
     }
 
     fun getCategoriesHistory(catId: Long?) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val categories = withContext(Dispatchers.IO) {
                     val catHistory = arrayListOf<Category>()

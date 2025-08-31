@@ -1,6 +1,7 @@
 package market.engine.fragments.root.verifyPage
 
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -38,7 +39,7 @@ class VerificationViewModel(
 
     fun setPage(type: String = settingsType){
         if(type != "") {
-            viewModelScope.launch {
+            scope.launch {
                 try {
                     setLoading(true)
                     val bodySMS = HashMap<String, JsonElement>()
@@ -87,7 +88,7 @@ class VerificationViewModel(
     }
 
     fun postCode(code: String) {
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             try {
                 val bodySMS = HashMap<String, JsonElement>()
@@ -142,7 +143,7 @@ class VerificationViewModel(
     }
 
     private fun getSetEmail(owner: Long, code: String) {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 setLoading(true)
                 val body = HashMap<String, JsonElement>()

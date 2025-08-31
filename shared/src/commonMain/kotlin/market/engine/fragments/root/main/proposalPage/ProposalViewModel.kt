@@ -6,6 +6,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.SavedStateHandle
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +50,7 @@ class ProposalViewModel(
 ): CoreViewModel(savedStateHandle) {
 
     private var _responseGetOffer = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseGetOffer",
         Offer(),
         Offer.serializer()
@@ -57,7 +58,7 @@ class ProposalViewModel(
     val responseGetOffer : StateFlow<Offer> = _responseGetOffer.state
 
     private val _body = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "body",
         BodyListPayload(),
         BodyListPayload.serializer(Proposals.serializer())
@@ -65,7 +66,7 @@ class ProposalViewModel(
     val body = _body.state
 
     private val _responseFields = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "responseFields",
         emptyList(),
         ListSerializer(ProposalItem.serializer())
@@ -90,7 +91,7 @@ class ProposalViewModel(
     }
 
     fun update(){
-        viewModelScope.launch {
+        scope.launch {
             _responseFields.value = emptyList()
             _responseGetOffer.value = getOfferById(offerId) ?: Offer()
             refresh()
@@ -99,7 +100,7 @@ class ProposalViewModel(
     }
 
     fun getProposal(){
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             try {
                 val response = withContext(Dispatchers.IO) {
@@ -208,7 +209,7 @@ class ProposalViewModel(
     }
 
     fun getFieldsProposal(buyerId : Long?) {
-        viewModelScope.launch {
+        scope.launch {
             val buffer = withContext(Dispatchers.IO) {
                 operationsMethods.getOperationFields(
                     offerId,
@@ -234,7 +235,7 @@ class ProposalViewModel(
 
     fun confirmProposal(buyerId: Long) {
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             val bodyProposals = HashMap<String,JsonElement>()
 
             responseFields.value.find { it.userId == buyerId }?.fields?.forEach { field ->

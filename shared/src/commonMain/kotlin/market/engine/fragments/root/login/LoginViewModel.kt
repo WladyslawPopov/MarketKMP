@@ -1,6 +1,7 @@
 package market.engine.fragments.root.login
 
 import androidx.lifecycle.SavedStateHandle
+
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import market.engine.core.network.ServerErrorException
 import market.engine.core.utils.deserializePayload
@@ -45,26 +46,26 @@ data class CaptchaState(
 class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
     private val emailTextValue = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "emailTextValue",
         "",
         String.serializer()
     )
     private val passwordTextValue = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "passwordTextValue",
         "",
         String.serializer()
     )
     private val captchaState = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "captchaState",
         CaptchaState(),
         CaptchaState.serializer()
     )
 
     private val _openContent = savedStateHandle.getSavedStateFlow(
-        viewModelScope,
+        scope,
         "openContent",
         false,
         Boolean.serializer()
@@ -98,7 +99,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
             captchaKey = captcha.captchaKey,
         )
     }.stateIn(
-        viewModelScope,
+        scope,
         SharingStarted.Eagerly,
         LoginContentState()
     )
@@ -112,7 +113,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
     }
 
     fun refreshPage(){
-        viewModelScope.launch {
+        scope.launch {
             setLoading(true)
             refresh()
             delay(2000)
@@ -139,7 +140,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
             }
 
             setLoading(true)
-            viewModelScope.launch {
+            scope.launch {
                 try {
                     val response = withContext(Dispatchers.IO) {
                         apiService.postAuth(body = body)
@@ -251,7 +252,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
 
     fun postAuthExternal(body: HashMap<String, String>) {
         setLoading(true)
-        viewModelScope.launch {
+        scope.launch {
             try {
                 val response = withContext(Dispatchers.IO) {
                     apiService.postAuthExternal(body = body)
@@ -339,7 +340,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
 
 //    var postChangeGoogleAuth = MutableLiveData<GoogleAuthResponse?>()
 //    fun changeTokenGoogleAuth(body: HashMap<String, String>) {
-//        jobPostChangeGoogleAuth = viewModelScope.launch {
+//        jobPostChangeGoogleAuth = scope.launch {
 //            try {
 //                withContext(Dispatchers.IO) {
 //                    isShowProgress.postValue(true)

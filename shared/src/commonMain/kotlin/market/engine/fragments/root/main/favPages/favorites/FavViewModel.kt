@@ -1,6 +1,7 @@
 package market.engine.fragments.root.main.favPages.favorites
 
 import androidx.lifecycle.SavedStateHandle
+
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -93,10 +94,10 @@ class FavViewModel(
                     )
                 }
             }
-        }.cachedIn(viewModelScope)
+        }.cachedIn(scope)
 
     init {
-        viewModelScope.launch {
+        scope.launch {
             val ld = when (favType) {
                 FavScreenType.FAVORITES -> {
                     LD(
@@ -165,7 +166,7 @@ class FavViewModel(
 
 
     fun deleteSelectsItems() {
-        viewModelScope.launch {
+        scope.launch {
             selectItems.value.forEach { item ->
                 val body = HashMap<String, JsonElement>()
 
