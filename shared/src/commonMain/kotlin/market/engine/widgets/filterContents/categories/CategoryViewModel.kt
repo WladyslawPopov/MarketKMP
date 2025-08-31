@@ -16,6 +16,7 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.states.CategoryPageState
 import market.engine.core.network.networkObjects.Category
+import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
@@ -118,12 +119,15 @@ class CategoryViewModel(
         _isLoading.value = true
 
         viewModelScope.launch {
-            getCategories(
-                searchData.value,
-                LD(filters.value),
-                pageState.value.categoryWithoutCounter
-            ) {
-                _categories.value = it
+            val cats = withContext(Dispatchers.IO) {
+                getCategories(
+                    searchData.value,
+                    LD(filters.value),
+                    pageState.value.categoryWithoutCounter
+                )
+            }
+            getMainTread {
+                _categories.value = cats
                 _isLoading.value = false
             }
         }

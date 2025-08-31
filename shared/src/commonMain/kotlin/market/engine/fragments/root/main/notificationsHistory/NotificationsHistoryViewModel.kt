@@ -3,17 +3,17 @@ package market.engine.fragments.root.main.notificationsHistory
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.builtins.ListSerializer
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.NotificationItem
 import market.engine.core.network.ServerErrorException
-import market.engine.core.utils.deleteReadNotifications
+import market.engine.core.repositories.NotificationsRepository
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.printLogD
 import market.engine.fragments.base.CoreViewModel
+import org.koin.mp.KoinPlatform.getKoin
 
 class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
+    private val notificationsRepository : NotificationsRepository = getKoin().get()
 
     private var _responseGetPage = savedStateHandle.getSavedStateFlow(
         viewModelScope,
@@ -34,10 +34,7 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
         viewModelScope.launch {
             setLoading(true)
             try {
-                val notificationsFromDb = mutex.withLock {
-                    deleteReadNotifications(db, mutex)
-                    db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
-                }
+                val notificationsFromDb = notificationsRepository.getNotificationList()
                 _responseGetPage.value = buildList {
                     addAll(notificationsFromDb.groupBy { it.body to it.data_ }
                         .map { (_, group) ->
@@ -74,9 +71,7 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
 
     fun deleteNotification(id: String) {
         viewModelScope.launch {
-            mutex.withLock {
-                db.notificationsHistoryQueries.deleteNotificationById(id)
-            }
+            notificationsRepository.deleteNotificationById(id)
             getPage()
         }
     }

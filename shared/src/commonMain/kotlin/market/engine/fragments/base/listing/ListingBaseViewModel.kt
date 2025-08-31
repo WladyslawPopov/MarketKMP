@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.baseFilters.Filter
@@ -33,10 +32,12 @@ import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.states.SwipeTabsBarState
 import market.engine.core.data.types.ActiveWindowListingType
 import market.engine.core.network.ServerErrorException
+import market.engine.core.repositories.SearchRepository
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.main.listing.ListingComponent
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 
 data class SearchEventsImpl(
     val viewModel : ListingBaseViewModel
@@ -80,6 +81,8 @@ class ListingBaseViewModel(
     savedStateHandle: SavedStateHandle,
 
 ) : CoreViewModel(savedStateHandle) {
+
+    private val searchRepository : SearchRepository = getKoin().get()
 
     private val _selectItems = savedStateHandle.getSavedStateFlow(
         scope = viewModelScope,
@@ -509,11 +512,7 @@ class ListingBaseViewModel(
 
     suspend fun getSearchHistory(searchString: String = "") {
         try {
-            val searchHistory = mutex.withLock {
-                db.searchHistoryQueries
-                    .selectSearch("${searchString.trim()}%", UserData.login)
-                    .executeAsList()
-            }
+            val searchHistory = searchRepository.getHistory(searchString)
             _responseHistory.value = searchHistory.map {
                 SearchHistoryItem(
                     id = it.id,
@@ -617,9 +616,7 @@ class ListingBaseViewModel(
 
     fun deleteItemHistory(id: Long) {
         viewModelScope.launch {
-            mutex.withLock {
-                db.searchHistoryQueries.deleteById(id, UserData.login)
-            }
+            searchRepository.deleteHistoryItemById(id)
             getSearchHistory()
         }
     }
@@ -629,12 +626,13 @@ class ListingBaseViewModel(
         isUsersSearch: Boolean = false,
         isFinished: Boolean = false
     ) {
-        if (searchString != "") {
-            val sh = db.searchHistoryQueries
-            val s =
-                searchString.trim() + if (isUsersSearch) " _user" else "" + if (isFinished) " _finished" else ""
-            if (sh.selectSearch("${s}%", UserData.login).executeAsList().isEmpty()) {
-                sh.insertEntry(s, UserData.login)
+        viewModelScope.launch {
+            if (searchString != "") {
+                val s =
+                    searchString.trim() + if (isUsersSearch) " _user" else "" + if (isFinished) " _finished" else ""
+                if (searchRepository.getHistory(s).isEmpty()) {
+                    searchRepository.addHistory(s)
+                }
             }
         }
     }
@@ -662,9 +660,7 @@ class ListingBaseViewModel(
 
     fun deleteHistory() {
         viewModelScope.launch {
-            mutex.withLock {
-                db.searchHistoryQueries.deleteAll()
-            }
+            searchRepository.clearHistory()
             getSearchHistory()
         }
     }

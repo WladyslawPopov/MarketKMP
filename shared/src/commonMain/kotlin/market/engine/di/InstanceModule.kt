@@ -15,9 +15,14 @@ import market.engine.common.createSqlDriver
 import market.engine.common.getKtorClient
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.functions.OperationsMethods
+import market.engine.core.repositories.CacheRepository
+import market.engine.core.repositories.FavoritesTabListRepository
+import market.engine.core.repositories.OfferVisitedHistoryRepository
+import market.engine.core.repositories.SearchRepository
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
 import market.engine.shared.AuctionMarketDb
+import market.engine.shared.NotificationsHistory
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -61,5 +66,10 @@ val operationsModule = module {
 val repositoryModule = module {
     singleOf(::SettingsRepository)
     singleOf(::UserRepository)
+    singleOf(::SearchRepository)
+    singleOf(::OfferVisitedHistoryRepository)
+    singleOf(::NotificationsHistory)
+    singleOf(::FavoritesTabListRepository)
+    singleOf(::CacheRepository)
 }
 

@@ -23,7 +23,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.constants.errorToastItem
 import market.engine.core.data.constants.successToastItem
 import market.engine.core.data.globalData.ThemeResources.strings
-import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.items.ToastItem
 import market.engine.core.data.states.ScrollDataState
@@ -41,7 +40,8 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.network.networkObjects.PayloadExistence
 import market.engine.core.repositories.SettingsRepository
 import market.engine.core.repositories.UserRepository
-import market.engine.core.utils.CacheRepository
+import market.engine.core.repositories.CacheRepository
+import market.engine.core.repositories.OfferVisitedHistoryRepository
 import market.engine.core.utils.deserializePayload
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
@@ -83,6 +83,9 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     val userRepository: UserRepository by lazy { getKoin().get() }
     val categoryOperations : CategoryOperations by lazy { getKoin().get() }
+    val cacheRepository : CacheRepository by lazy { getKoin().get() }
+
+    val offerVisitedHistoryRepository :OfferVisitedHistoryRepository by lazy { getKoin().get() }
 
     private val _responseHistory = MutableStateFlow<List<OfferItem>>(emptyList())
     val responseHistory: StateFlow<List<OfferItem>> = _responseHistory.asStateFlow()
@@ -246,50 +249,47 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         resetScroll()
     }
 
-    fun getCategories(
+    suspend fun getCategories(
         searchData : SD,
         listingData : LD,
-        withoutCounter : Boolean = false,
-        onSuccess: (List<Category>) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                val id = searchData.searchCategoryID
-                val response =
-                    withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
+        withoutCounter : Boolean = false
+    ) : List<Category> {
+         return try {
+            val id = searchData.searchCategoryID
+            val response =
+                withContext(Dispatchers.IO) { apiService.getPublicCategories(id) }
 
-                val serializer = Payload.serializer(Category.serializer())
-                val payload: Payload<Category> =
-                    deserializePayload(response.payload, serializer)
+            val serializer = Payload.serializer(Category.serializer())
+            val payload: Payload<Category> =
+                deserializePayload(response.payload, serializer)
 
-                if (!withoutCounter) {
-                    val category = withContext(Dispatchers.IO) {
-                        val categoriesWithLotCounts = payload.objects.map { category ->
-                            async {
-                                val sd = searchData.copy()
-                                sd.searchCategoryID = category.id
-                                val lotCount =
-                                    categoryOperations.getTotalCount(sd, listingData)
-                                category.copy(
-                                    estimatedActiveOffersCount = lotCount.success ?: 0
-                                )
-                            }
+            if (!withoutCounter) {
+                val category = withContext(Dispatchers.IO) {
+                    val categoriesWithLotCounts = payload.objects.map { category ->
+                        async {
+                            val sd = searchData.copy()
+                            sd.searchCategoryID = category.id
+                            val lotCount =
+                                categoryOperations.getTotalCount(sd, listingData)
+                            category.copy(
+                                estimatedActiveOffersCount = lotCount.success ?: 0
+                            )
                         }
-                        categoriesWithLotCounts.awaitAll()
-                            .filter { it.estimatedActiveOffersCount > 0 }
                     }
-
-                    withContext(Dispatchers.Main) {
-                        onSuccess(category)
-                    }
-                } else {
-                    onSuccess(payload.objects)
+                    categoriesWithLotCounts.awaitAll()
+                        .filter { it.estimatedActiveOffersCount > 0 }
                 }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+
+                category
+            } else {
+                payload.objects
             }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+            emptyList()
+        } catch (exception: Exception) {
+            onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+            emptyList()
         }
     }
 
@@ -331,7 +331,6 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun getHistory(currentId: Long? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val cacheRepository = CacheRepository(db, mutex)
                 val cacheKey = "viewed_offers"
                 val listSerializer = ListSerializer(OfferItem.serializer())
 
@@ -340,9 +339,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     _responseHistory.value = cachedOffers
                 }
 
-                val queries = db.offerVisitedHistoryQueries
-                val historyIds = queries.selectAll(UserData.login).executeAsList()
-                    .filter { it != currentId }
+                val historyIds = offerVisitedHistoryRepository.getHistory().filter { it != currentId }
 
                 val freshOfferItems = historyIds.mapNotNull { id ->
                     try {
@@ -370,7 +367,6 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun getOurChoice(id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val cacheRepository = CacheRepository(db, mutex)
                 val cacheKey = "ourChoice_offers"
                 val listSerializer = ListSerializer(OfferItem.serializer())
 

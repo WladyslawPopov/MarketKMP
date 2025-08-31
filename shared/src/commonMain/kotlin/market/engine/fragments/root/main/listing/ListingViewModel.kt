@@ -42,7 +42,6 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.repositories.PublicOfferRepository
-import market.engine.core.utils.CacheRepository
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
@@ -80,8 +79,6 @@ class ListingViewModel(
 
     val ld = listingBaseVM.listingData
     val activeType = listingBaseVM.activeWindowType
-
-    val cacheRepository = CacheRepository(db, mutex)
 
     val pagingParamsFlow: Flow<ListingData> = combine(
         ld,

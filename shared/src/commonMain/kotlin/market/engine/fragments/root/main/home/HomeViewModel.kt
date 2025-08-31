@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import market.engine.common.Platform
@@ -37,14 +36,14 @@ import market.engine.core.data.states.HomeUiState
 import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
-import market.engine.core.utils.CacheRepository
-import market.engine.core.utils.deleteReadNotifications
+import market.engine.core.repositories.NotificationsRepository
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
+import org.koin.mp.KoinPlatform.getKoin
 import kotlin.time.Duration.Companion.days
 
 
@@ -79,7 +78,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
     private val ld = ListingData()
 
-    private val cacheRepository = CacheRepository(db, mutex)
+    private val notificationsRepository : NotificationsRepository = getKoin().get()
 
     val uiState: StateFlow<HomeUiState> = combine(
         updatePage,
@@ -94,7 +93,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         val messageString = getString(strings.messageTitle)
         val notificationString = getString(strings.notificationTitle)
 
-        val unreadCount = getUnreadNotificationsCount() ?: 0
+        val unreadCount = notificationsRepository.getUnreadCount()
 
         HomeUiState(
             categories = categories.map {
@@ -296,7 +295,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         syncNotificationsFromUserDefaults(db, mutex)
 
         viewModelScope.launch {
-            deleteReadNotifications(db, mutex)
+            notificationsRepository.deleteReadNotifications()
             updateCategoriesFromCacheOrNetwork()
             getOffersPromotedOnMainPage(0, 16)
             getOffersPromotedOnMainPage(1, 16)
@@ -309,18 +308,14 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
             val listSerializer = ListSerializer(Category.serializer())
             val lifetime = 30.days
             val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-            val cachedCategories = cacheRepository.get(cacheKey, listSerializer)
-
-            if (cachedCategories == null) {
-                getCategories(listingData = LD(), searchData = SD(), withoutCounter = true) {
-                    viewModelScope.launch {
-                        cacheRepository.put(cacheKey, it, expirationTimestamp, listSerializer)
-                    }
-                    _responseCategory.value = it
+            val categories = cacheRepository.get(cacheKey, listSerializer)
+                ?: run {
+                    val buf = getCategories(listingData = LD(), searchData = SD(), withoutCounter = true)
+                    cacheRepository.put(cacheKey, buf, expirationTimestamp, listSerializer)
+                    buf
                 }
-            }else{
-                _responseCategory.value = cachedCategories
-            }
+
+            _responseCategory.value = categories
         }
     }
 
@@ -331,11 +326,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
                 val cacheKey = "home_page_${page}_${ipp}"
                 val listSerializer = ListSerializer(OfferItem.serializer())
-                val lifetime = 1.days
-                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-                val cachedCategories = cacheRepository.get(cacheKey, listSerializer)
-
-                if (cachedCategories == null) {
+                val offers = cacheRepository.get(cacheKey, listSerializer) ?: run {
                     val response = withContext(Dispatchers.IO) {
                         apiService.getOffersPromotedOnMainPage(page, ipp)
                     }
@@ -343,28 +334,16 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
                     val newOffers = payload.objects.map { it.parseToOfferItem() }
 
-                    viewModelScope.launch {
-                        cacheRepository.put(cacheKey, newOffers, expirationTimestamp, listSerializer)
-                    }
+                    val lifetime = 1.days
+                    val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
 
-                    when(page){
-                        0 ->{
-                            _responseOffersPromotedOnMainPage1.value = newOffers
-                        }
-                        1 ->{
-                            _responseOffersPromotedOnMainPage2.value = newOffers
-                        }
-                    }
-                }else{
-                    when(page) {
-                        0 -> {
-                            _responseOffersPromotedOnMainPage1.value = cachedCategories
-                        }
+                    cacheRepository.put(cacheKey, newOffers, expirationTimestamp, listSerializer)
+                    newOffers
+                }
 
-                        1 -> {
-                            _responseOffersPromotedOnMainPage2.value = cachedCategories
-                        }
-                    }
+                when(page){
+                    0 -> _responseOffersPromotedOnMainPage1.value = offers
+                    1 -> _responseOffersPromotedOnMainPage2.value = offers
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -401,17 +380,6 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         ld.searchData.searchParentName = category.parentName
         getMainTread {
             component.goToNewSearch(ld, false)
-        }
-    }
-
-    suspend fun getUnreadNotificationsCount() : Int? {
-        return mutex.withLock {
-            try {
-                val list = db.notificationsHistoryQueries.selectAll(UserData.login).executeAsList()
-                if (list.isEmpty()) null else list.filter { it.isRead == 0L }.size
-            }catch (_ : Exception){
-                null
-            }
         }
     }
 }

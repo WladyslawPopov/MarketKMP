@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -29,6 +28,7 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
+import market.engine.core.repositories.FavoritesTabListRepository
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
@@ -44,6 +44,7 @@ data class FavPagesState(
 
 class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
 
+    private val offerListRepository : FavoritesTabListRepository = getKoin().get()
     private val offersListOperations : OffersListOperations = getKoin().get()
 
     private val _tabsDataList = savedStateHandle.getSavedStateFlow(
@@ -217,9 +218,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 offersListOperations.getOffersList()
             }
 
-            val positionsFromDb = mutex.withLock {
-                db.favoritesTabListItemQueries.selectAll(UserData.login).executeAsList()
-            }
+            val positionsFromDb = offerListRepository.getFavoritesTabList()
 
             withContext(Dispatchers.Main) {
                 val res = data.success
@@ -255,17 +254,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                     )
                 }
 
-                mutex.withLock {
-                    db.transaction {
-                        list.forEachIndexed { index, it ->
-                            db.favoritesTabListItemQueries.insertEntry(
-                                itemId = it.id,
-                                owner = UserData.login,
-                                position = index.toLong()
-                            )
-                        }
-                    }
-                }
+                offerListRepository.saveFavoritesTabList(_tabsDataList.value)
             }  catch (e: ServerErrorException) {
                 onError(e)
             } catch (e: Exception) {
@@ -372,10 +361,9 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                             tabs.filter { it.id != id }
                         }
                         getFavTabList()
-                        db.favoritesTabListItemQueries.deleteById(
-                            itemId = id,
-                            owner = UserData.login
-                        )
+                        viewModelScope.launch {
+                            offerListRepository.deleteFavoritesTabListById(id)
+                        }
                     },
                     errorCallback = {}
                 )
