@@ -32,7 +32,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import market.engine.common.additionalAuthorizationContent
-import market.engine.common.openUrl
 import market.engine.common.requestIntegrityTokenAuth
 import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -44,6 +43,7 @@ import market.engine.widgets.buttons.ActionButton
 import market.engine.widgets.buttons.SimpleTextButton
 import market.engine.widgets.ilustrations.CaptchaView
 import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToWebView
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.filterContents.CustomBottomSheet
 import market.engine.widgets.rows.LazyColumnWithScrollBars
@@ -72,6 +72,8 @@ fun LoginContent(
     val appBarData = uiState.appBarData
 
     val auth2ContentState = viewModel.auth2ContentRepository
+
+    val label = stringResource(strings.loginTitle)
 
     val isLoading by viewModel.isShowProgress.collectAsState()
     val err by viewModel.errorMessage.collectAsState()
@@ -249,7 +251,7 @@ fun LoginContent(
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.small)
                             .clickable {
-                                openUrl(SAPI.dataPolicyURL)
+                                goToWebView(label, SAPI.dataPolicyURL)
                             }
                             .widthIn(min = 500.dp)
                             .padding(dimens.mediumPadding),

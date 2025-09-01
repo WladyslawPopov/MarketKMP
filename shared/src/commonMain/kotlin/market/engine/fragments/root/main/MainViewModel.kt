@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.serializer
 import market.engine.common.Platform
 import market.engine.core.data.baseFilters.ListingData
+import market.engine.core.data.globalData.SAPI
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.drawables
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -31,6 +32,7 @@ import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToVerification
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToWebView
 import market.engine.fragments.root.main.home.ChildHome
 import market.engine.fragments.root.main.home.HomeConfig
 import market.engine.fragments.root.main.profile.ProfileConfig
@@ -79,6 +81,9 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
         val userInfo = UserData.userInfo
         val profileNavigation = component.modelNavigation.value.profileNavigation
         getIoTread {
+
+            val balanceLabel = getString(strings.myBalanceTitle)
+
             _bottomList.value = listOf(
                 NavigationItem(
                     title = getString(strings.homeTitle),
@@ -299,12 +304,15 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.myBalanceTitle),
+                    title = balanceLabel,
                     subtitle = getString(strings.myBalanceSubTitle),
                     icon = drawables.balanceIcon,
                     tint = colors.black,
                     hasNews = false,
-                    badgeCount = null
+                    badgeCount = null,
+                    onClick = {
+                        goToWebView(SAPI.SERVER_BASE + "/cabinet/balance", balanceLabel)
+                    }
                 ),
                 NavigationItem(
                     title = getString(strings.logoutTitle),

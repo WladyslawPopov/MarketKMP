@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.serialization.Serializable
+import market.engine.common.WebView
 import market.engine.common.backAnimation
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
@@ -65,6 +66,16 @@ fun RootNavigation(
                 is RootComponent.Child.DynamicSettingsChild -> {
                     DynamicSettingsContent(instance.component)
                 }
+
+                is RootComponent.Child.WebViewChild -> {
+                    WebView(
+                        Modifier.fillMaxSize(),
+                        instance.component.url,
+                        instance.component.title
+                    ){
+                        goBack()
+                    }
+                }
             }
         }
     }
@@ -89,4 +100,7 @@ sealed class RootConfig {
 
     @Serializable
     data class DynamicSettingsScreen(val settingsType : String, val ownerId: Long? = null, val code: String? = null) : RootConfig()
+
+    @Serializable
+    data class WebView(val url: String, val title: String) : RootConfig()
 }

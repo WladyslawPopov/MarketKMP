@@ -18,7 +18,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import market.engine.common.Platform
 import market.engine.common.getPermissionHandler
-import market.engine.common.openUrl
 import market.engine.common.syncNotificationsFromUserDefaults
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
@@ -42,6 +41,7 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToWebView
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.time.Duration.Companion.days
@@ -94,6 +94,8 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         val notificationString = getString(strings.notificationTitle)
 
         val unreadCount = notificationsRepository.getUnreadCount()
+
+        val label = getString(strings.homeTitle)
 
         HomeUiState(
             categories = categories.map {
@@ -195,7 +197,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.top100Icon,
                     tint = colors.black,
                     onClick = {
-                        openUrl("${SAPI.SERVER_BASE}rating_game")
+                        goToWebView(label,"${SAPI.SERVER_BASE}rating_game")
                     }
                 ),
                 NavigationItem(
@@ -206,7 +208,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.helpIcon,
                     tint = colors.black,
                     onClick = {
-                        openUrl("${SAPI.SERVER_BASE}help/general")
+                        goToWebView(label,"${SAPI.SERVER_BASE}help/general")
                     }
                 ),
                 NavigationItem(
@@ -230,7 +232,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.infoIcon,
                     tint = colors.black,
                     onClick = {
-                        openUrl("${SAPI.SERVER_BASE}staticpage/doc/about_us")
+                        goToWebView(label,"${SAPI.SERVER_BASE}staticpage/doc/about_us")
                     }
                 ),
                 NavigationItem(
@@ -242,7 +244,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.starIcon,
                     tint = colors.black,
                     onClick = {
-                        openUrl(SAPI.REVIEW_URL)
+                        goToWebView(label,SAPI.REVIEW_URL)
                     }
                 ),
                 NavigationItem(

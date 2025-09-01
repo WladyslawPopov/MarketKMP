@@ -16,6 +16,8 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import market.engine.core.data.items.DeepLink
+import market.engine.fragments.root.RootComponent.Child.*
+import market.engine.fragments.root.RootConfig.*
 import market.engine.fragments.root.contactUs.ContactUsComponent
 import market.engine.fragments.root.contactUs.DefaultContactUsComponent
 import market.engine.fragments.root.dynamicSettings.DefaultDynamicSettingsComponent
@@ -28,6 +30,8 @@ import market.engine.fragments.root.registration.DefaultRegistrationComponent
 import market.engine.fragments.root.registration.RegistrationComponent
 import market.engine.fragments.root.verifyPage.DefaultVerificationComponent
 import market.engine.fragments.root.verifyPage.VerificationComponent
+import market.engine.fragments.root.webView.DefaultWebViewComponent
+import market.engine.fragments.root.webView.WebViewComponent
 
 interface RootComponent {
     val childStack: Value<ChildStack<*, Child>>
@@ -44,6 +48,7 @@ interface RootComponent {
         data class ContactUsChild(val component: ContactUsComponent) : Child()
         data class VerificationChildMain(val component: VerificationComponent) : Child()
         data class DynamicSettingsChild(val component: DynamicSettingsComponent) : Child()
+        data class WebViewChild(val component: WebViewComponent) : Child()
     }
 
     fun updateURL (url : DeepLink)
@@ -70,7 +75,7 @@ class DefaultRootComponent(
         childStack(
             source = navigation,
             serializer = RootConfig.serializer(),
-            initialConfiguration = RootConfig.Main,
+            initialConfiguration =Main,
             handleBackButton = true,
             childFactory = ::createChild
         )
@@ -90,7 +95,7 @@ class DefaultRootComponent(
 
     override fun updateOrientation(orientation: Int) {
         try {
-            val component = (childStack.active.instance as? RootComponent.Child.MainChild)?.component
+            val component = (childStack.active.instance as? MainChild)?.component
             component?.model?.value?.viewModel?.updateOrientation(orientation)
         } catch (e: Exception) {
             println("Ignoring orientation update during navigation: ${e.message}")
@@ -101,38 +106,38 @@ class DefaultRootComponent(
 
     private fun createChild(rootConfig: RootConfig, componentContext: JetpackComponentContext): RootComponent.Child =
         when (rootConfig) {
-            is RootConfig.Main -> RootComponent.Child.MainChild(
+            is Main -> MainChild(
                 DefaultMainComponent(
                     componentContext
                 )
             )
-            is RootConfig.Login -> RootComponent.Child.LoginChild(
+            is Login -> LoginChild(
                 DefaultLoginComponent(
                     componentContext,
                     isReset = rootConfig.reset,
                     navigateToRegistration = {
-                        navigation.pushNew(RootConfig.Registration)
+                        navigation.pushNew(Registration)
                     },
                     navigateToForgotPassword = {
-                        navigation.pushNew(RootConfig.DynamicSettingsScreen("forgot_password"))
+                        navigation.pushNew(DynamicSettingsScreen("forgot_password"))
                     },
                 )
             )
 
-            RootConfig.Registration -> RootComponent.Child.RegistrationChild(
+            Registration -> RegistrationChild(
                 DefaultRegistrationComponent(
                     componentContext = componentContext,
                 )
             )
 
-            is RootConfig.ContactUs -> RootComponent.Child.ContactUsChild(
+            is ContactUs -> ContactUsChild(
                 DefaultContactUsComponent(
                     selectedType = rootConfig.selectedType,
                     componentContext = componentContext,
                 )
             )
 
-            is RootConfig.Verification -> RootComponent.Child.VerificationChildMain(
+            is Verification -> VerificationChildMain(
                 DefaultVerificationComponent(
                     settingsType = rootConfig.settingsType,
                     componentContext = componentContext,
@@ -141,11 +146,19 @@ class DefaultRootComponent(
                 )
             )
 
-            is RootConfig.DynamicSettingsScreen ->RootComponent.Child.DynamicSettingsChild(
+            is DynamicSettingsScreen -> DynamicSettingsChild(
                 component = DefaultDynamicSettingsComponent(
                     owner = rootConfig.ownerId,
                     code = rootConfig.code,
                     settingsType = rootConfig.settingsType,
+                    componentContext = componentContext,
+                )
+            )
+
+            is WebView -> WebViewChild(
+                component = DefaultWebViewComponent(
+                    title = rootConfig.title,
+                    url = rootConfig.url,
                     componentContext = componentContext,
                 )
             )
@@ -155,19 +168,23 @@ class DefaultRootComponent(
         private val navigation = StackNavigation<RootConfig>()
 
         val goToLogin: () -> Unit = {
-            navigation.pushNew(RootConfig.Login())
+            navigation.pushNew(Login())
         }
 
         val goToContactUs : (selectedType: String?) -> Unit = {
-            navigation.pushNew(RootConfig.ContactUs(selectedType = it))
+            navigation.pushNew(ContactUs(selectedType = it))
         }
 
         val goToVerification: (settingsType: String, ownerId: Long?,code: String?) -> Unit = { settingsType, ownerId, code ->
-            navigation.pushNew(RootConfig.Verification(settingsType, ownerId, code))
+            navigation.pushNew(Verification(settingsType, ownerId, code))
         }
 
         val goToDynamicSettings : (settingsType: String, ownerId: Long?, code: String?) -> Unit = { settingsType, ownerId, code ->
-            navigation.pushNew(RootConfig.DynamicSettingsScreen(settingsType, ownerId, code))
+            navigation.pushNew(DynamicSettingsScreen(settingsType, ownerId, code))
+        }
+
+        val goToWebView : (title: String, url: String) -> Unit = { title, url ->
+            navigation.pushNew(WebView(url,title))
         }
 
         val goBack: () -> Unit = {
@@ -175,7 +192,7 @@ class DefaultRootComponent(
         }
 
         val goToMain : () -> Unit = {
-            navigation.replaceAll(RootConfig.Main)
+            navigation.replaceAll(Main)
         }
     }
 }

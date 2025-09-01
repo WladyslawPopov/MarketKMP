@@ -53,7 +53,6 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import market.engine.common.openUrl
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.drawables
@@ -82,6 +81,7 @@ import market.engine.widgets.ilustrations.FullScreenImageViewer
 import market.engine.widgets.ilustrations.HorizontalImageViewer
 import market.engine.fragments.base.listing.rememberLazyScrollState
 import market.engine.fragments.base.screens.OnError
+import market.engine.fragments.root.DefaultRootComponent.Companion.goToWebView
 import market.engine.widgets.items.offer_Items.PromoOfferRowItem
 import market.engine.widgets.rows.PromoRow
 import market.engine.widgets.bars.UserPanel
@@ -225,6 +225,10 @@ fun OfferContent(
     val standardState = rememberRichTextState()
     val sst = stringResource(strings.standardDescriptionParameterName)
     val ast = stringResource(strings.additionalDescriptionsParameterName)
+    val label = stringResource(
+        if (offerState == OfferStates.SNAPSHOT)
+            strings.snapshotLabel else strings.defaultOfferTitle
+    )
 
     LaunchedEffect(offer.description, offer.standardDescriptions) {
         state.setHtml(offer.description ?: "")
@@ -286,10 +290,7 @@ fun OfferContent(
             )
             {
                 TextAppBar(
-                    stringResource(
-                        if (offerState == OfferStates.SNAPSHOT)
-                            strings.snapshotLabel else strings.defaultOfferTitle
-                    )
+                   label
                 )
             }
         },
@@ -365,7 +366,7 @@ fun OfferContent(
                                     .zIndex(1f), // Higher priority
                             ) {
                                 // Open web view YouTube
-                                openUrl(offer.videoUrls[0])
+                                goToWebView(label, offer.videoUrls[0])
                             }
                         }
                     }
