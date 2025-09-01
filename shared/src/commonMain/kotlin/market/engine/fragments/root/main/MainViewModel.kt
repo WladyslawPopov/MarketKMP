@@ -311,7 +311,7 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
                     hasNews = false,
                     badgeCount = null,
                     onClick = {
-                        goToWebView(SAPI.SERVER_BASE + "/cabinet/balance", balanceLabel)
+                        goToWebView(balanceLabel, SAPI.SERVER_BASE + "/cabinet/balance")
                     }
                 ),
                 NavigationItem(
