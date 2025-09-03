@@ -19,6 +19,7 @@ import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
+import market.engine.core.utils.getIoTread
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
@@ -65,7 +66,7 @@ class DefaultProfileComponent(
         model.value.backHandler.register(backCallback)
 
         lifecycle.doOnResume {
-            viewModel.scope.launch {
+            viewModel.getIoTread {
                 viewModel.updateUserInfo()
             }
         }

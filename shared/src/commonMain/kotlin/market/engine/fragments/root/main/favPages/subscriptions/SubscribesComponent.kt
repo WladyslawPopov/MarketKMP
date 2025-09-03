@@ -19,6 +19,7 @@ import market.engine.core.data.filtersObjects.ListingFilters
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.network.networkObjects.Subscription
+import market.engine.core.utils.getIoTread
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import org.jetbrains.compose.resources.getString
 
@@ -83,7 +84,7 @@ class DefaultSubscriptionsComponent(
 
     init {
         lifecycle.doOnResume {
-            subViewModel.scope.launch {
+            subViewModel.getIoTread {
                 subViewModel.updateUserInfo()
             }
 

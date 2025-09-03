@@ -30,6 +30,7 @@ import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.repositories.FavoritesTabListRepository
+import market.engine.core.utils.getIoTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
@@ -183,7 +184,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     init {
         getFavTabList()
 
-        scope.launch {
+        getIoTread {
             favoritesTabList.collect { updatedList ->
                 withContext(Dispatchers.Main){
                     component.updateNavigationPages()
@@ -219,26 +220,24 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 offersListOperations.getOffersList()
             }
 
-            val positionsFromDb = offerListRepository.getFavoritesTabList()
+            val positionsFromDb = withContext(Dispatchers.IO) { offerListRepository.getFavoritesTabList() }
 
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val buf = mutableListOf<FavoriteListItem>()
-                buf.addAll(res ?: emptyList())
+            val res = data.success
+            val buf = mutableListOf<FavoriteListItem>()
+            buf.addAll(res ?: emptyList())
 
-                newList.addAll(buf)
+            newList.addAll(buf)
 
-                positionsFromDb.forEach { favoritesTabListItem ->
-                    newList.find { it.id == favoritesTabListItem.itemId }?.position =
-                        favoritesTabListItem.position.toInt()
-                }
+            positionsFromDb.forEach { favoritesTabListItem ->
+                newList.find { it.id == favoritesTabListItem.itemId }?.position =
+                    favoritesTabListItem.position.toInt()
+            }
 
-                newList.sortBy { it.position }
-                newList.sortBy { !it.markedAsPrimary }
+            newList.sortBy { it.position }
+            newList.sortBy { !it.markedAsPrimary }
 
-                if (newList != _tabsDataList.value) {
-                    _tabsDataList.value = newList.toList()
-                }
+            if (newList != _tabsDataList.value) {
+                _tabsDataList.value = newList.toList()
             }
         }
     }

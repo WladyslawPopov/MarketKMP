@@ -164,30 +164,32 @@ class CreateOfferViewModel(
     )
 
     init {
-        when(type){
-            CreateOfferType.CREATE -> {
-                categoryViewModel.initialize()
-                analyticsHelper.reportEvent("add_offer_start", mapOf())
-            }
-            CreateOfferType.EDIT -> {
-                setCatHistory()
-                getPage("offers/$offerId/operations/edit_offer")
-                analyticsHelper.reportEvent("edit_offer_start", mapOf())
-            }
-            CreateOfferType.COPY -> {
-                setCatHistory()
-                getPage("offers/$offerId/operations/copy_offer")
-                analyticsHelper.reportEvent("copy_offer_start", mapOf())
-            }
-            CreateOfferType.COPY_WITHOUT_IMAGE ->{
-                setCatHistory()
-                getPage("offers/$offerId/operations/copy_offer_without_old_photo")
-                analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
-            }
-            CreateOfferType.COPY_PROTOTYPE ->{
-                setCatHistory()
-                getPage("offers/$offerId/operations/copy_offer_from_prototype")
-                analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())
+        scope.launch {
+            when(type){
+                CreateOfferType.CREATE -> {
+                    categoryViewModel.initialize()
+                    analyticsHelper.reportEvent("add_offer_start", mapOf())
+                }
+                CreateOfferType.EDIT -> {
+                    setCatHistory()
+                    getPage("offers/$offerId/operations/edit_offer")
+                    analyticsHelper.reportEvent("edit_offer_start", mapOf())
+                }
+                CreateOfferType.COPY -> {
+                    setCatHistory()
+                    getPage("offers/$offerId/operations/copy_offer")
+                    analyticsHelper.reportEvent("copy_offer_start", mapOf())
+                }
+                CreateOfferType.COPY_WITHOUT_IMAGE ->{
+                    setCatHistory()
+                    getPage("offers/$offerId/operations/copy_offer_without_old_photo")
+                    analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
+                }
+                CreateOfferType.COPY_PROTOTYPE ->{
+                    setCatHistory()
+                    getPage("offers/$offerId/operations/copy_offer_from_prototype")
+                    analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())
+                }
             }
         }
     }
@@ -197,7 +199,7 @@ class CreateOfferViewModel(
         scope.launch {
             // update params after category change
             if (isEditCat.value != 1L && type != CreateOfferType.CREATE) {
-                val newFields = updateParams(isEditCat.value)
+                val newFields = withContext(Dispatchers.IO) { updateParams(isEditCat.value) }
 
                 _responseGetPage.update { page ->
                     buildList {
@@ -229,108 +231,116 @@ class CreateOfferViewModel(
         }
     }
 
-    fun setCatHistory() {
+    suspend fun setCatHistory() {
         getCategoriesHistory(catPath?.firstOrNull())
     }
 
-    fun getPage(url: String) {
-        scope.launch {
-            updateUserInfo()
+    suspend fun getPage(url: String) {
+        updateUserInfo()
+
+        try {
+            setLoading(true)
+
+            val response = withContext(Dispatchers.IO) {
+                apiService.getPage(url)
+            }
 
             try {
-                setLoading(true)
 
-                val response = withContext(Dispatchers.IO) {
-                    apiService.getPage(url)
+                val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                val payload: DynamicPayload<OperationResult> =
+                    deserializePayload(response.payload, serializer)
+
+
+                payload.fields.find { it.key == "session_start" && it.data == null }?.data =
+                    JsonPrimitive(0)
+
+                payload.fields.find {
+                    it.key == "future_time"
+                }?.let { field ->
+                    if (
+                        field.data != null &&
+                        (field.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME) >
+                        nowAsEpochSeconds()
+                    ) {
+                        payload.fields.find {
+                            it.key == "session_start"
+                        }?.let { it.data = JsonPrimitive(2) }
+                        _selectedDate.value =
+                            field.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME
+                    }
                 }
 
-                try {
+                val tempPhotos = mutableListOf<PhotoSave>()
 
-                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                    val payload: DynamicPayload<OperationResult> =
-                        deserializePayload(response.payload, serializer)
+                when (type) {
+                    CreateOfferType.EDIT, CreateOfferType.COPY -> {
+                        val photos =
+                            payload.fields.filter { it.key?.contains("photo_") == true }
 
-
-                    payload.fields.find { it.key == "session_start"  && it.data == null}?.data = JsonPrimitive(0)
-
-                    payload.fields.find {
-                        it.key == "future_time"
-                    }?.let { field ->
-                        if (
-                            field.data != null &&
-                            (field.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME) >
-                            nowAsEpochSeconds()
-                        ) {
-                            payload.fields.find {
-                                it.key == "session_start"
-                            }?.let { it.data = JsonPrimitive(2) }
-                            _selectedDate.value = field.data?.jsonPrimitive?.longOrNull ?: INACTIVE_FUTURE_TIME
+                        photos.forEach { field ->
+                            if (field.links != null) {
+                                tempPhotos.add(
+                                    PhotoSave(
+                                        id = field.key,
+                                        url = field.links.mid?.jsonPrimitive?.content,
+                                        tempId = ""
+                                    )
+                                )
+                            }
                         }
+
+                        photoTempViewModel.setImages(tempPhotos.toList())
                     }
 
-                    val tempPhotos = mutableListOf<PhotoSave>()
-
-                    when (type) {
-                        CreateOfferType.EDIT, CreateOfferType.COPY -> {
-                            val photos =
-                                payload.fields.filter { it.key?.contains("photo_") == true }
-
-                            photos.forEach { field ->
-                                if (field.links != null) {
-                                    tempPhotos.add(
-                                        PhotoSave(
-                                            id = field.key,
-                                            url = field.links.mid?.jsonPrimitive?.content,
-                                            tempId = ""
-                                        )
+                    else -> {
+                        if (externalImages != null) {
+                            externalImages.forEach {
+                                tempPhotos.add(
+                                    PhotoSave(
+                                        url = it
                                     )
-                                }
+                                )
                             }
-
                             photoTempViewModel.setImages(tempPhotos.toList())
                         }
-
-                        else -> {
-                            if (externalImages != null) {
-                                externalImages.forEach {
-                                    tempPhotos.add(
-                                        PhotoSave(
-                                            url = it
-                                        )
-                                    )
-                                }
-                                photoTempViewModel.setImages(tempPhotos.toList())
-                            }
-                        }
                     }
-
-                    val categoryID =
-                        payload.fields.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull
-
-                    if (categoryID != null) {
-                        _isEditCat.value = categoryID
-                        categoryViewModel.updateFromSearchData(
-                            SD(
-                                searchCategoryID = categoryID,
-                                searchCategoryName = "",
-                                searchParentID = categoryID,
-                                searchIsLeaf = true
-                            )
-                        )
-                    }
-
-                    _responseGetPage.value = payload.fields
-
-                } catch (_: Exception){
-                    throw ServerErrorException(errorCode = response.errorCode.toString(), humanMessage = response.errorCode.toString())
                 }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            } finally {
-                setLoading(false)
+
+                val categoryID =
+                    payload.fields.find { it.key == "category_id" }?.data?.jsonPrimitive?.longOrNull
+
+                if (categoryID != null) {
+                    _isEditCat.value = categoryID
+                    categoryViewModel.updateFromSearchData(
+                        SD(
+                            searchCategoryID = categoryID,
+                            searchCategoryName = "",
+                            searchParentID = categoryID,
+                            searchIsLeaf = true
+                        )
+                    )
+                }
+
+                _responseGetPage.value = payload.fields
+
+            } catch (_: Exception) {
+                throw ServerErrorException(
+                    errorCode = response.errorCode.toString(),
+                    humanMessage = response.errorCode.toString()
+                )
             }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+        } catch (exception: Exception) {
+            onError(
+                ServerErrorException(
+                    errorCode = exception.message.toString(),
+                    humanMessage = exception.message.toString()
+                )
+            )
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -486,27 +496,26 @@ class CreateOfferViewModel(
         }
     }
 
-    fun getCategoriesHistory(catId: Long?) {
-        scope.launch {
-            try {
-                val categories = withContext(Dispatchers.IO) {
-                    val catHistory = arrayListOf<Category>()
-                    var cats = categoryOperations.getCategoryInfo(catId).success
-                    if (cats != null){
-                        catHistory.add(cats)
-                        while (cats?.id != 1L){
-                            cats = categoryOperations.getCategoryInfo(cats?.parentId).success
-                            if (cats != null){
-                                catHistory.add(cats)
-                            }
+    suspend fun getCategoriesHistory(catId: Long?) {
+        try {
+            val categories = withContext(Dispatchers.IO) {
+                val catHistory = arrayListOf<Category>()
+                var cats = categoryOperations.getCategoryInfo(catId).success
+                if (cats != null) {
+                    catHistory.add(cats)
+                    while (cats?.id != 1L) {
+                        cats = categoryOperations.getCategoryInfo(cats?.parentId).success
+                        if (cats != null) {
+                            catHistory.add(cats)
                         }
                     }
-                    catHistory
                 }
-                if (categories.isNotEmpty()) {
-                    _responseCatHistory.value = categories
-                }
-            } catch (_: Exception) { }
+                catHistory
+            }
+            if (categories.isNotEmpty()) {
+                _responseCatHistory.value = categories
+            }
+        } catch (_: Exception) {
         }
     }
 

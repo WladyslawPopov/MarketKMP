@@ -37,7 +37,6 @@ import market.engine.core.network.networkObjects.DynamicPayload
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
@@ -169,15 +168,15 @@ class CreateOrderViewModel(
     fun getOffers(listOffersId : List<Long>) {
         scope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    _responseGetOffers.value = emptyList()
-                    setLoading(true)
-                    listOffersId.forEach {
-                        val response = offerOperations.getOffer(it)
+                _responseGetOffers.value = emptyList()
 
-                        if (response.success != null){
-                            _responseGetOffers.value += response.success!!.parseToOfferItem()
-                        }
+                setLoading(true)
+
+                listOffersId.forEach {
+                    val response = withContext(Dispatchers.IO) { offerOperations.getOffer(it) }
+
+                    if (response.success != null){
+                        _responseGetOffers.value += response.success!!.parseToOfferItem()
                     }
                 }
             } catch (exception: ServerErrorException) {
@@ -418,9 +417,7 @@ class CreateOrderViewModel(
                 }
             }
         }else{
-            getMainTread {
-                goToLogin()
-            }
+            goToLogin()
         }
     }
 }

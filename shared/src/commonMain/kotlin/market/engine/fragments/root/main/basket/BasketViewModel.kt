@@ -185,23 +185,24 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
             val oneOffer = getString(strings.oneOfferLabel)
             val manyOffers = getString(strings.manyOffersLabel)
             val exManyOffers = getString(strings.exManyOffersLabel)
+            withContext(Dispatchers.IO) {
+                snapshotFlow {
+                    UserData.userInfo
+                }.collectLatest { info ->
+                    val countOffers = info?.countOffersInCart
 
-            snapshotFlow {
-                UserData.userInfo
-            }.collectLatest { info ->
-                val countOffers = info?.countOffersInCart
-
-                _subtitle.value = buildString {
-                    if (countOffers.toString()
-                            .matches(Regex("""([^1]1)$""")) || countOffers == 1
-                    ) {
-                        append("$countOffers $oneOffer")
-                    } else if (countOffers.toString()
-                            .matches(Regex("""([^1][234])$""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
-                    ) {
-                        append("$countOffers $exManyOffers")
-                    } else {
-                        append("$countOffers $manyOffers")
+                    _subtitle.value = buildString {
+                        if (countOffers.toString()
+                                .matches(Regex("""([^1]1)$""")) || countOffers == 1
+                        ) {
+                            append("$countOffers $oneOffer")
+                        } else if (countOffers.toString()
+                                .matches(Regex("""([^1][234])$""")) || countOffers == 2 || countOffers == 3 || countOffers == 4
+                        ) {
+                            append("$countOffers $exManyOffers")
+                        } else {
+                            append("$countOffers $manyOffers")
+                        }
                     }
                 }
             }

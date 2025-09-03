@@ -5,7 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
@@ -121,11 +120,9 @@ class PhotoTempViewModel(
 
     fun uploadPhotoTemp(item : PhotoTemp) {
         scope.launch {
-            val res = uploadFile(item)
+            val res =  withContext(Dispatchers.IO) { uploadFile(item) }
 
             if (res.success != null) {
-                delay(1000)
-
                 if (res.success?.tempId?.isNotBlank() == true) {
                     item.uri = res.success?.uri
                     item.tempId = res.success?.tempId
