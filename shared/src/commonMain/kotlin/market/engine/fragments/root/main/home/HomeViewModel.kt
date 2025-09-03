@@ -291,13 +291,14 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         refresh()
 
         scope.launch {
+            updateCategoriesFromCacheOrNetwork()
+            getOffersPromotedOnMainPage(0, 16)
+            getOffersPromotedOnMainPage(1, 16)
+
             updateUserInfo()
             getHistory(1L)
             syncNotificationsFromUserDefaults(db)
             notificationsRepository.deleteReadNotifications()
-            updateCategoriesFromCacheOrNetwork()
-            getOffersPromotedOnMainPage(0, 16)
-            getOffersPromotedOnMainPage(1, 16)
         }
     }
 
@@ -374,8 +375,6 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         ld.searchData.searchParentID = category.parentId
         ld.searchData.searchCategoryName = category.name
         ld.searchData.searchParentName = category.parentName
-        getMainTread {
-            component.goToNewSearch(ld, false)
-        }
+        component.goToNewSearch(ld, false)
     }
 }

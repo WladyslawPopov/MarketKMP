@@ -160,6 +160,7 @@ class DefaultListingComponent(
 
     init {
         model.value.backHandler.register(backCallback)
+
         lifecycle.doOnResume {
             if (updateBackHandlerItem.value != 1L) {
                 listingViewModel.setUpdateItem(updateBackHandlerItem.value)
