@@ -37,6 +37,7 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getIoTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
@@ -98,28 +99,30 @@ class OrderRepository(
                             }
 
                             else -> {
-                                core.postOperationFields(
-                                    order.id,
-                                    id ?: "",
-                                    "orders",
-                                    onSuccess = {
-                                        val eventParameters = mapOf(
-                                            "order_id" to order.id,
-                                            "seller_id" to order.sellerData?.id,
-                                            "buyer_id" to order.buyerData?.id
-                                        )
+                                core.getIoTread {
+                                    core.postOperationFields(
+                                        order.id,
+                                        id ?: "",
+                                        "orders",
+                                        onSuccess = {
+                                            val eventParameters = mapOf(
+                                                "order_id" to order.id,
+                                                "seller_id" to order.sellerData?.id,
+                                                "buyer_id" to order.buyerData?.id
+                                            )
 
-                                        core.analyticsHelper.reportEvent(
-                                            operation.id ?: "",
-                                            eventParameters
-                                        )
-                                        getOperations()
-                                        core.setUpdateItem(order.id)
-                                    },
-                                    errorCallback = {
+                                            core.analyticsHelper.reportEvent(
+                                                operation.id ?: "",
+                                                eventParameters
+                                            )
+                                            getOperations()
+                                            core.setUpdateItem(order.id)
+                                        },
+                                        errorCallback = {
 
-                                    }
-                                )
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -355,46 +358,50 @@ class OrderRepository(
     fun makeOperation(type : String){
         when(type){
             "send_message" -> {
-                core.postOperationAdditionalData(
-                    order.id,
-                    "write_to_partner",
-                    "orders",
-                    hashMapOf("message" to JsonPrimitive(messageText.value)),
-                    onSuccess = {
-                        val dialogId = it?.operationResult?.additionalData?.conversationId
-                        clearDialogFields()
-                        events.goToDialog(dialogId)
-                    }
-                )
+                core.getIoTread {
+                    core.postOperationAdditionalData(
+                        order.id,
+                        "write_to_partner",
+                        "orders",
+                        hashMapOf("message" to JsonPrimitive(messageText.value)),
+                        onSuccess = {
+                            val dialogId = it?.operationResult?.additionalData?.conversationId
+                            clearDialogFields()
+                            events.goToDialog(dialogId)
+                        }
+                    )
+                }
             }
             else -> {
-                val body = HashMap<String, JsonElement>()
-                _customDialogState.value.fields.forEach {
-                    if (it.data != null) {
-                        body[it.key ?: ""] = it.data!!
-                    }
-                }
-
-                core.postOperationFields(
-                    order.id,
-                    type,
-                    "orders",
-                    body = body,
-                    onSuccess = {
-                        clearDialogFields()
-                        getOperations()
-                        core.setUpdateItem(order.id)
-                    },
-                    errorCallback = { errFields ->
-                        if (errFields != null) {
-                            _customDialogState.update {
-                                it.copy(
-                                    fields = errFields
-                                )
-                            }
+                core.getIoTread {
+                    val body = HashMap<String, JsonElement>()
+                    _customDialogState.value.fields.forEach {
+                        if (it.data != null) {
+                            body[it.key ?: ""] = it.data!!
                         }
                     }
-                )
+
+                    core.postOperationFields(
+                        order.id,
+                        type,
+                        "orders",
+                        body = body,
+                        onSuccess = {
+                            clearDialogFields()
+                            getOperations()
+                            core.setUpdateItem(order.id)
+                        },
+                        errorCallback = { errFields ->
+                            if (errFields != null) {
+                                _customDialogState.update {
+                                    it.copy(
+                                        fields = errFields
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }

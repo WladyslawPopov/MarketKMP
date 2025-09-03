@@ -1,7 +1,6 @@
 package market.engine.di
 
 import app.cash.sqldelight.db.SqlDriver
-import kotlinx.coroutines.sync.Mutex
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.functions.OfferOperations
 import market.engine.core.network.functions.OrderOperations
@@ -46,8 +45,6 @@ val databaseModule = module {
         val driver = get<SqlDriver>()
         AuctionMarketDb(driver)
     }
-    single { Mutex() }
-
     singleOf(::createSettings)
 }
 

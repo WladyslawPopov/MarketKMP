@@ -696,8 +696,9 @@ class DynamicSettingsViewModel(
             "change_theme",
             eventParameters
         )
-
-        updateUserInfo()
+        scope.launch {
+            updateUserInfo()
+        }
 
         setUpPage()
     }

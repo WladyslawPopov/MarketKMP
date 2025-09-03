@@ -317,73 +317,75 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     }
 
     fun makeOperation(type: String, id: Long){
-        when (type) {
-            "create_blank_offer_list" -> {
-                getOperationFields(
-                    UserData.login,
-                    type,
-                    "users"
-                ) { t, f ->
-                    _customDialogState.value = CustomDialogState(
-                        typeDialog = type,
-                        title = t,
-                        fields = f
+        scope.launch {
+            when (type) {
+                "create_blank_offer_list" -> {
+                    getOperationFields(
+                        UserData.login,
+                        type,
+                        "users"
+                    ) { t, f ->
+                        _customDialogState.value = CustomDialogState(
+                            typeDialog = type,
+                            title = t,
+                            fields = f
+                        )
+                    }
+                }
+
+                "copy_offers_list", "rename_offers_list" -> {
+                    getOperationFields(id, type, "offers_lists") { t, f ->
+                        _customDialogState.value = CustomDialogState(
+                            typeDialog = type,
+                            title = t,
+                            fields = f
+                        )
+                    }
+                }
+
+                "reorder" -> {
+                    _isDragMode.value = true
+
+                    analyticsHelper.reportEvent(
+                        "reorder_offers_list", mapOf(
+                            "list_id" to id
+                        )
                     )
                 }
-            }
 
-            "copy_offers_list", "rename_offers_list" -> {
-                getOperationFields(id, type, "offers_lists") { t, f ->
-                    _customDialogState.value = CustomDialogState(
-                        typeDialog = type,
-                        title = t,
-                        fields = f
+                "delete_offers_list" -> {
+                    postOperationFields(
+                        id,
+                        type,
+                        "offers_lists",
+                        onSuccess = {
+                            _tabsDataList.update { tabs ->
+                                tabs.filter { it.id != id }
+                            }
+                            getFavTabList()
+                            scope.launch {
+                                offerListRepository.deleteFavoritesTabListById(id)
+                            }
+                        },
+                        errorCallback = {}
                     )
                 }
-            }
 
-            "reorder" -> {
-                _isDragMode.value = true
-
-                analyticsHelper.reportEvent(
-                    "reorder_offers_list", mapOf(
-                        "list_id" to id
+                "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
+                    postOperationFields(
+                        id,
+                        type,
+                        "offers_lists",
+                        onSuccess = {
+                            getFavTabList()
+                        },
+                        errorCallback = {}
                     )
-                )
-            }
+                }
 
-            "delete_offers_list" -> {
-                postOperationFields(
-                    id,
-                    type,
-                    "offers_lists",
-                    onSuccess = {
-                        _tabsDataList.update { tabs ->
-                            tabs.filter { it.id != id }
-                        }
-                        getFavTabList()
-                        scope.launch {
-                            offerListRepository.deleteFavoritesTabListById(id)
-                        }
-                    },
-                    errorCallback = {}
-                )
-            }
+                else -> {
 
-            "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
-                postOperationFields(
-                    id,
-                    type,
-                    "offers_lists",
-                    onSuccess = {
-                        getFavTabList()
-                    },
-                    errorCallback = {}
-                )
-            }
-
-            else -> {
-
+                }
             }
         }
     }
@@ -401,34 +403,36 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     }
 
     fun postOperation(id: Long, type: String, method: String){
-        val bodyPost = HashMap<String, JsonElement>()
-        _customDialogState.value.fields.forEach { field ->
-            if (field.data != null) {
-                bodyPost[field.key ?: ""] = field.data!!
-            }
-        }
-
-        postOperationFields(
-            id,
-            type,
-            method,
-            bodyPost,
-            onSuccess = {
-                closeDialog()
-                getFavTabList()
-            },
-            errorCallback = { f ->
-                if (f != null) {
-                    _customDialogState.update {
-                        it.copy(
-                            fields = f
-                        )
-                    }
-                } else {
-                    closeDialog()
+        scope.launch {
+            val bodyPost = HashMap<String, JsonElement>()
+            _customDialogState.value.fields.forEach { field ->
+                if (field.data != null) {
+                    bodyPost[field.key ?: ""] = field.data!!
                 }
             }
-        )
+
+            postOperationFields(
+                id,
+                type,
+                method,
+                bodyPost,
+                onSuccess = {
+                    closeDialog()
+                    getFavTabList()
+                },
+                errorCallback = { f ->
+                    if (f != null) {
+                        _customDialogState.update {
+                            it.copy(
+                                fields = f
+                            )
+                        }
+                    } else {
+                        closeDialog()
+                    }
+                }
+            )
+        }
     }
 
     fun closeDialog() {

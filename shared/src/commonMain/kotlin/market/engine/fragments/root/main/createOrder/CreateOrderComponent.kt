@@ -9,6 +9,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.SelectedBasketItem
 import market.engine.widgets.filterContents.deliveryCardsContents.DeliveryCardsViewModel
@@ -70,7 +71,9 @@ class DefaultCreateOrderComponent(
 
     init {
         lifecycle.doOnResume {
-            createOrderViewModel.updateUserInfo()
+            createOrderViewModel.scope.launch {
+                createOrderViewModel.updateUserInfo()
+            }
 
             if (UserData.token == ""){
                 navigateBack()

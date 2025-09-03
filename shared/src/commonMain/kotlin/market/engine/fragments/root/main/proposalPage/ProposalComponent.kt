@@ -9,6 +9,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProposalType
 
@@ -63,9 +64,11 @@ class DefaultProposalComponent(
 
     init {
         lifecycle.doOnResume {
-            proposalViewModel.updateUserInfo()
-            if (UserData.token == ""){
-                goBack()
+            proposalViewModel.scope.launch {
+                proposalViewModel.updateUserInfo()
+                if (UserData.token == "") {
+                    goBack()
+                }
             }
         }
 

@@ -290,13 +290,10 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     fun updateModel() {
         refresh()
 
-        updateUserInfo()
-
-        getHistory(1L)
-
-        syncNotificationsFromUserDefaults(db, mutex)
-
         scope.launch {
+            updateUserInfo()
+            getHistory(1L)
+            syncNotificationsFromUserDefaults(db)
             notificationsRepository.deleteReadNotifications()
             updateCategoriesFromCacheOrNetwork()
             getOffersPromotedOnMainPage(0, 16)
@@ -304,56 +301,53 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         }
     }
 
-    fun updateCategoriesFromCacheOrNetwork() {
-        scope.launch {
-            val cacheKey = "categories_home"
-            val listSerializer = ListSerializer(Category.serializer())
-            val lifetime = 30.days
-            val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-            val categories = cacheRepository.get(cacheKey, listSerializer)
-                ?: run {
-                    val buf = getCategories(listingData = LD(), searchData = SD(), withoutCounter = true)
-                    cacheRepository.put(cacheKey, buf, expirationTimestamp, listSerializer)
-                    buf
-                }
+    suspend fun updateCategoriesFromCacheOrNetwork() {
+        val cacheKey = "categories_home"
+        val listSerializer = ListSerializer(Category.serializer())
+        val lifetime = 30.days
+        val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+        val categories = cacheRepository.get(cacheKey, listSerializer)
+            ?: run {
+                val buf =
+                    getCategories(listingData = LD(), searchData = SD(), withoutCounter = true)
+                cacheRepository.put(cacheKey, buf, expirationTimestamp, listSerializer)
+                buf
+            }
 
-            _responseCategory.value = categories
-        }
+        _responseCategory.value = categories
     }
 
-    fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
-        scope.launch {
-            try {
-                setLoading(true)
+    suspend fun getOffersPromotedOnMainPage(page: Int, ipp: Int) {
+        try {
+            setLoading(true)
 
-                val cacheKey = "home_page_${page}_${ipp}"
-                val listSerializer = ListSerializer(OfferItem.serializer())
-                val offers = cacheRepository.get(cacheKey, listSerializer) ?: run {
-                    val response = withContext(Dispatchers.IO) {
-                        apiService.getOffersPromotedOnMainPage(page, ipp)
-                    }
-                    val serializer = Payload.serializer(Offer.serializer())
-                    val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
-                    val newOffers = payload.objects.map { it.parseToOfferItem() }
-
-                    val lifetime = 1.days
-                    val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-
-                    cacheRepository.put(cacheKey, newOffers, expirationTimestamp, listSerializer)
-                    newOffers
+            val cacheKey = "home_page_${page}_${ipp}"
+            val listSerializer = ListSerializer(OfferItem.serializer())
+            val offers = cacheRepository.get(cacheKey, listSerializer) ?: run {
+                val response = withContext(Dispatchers.IO) {
+                    apiService.getOffersPromotedOnMainPage(page, ipp)
                 }
+                val serializer = Payload.serializer(Offer.serializer())
+                val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
+                val newOffers = payload.objects.map { it.parseToOfferItem() }
 
-                when(page){
-                    0 -> _responseOffersPromotedOnMainPage1.value = offers
-                    1 -> _responseOffersPromotedOnMainPage2.value = offers
-                }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
-            } finally {
-                setLoading(false)
+                val lifetime = 1.days
+                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+
+                cacheRepository.put(cacheKey, newOffers, expirationTimestamp, listSerializer)
+                newOffers
             }
+
+            when (page) {
+                0 -> _responseOffersPromotedOnMainPage1.value = offers
+                1 -> _responseOffersPromotedOnMainPage2.value = offers
+            }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+        } catch (exception: Exception) {
+            onError(ServerErrorException(exception.message ?: "Unknown error", "An error occurred"))
+        } finally {
+            setLoading(false)
         }
     }
 

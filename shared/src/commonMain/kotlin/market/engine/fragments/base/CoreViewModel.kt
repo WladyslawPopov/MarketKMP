@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonElement
@@ -58,7 +57,6 @@ import kotlin.time.Duration.Companion.days
 open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val analyticsHelper = AnalyticsFactory.getAnalyticsHelper()
     val db : AuctionMarketDb by lazy { getKoin().get() }
-    val mutex : Mutex by lazy { getKoin().get() }
     val settings : SettingsRepository by lazy { getKoin().get() }
     val apiService by lazy {  getKoin().get<APIService>() }
 
@@ -171,86 +169,86 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun postOperationFields(
+    suspend fun postOperationFields(
         id: Long,
         type: String,
         method: String,
         body: HashMap<String, JsonElement> = hashMapOf(),
         onSuccess: () -> Unit,
         errorCallback: (List<Fields>?) -> Unit
-    )
-    {
+    ) {
         setLoading(true)
-        scope.launch {
-            val data = withContext(Dispatchers.IO) { operationsMethods.postOperationFields(id, type, method, body) }
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
+        val data = withContext(Dispatchers.IO) {
+            operationsMethods.postOperationFields(
+                id,
+                type,
+                method,
+                body
+            )
+        }
+        withContext(Dispatchers.Main) {
+            val res = data.success
+            val error = data.error
 
-                setLoading(false)
-                if (res != null) {
-                    if (res.operationResult?.result == "ok") {
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(
-                                    strings.operationSuccess
-                                )
+            setLoading(false)
+            if (res != null) {
+                if (res.operationResult?.result == "ok") {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(
+                                strings.operationSuccess
                             )
                         )
-                        analyticsHelper.reportEvent(
-                            "${type}_success",
-                            eventParameters = mapOf(
-                                "id" to id,
-                            )
+                    )
+                    analyticsHelper.reportEvent(
+                        "${type}_success",
+                        eventParameters = mapOf(
+                            "id" to id,
                         )
+                    )
 
-                        onSuccess()
-                    } else {
-                        analyticsHelper.reportEvent(
-                            "${type}_error",
-                            eventParameters = mapOf(
-                                "id" to id,
-                                "body" to body.toString()
+                    onSuccess()
+                } else {
+                    analyticsHelper.reportEvent(
+                        "${type}_error",
+                        eventParameters = mapOf(
+                            "id" to id,
+                            "body" to body.toString()
+                        )
+                    )
+                    showToast(
+                        errorToastItem.copy(
+                            message = getString(
+                                strings.operationFailed
                             )
                         )
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(
-                                    strings.operationFailed
-                                )
-                            )
-                        )
+                    )
 
-                        errorCallback(res.recipe?.fields ?: res.fields)
-                    }
-                }else{
-                    if (error != null)
-                        onError(error)
+                    errorCallback(res.recipe?.fields ?: res.fields)
                 }
+            } else {
+                if (error != null)
+                    onError(error)
             }
         }
     }
 
-    fun updateUserInfo()
-    {
-        scope.launch {
-            try {
-                withContext(Dispatchers.Unconfined) {
-                    userRepository.updateToken()
-                    userRepository.updateUserInfo()
-                }
-            }  catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message ?: "Unknown error", ""))
+    suspend fun updateUserInfo() {
+        try {
+            withContext(Dispatchers.Unconfined) {
+                userRepository.updateToken()
+                userRepository.updateUserInfo()
             }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+        } catch (exception: Exception) {
+            onError(ServerErrorException(exception.message ?: "Unknown error", ""))
         }
     }
 
     fun refresh()
     {
         _updatePage.value++
-        updateUserInfo()
         onError(ServerErrorException())
         resetScroll()
     }
@@ -299,100 +297,103 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun postOperationAdditionalData(
+    suspend fun postOperationAdditionalData(
         id: Long,
         type: String,
         method: String,
         body: HashMap<String, JsonElement> = hashMapOf(),
         onSuccess: (PayloadExistence<AdditionalData>?) -> Unit
     ) {
-        scope.launch {
-            val data = withContext(Dispatchers.IO) { operationsMethods.postOperationAdditionalData(id, type, method, body) }
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
-                if (res != null) {
-                    if( res.operationResult?.result != null) {
-                        showToast(
-                            successToastItem.copy(
-                                message = res.operationResult.result!!
-                            )
-                        )
-                    }
-                    analyticsHelper.reportEvent(
-                        type,
-                        eventParameters = mapOf(
-                            "id" to id,
+        val data = withContext(Dispatchers.IO) {
+            operationsMethods.postOperationAdditionalData(
+                id,
+                type,
+                method,
+                body
+            )
+        }
+        withContext(Dispatchers.Main) {
+            val res = data.success
+            val error = data.error
+            if (res != null) {
+                if (res.operationResult?.result != null) {
+                    showToast(
+                        successToastItem.copy(
+                            message = res.operationResult.result!!
                         )
                     )
-
-                    onSuccess(res)
-                }else{
-                    if (error != null)
-                        onError(error)
                 }
+                analyticsHelper.reportEvent(
+                    type,
+                    eventParameters = mapOf(
+                        "id" to id,
+                    )
+                )
+
+                onSuccess(res)
+            } else {
+                if (error != null)
+                    onError(error)
             }
         }
     }
-    fun getHistory(currentId: Long? = null) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                val cacheKey = "viewed_offers"
-                val listSerializer = ListSerializer(OfferItem.serializer())
 
-                val cachedOffers = cacheRepository.get(cacheKey, listSerializer)
-                if (cachedOffers != null) {
-                    _responseHistory.value = cachedOffers
+    suspend fun getHistory(currentId: Long? = null) {
+        try {
+            val cacheKey = "viewed_offers"
+            val listSerializer = ListSerializer(OfferItem.serializer())
+
+            val cachedOffers = cacheRepository.get(cacheKey, listSerializer)
+            if (cachedOffers != null) {
+                _responseHistory.value = cachedOffers
+            }
+
+            val historyIds = offerVisitedHistoryRepository.getHistory().filter { it != currentId }
+
+            val freshOfferItems = historyIds.mapNotNull { id ->
+                try {
+                    offerOperations.getOffer(id).success?.parseToOfferItem()
+                } catch (_: Exception) {
+                    null
                 }
+            }
 
-                val historyIds = offerVisitedHistoryRepository.getHistory().filter { it != currentId }
-
-                val freshOfferItems = historyIds.mapNotNull { id ->
-                    try {
-                        offerOperations.getOffer(id).success?.parseToOfferItem()
-                    } catch (_: Exception) {
-                        null
-                    }
-                }
-
-                _responseHistory.value = freshOfferItems
+            _responseHistory.value = freshOfferItems
 
 
-                val lifetime = 30.days
-                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-                cacheRepository.put(cacheKey, freshOfferItems, expirationTimestamp, listSerializer)
+            val lifetime = 30.days
+            val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+            cacheRepository.put(cacheKey, freshOfferItems, expirationTimestamp, listSerializer)
 
-                if(currentId == null){
-                    getOurChoice(freshOfferItems.lastOrNull()?.id ?: 1L)
-                }
+            if(currentId == null){
+                getOurChoice(freshOfferItems.lastOrNull()?.id ?: 1L)
+            }
 
-            } catch (_: Exception) { }
-        }
+        } catch (_: Exception) { }
     }
 
-    fun getOurChoice(id: Long) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                val cacheKey = "ourChoice_offers"
-                val listSerializer = ListSerializer(OfferItem.serializer())
+    suspend fun getOurChoice(id: Long) {
+        try {
+            val cacheKey = "ourChoice_offers"
+            val listSerializer = ListSerializer(OfferItem.serializer())
 
-                val cachedOffers = cacheRepository.get(cacheKey, listSerializer)
-                if (cachedOffers != null) {
-                    _responseOurChoice.value = cachedOffers
-                }
+            val cachedOffers = cacheRepository.get(cacheKey, listSerializer)
+            if (cachedOffers != null) {
+                _responseOurChoice.value = cachedOffers
+            }
 
-                val response = apiService.getOurChoiceOffers(id)
-                val serializer = Payload.serializer(Offer.serializer())
-                val ourChoice = deserializePayload(response.payload, serializer).objects
-                val freshOffers = ourChoice.map { it.parseToOfferItem() }.toList()
+            val response = apiService.getOurChoiceOffers(id)
+            val serializer = Payload.serializer(Offer.serializer())
+            val ourChoice = deserializePayload(response.payload, serializer).objects
+            val freshOffers = ourChoice.map { it.parseToOfferItem() }.toList()
 
-                _responseOurChoice.value = freshOffers
+            _responseOurChoice.value = freshOffers
 
-                val lifetime = 30.days
-                val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-                cacheRepository.put(cacheKey, freshOffers, expirationTimestamp, listSerializer)
+            val lifetime = 30.days
+            val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+            cacheRepository.put(cacheKey, freshOffers, expirationTimestamp, listSerializer)
 
-            } catch (_: Exception) { }
+        } catch (_: Exception) {
         }
     }
 

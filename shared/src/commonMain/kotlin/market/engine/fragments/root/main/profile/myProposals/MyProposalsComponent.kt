@@ -10,6 +10,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.LotsType
@@ -99,9 +100,11 @@ class DefaultMyProposalsComponent(
         backHandler.register(backCallback)
 
         lifecycle.doOnResume {
-            viewModel.updateUserInfo()
-            if (UserData.token == ""){
-                goToBack()
+            viewModel.scope.launch {
+                viewModel.updateUserInfo()
+                if (UserData.token == "") {
+                    goToBack()
+                }
             }
 
             if (updateBackHandlerItem.value != 1L) {

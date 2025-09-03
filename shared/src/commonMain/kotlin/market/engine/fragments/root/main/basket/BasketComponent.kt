@@ -61,9 +61,9 @@ class DefaultBasketComponent(
         analyticsHelper.reportEvent("view_cart", mapOf())
 
         lifecycle.doOnResume {
-            basketViewModel.updateUserInfo()
             basketViewModel.getUserCart()
         }
+
         lifecycle.doOnDestroy {
             basketViewModel.onClear()
         }

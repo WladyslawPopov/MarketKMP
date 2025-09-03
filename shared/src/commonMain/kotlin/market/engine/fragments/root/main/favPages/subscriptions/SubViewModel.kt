@@ -287,26 +287,28 @@ data class SubItemEventsImpl(
                                     }
 
                                     else -> {
-                                        viewModel.postOperationFields(
-                                            sub.id,
-                                            operation.id ?: "",
-                                            "subscriptions",
-                                            onSuccess = {
-                                                val eventParameters = mapOf(
-                                                    "buyer_id" to UserData.login,
-                                                    "item_id" to sub.id
-                                                )
-                                                viewModel.analyticsHelper.reportEvent(
-                                                    "delete_subscription",
-                                                    eventParameters
-                                                )
+                                        viewModel.scope.launch {
+                                            viewModel.postOperationFields(
+                                                sub.id,
+                                                operation.id ?: "",
+                                                "subscriptions",
+                                                onSuccess = {
+                                                    val eventParameters = mapOf(
+                                                        "buyer_id" to UserData.login,
+                                                        "item_id" to sub.id
+                                                    )
+                                                    viewModel.analyticsHelper.reportEvent(
+                                                        "delete_subscription",
+                                                        eventParameters
+                                                    )
 
-                                                viewModel.setUpdateItem(sub.id)
-                                            },
-                                            errorCallback = {
+                                                    viewModel.setUpdateItem(sub.id)
+                                                },
+                                                errorCallback = {
 
-                                            }
-                                        )
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }

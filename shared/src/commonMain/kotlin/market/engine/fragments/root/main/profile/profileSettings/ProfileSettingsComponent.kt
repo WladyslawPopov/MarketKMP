@@ -12,6 +12,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.ProfileSettingsTypes
 import market.engine.fragments.root.main.profile.ProfileConfig
@@ -64,9 +65,11 @@ class DefaultProfileSettingsComponent(
         backHandler.register(backCallback)
 
         lifecycle.doOnResume {
-            profileSettingsViewModel.updateUserInfo()
-            if (UserData.token == ""){
-                profileNavigation.pop()
+            profileSettingsViewModel.scope.launch {
+                profileSettingsViewModel.updateUserInfo()
+                if (UserData.token == "") {
+                    profileNavigation.pop()
+                }
             }
         }
 

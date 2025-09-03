@@ -53,6 +53,7 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
+import market.engine.core.utils.getIoTread
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
@@ -268,35 +269,39 @@ class CabinetOfferRepository(
                             }
 
                             else -> {
-                                core.postOperationFields(
-                                    offerState.value.id,
-                                    id ?: "",
-                                    "offers",
-                                    onSuccess = {
-                                        val eventParameters = mapOf(
-                                            "lot_id" to offerState.value.id,
-                                            "lot_name" to offerState.value.title,
-                                            "lot_city" to offerState.value.location,
-                                            "auc_delivery" to offerState.value.safeDeal,
-                                            "lot_category" to offerState.value.catPath.firstOrNull(),
-                                            "seller_id" to offerState.value.seller.id,
-                                            "lot_price_start" to offerState.value.price,
-                                        )
-                                        core.analyticsHelper.reportEvent(
-                                            "${id}_success",
-                                            eventParameters
-                                        )
-                                        when (operation.id) {
-                                            "watch", "unwatch", "create_blank_offer_list" -> {}
-                                            else -> {
-                                                refreshOffer()
+                                core.getIoTread {
+                                    core.postOperationFields(
+                                        offerState.value.id,
+                                        id ?: "",
+                                        "offers",
+                                        onSuccess = {
+                                            val eventParameters = mapOf(
+                                                "lot_id" to offerState.value.id,
+                                                "lot_name" to offerState.value.title,
+                                                "lot_city" to offerState.value.location,
+                                                "auc_delivery" to offerState.value.safeDeal,
+                                                "lot_category" to offerState.value.catPath.firstOrNull(),
+                                                "seller_id" to offerState.value.seller.id,
+                                                "lot_price_start" to offerState.value.price,
+                                            )
+                                            core.analyticsHelper.reportEvent(
+                                                "${id}_success",
+                                                eventParameters
+                                            )
+                                            when (operation.id) {
+                                                "watch", "unwatch", "create_blank_offer_list" -> {}
+                                                else -> {
+                                                    refreshOffer()
+                                                }
                                             }
-                                        }
-                                        updateItem()
-                                        core.updateUserInfo()
-                                    },
-                                    errorCallback = {}
-                                )
+                                            updateItem()
+                                            core.getIoTread {
+                                                core.updateUserInfo()
+                                            }
+                                        },
+                                        errorCallback = {}
+                                    )
+                                }
                             }
                         }
                     }
@@ -552,26 +557,27 @@ class CabinetOfferRepository(
                             it.data!!
                     }
                 }
-
-                core.postOperationFields(
-                    idMethod,
-                    id,
-                    method,
-                    body = body,
-                    onSuccess = {
-                        refreshOffer()
-                        clearDialogFields()
-                    },
-                    errorCallback = { errFields ->
-                        if (errFields != null) {
-                            _customDialogState.update {
-                                it.copy(
-                                    fields = errFields
-                                )
+                core.getIoTread {
+                    core.postOperationFields(
+                        idMethod,
+                        id,
+                        method,
+                        body = body,
+                        onSuccess = {
+                            refreshOffer()
+                            clearDialogFields()
+                        },
+                        errorCallback = { errFields ->
+                            if (errFields != null) {
+                                _customDialogState.update {
+                                    it.copy(
+                                        fields = errFields
+                                    )
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

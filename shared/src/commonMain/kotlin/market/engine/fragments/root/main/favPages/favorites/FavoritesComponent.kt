@@ -9,6 +9,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
@@ -89,7 +90,9 @@ class DefaultFavoritesComponent(
 
     init {
         lifecycle.doOnResume {
-            favViewModel.updateUserInfo()
+            favViewModel.scope.launch {
+                favViewModel.updateUserInfo()
+            }
 
             if (updateBackHandlerItem.value != 1L) {
                 favViewModel.setUpdateItem(updateBackHandlerItem.value)

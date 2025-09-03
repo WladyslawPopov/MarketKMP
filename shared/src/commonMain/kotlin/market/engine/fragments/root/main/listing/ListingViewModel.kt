@@ -310,33 +310,38 @@ class ListingViewModel(
         }
     }
     fun addFavorite(offer: OfferItem, onSuccess: (Boolean) -> Unit) {
-        val opId = if(offer.isWatchedByMe) "unwatch" else "watch"
+        scope.launch {
+            val opId = if(offer.isWatchedByMe) "unwatch" else "watch"
 
-        postOperationFields(
-            offer.id,
-            opId,
-            "offers",
-            onSuccess = {
-                val eventParameters = mapOf(
-                    "lot_id" to offer.id,
-                    "lot_name" to offer.title,
-                    "lot_city" to offer.location,
-                    "auc_delivery" to offer.safeDeal,
-                    "lot_category" to offer.catPath.firstOrNull(),
-                    "seller_id" to offer.seller.id,
-                    "lot_price_start" to offer.price,
-                )
-                analyticsHelper.reportEvent(
-                    "${opId}_success",
-                    eventParameters
-                )
-                updateUserInfo()
-                onSuccess(!offer.isWatchedByMe)
-            },
-            errorCallback = {
-                onSuccess(offer.isWatchedByMe)
-            }
-        )
+            postOperationFields(
+                offer.id,
+                opId,
+                "offers",
+                onSuccess = {
+                    val eventParameters = mapOf(
+                        "lot_id" to offer.id,
+                        "lot_name" to offer.title,
+                        "lot_city" to offer.location,
+                        "auc_delivery" to offer.safeDeal,
+                        "lot_category" to offer.catPath.firstOrNull(),
+                        "seller_id" to offer.seller.id,
+                        "lot_price_start" to offer.price,
+                    )
+                    analyticsHelper.reportEvent(
+                        "${opId}_success",
+                        eventParameters
+                    )
+                    scope.launch {
+                        updateUserInfo()
+                    }
+                    onSuccess(!offer.isWatchedByMe)
+                },
+                errorCallback = {
+                    onSuccess(offer.isWatchedByMe)
+                }
+            )
+        }
+
     }
 
     fun updateOffer(id : Long, onSuccess: (Offer) -> Unit){

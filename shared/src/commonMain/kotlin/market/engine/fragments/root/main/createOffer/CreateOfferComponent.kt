@@ -9,6 +9,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.types.CreateOfferType
 import market.engine.widgets.filterContents.categories.CategoryViewModel
@@ -87,7 +88,9 @@ class DefaultCreateOfferComponent(
 
     init {
         lifecycle.doOnResume {
-            createOfferViewModel.updateUserInfo()
+            createOfferViewModel.scope.launch {
+                createOfferViewModel.updateUserInfo()
+            }
 
             if (UserData.token == ""){
                 navigateBack()

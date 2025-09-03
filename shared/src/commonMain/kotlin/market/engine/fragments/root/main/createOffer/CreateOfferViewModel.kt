@@ -234,9 +234,9 @@ class CreateOfferViewModel(
     }
 
     fun getPage(url: String) {
-        updateUserInfo()
-
         scope.launch {
+            updateUserInfo()
+
             try {
                 setLoading(true)
 

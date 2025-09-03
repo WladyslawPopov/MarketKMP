@@ -9,6 +9,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.fragments.base.listing.ListingBaseViewModel
@@ -73,10 +74,13 @@ class DefaultConversationsComponent(
 
     init {
         lifecycle.doOnResume {
-            viewModel.updateUserInfo()
-            if (UserData.token == "") {
-                navigateBack()
+            viewModel.scope.launch {
+                viewModel.updateUserInfo()
+                if (UserData.token == "") {
+                    navigateBack()
+                }
             }
+
             if (updateBackHandlerItem.value != 1L) {
                 viewModel.setUpdateItem(updateBackHandlerItem.value)
                 updateBackHandlerItem.value = 1L

@@ -83,7 +83,9 @@ class DefaultSubscriptionsComponent(
 
     init {
         lifecycle.doOnResume {
-            subViewModel.updateUserInfo()
+            subViewModel.scope.launch {
+                subViewModel.updateUserInfo()
+            }
 
             if (updateBackHandlerItem.value != 1L) {
                 subViewModel.setUpdateItem(updateBackHandlerItem.value)

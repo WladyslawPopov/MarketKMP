@@ -14,6 +14,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
@@ -64,7 +65,9 @@ class DefaultProfileComponent(
         model.value.backHandler.register(backCallback)
 
         lifecycle.doOnResume {
-            viewModel.updateUserInfo()
+            viewModel.scope.launch {
+                viewModel.updateUserInfo()
+            }
         }
 
         lifecycle.doOnDestroy {

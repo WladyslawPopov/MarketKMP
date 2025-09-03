@@ -8,6 +8,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import kotlinx.coroutines.launch
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToMain
 
@@ -49,6 +50,9 @@ class DefaultLoginComponent(
         viewModel.analyticsHelper.reportEvent("view_login_screen", mapOf())
 
         lifecycle.doOnDestroy {
+            viewModel.scope.launch {
+                viewModel.updateUserInfo()
+            }
             viewModel.onClear()
         }
     }
