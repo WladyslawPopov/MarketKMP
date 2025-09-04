@@ -6,10 +6,13 @@ import androidx.lifecycle.SavedStateHandle
 import com.arkivanov.decompose.router.stack.popToFirst
 import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceCurrent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.serializer
 import market.engine.common.Platform
 import market.engine.core.data.baseFilters.ListingData
@@ -60,10 +63,12 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     init {
         try {
             scope.launch {
-                snapshotFlow { UserData.userInfo }
-                    .collectLatest { newInfo ->
-                        updateNavLists()
-                    }
+                withContext(Dispatchers.IO) {
+                    snapshotFlow { UserData.userInfo }
+                        .collectLatest { newInfo ->
+                            updateNavLists()
+                        }
+                }
             }
         }catch (_ : Exception) {}
     }

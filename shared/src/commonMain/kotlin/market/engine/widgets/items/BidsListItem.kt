@@ -116,7 +116,7 @@ fun BidsListItem(
         }
 
         Text(
-            text = bid.ts?.toLongOrNull()?.convertDateWithMinutes() ?: "",
+            text = bid.ts?.toDoubleOrNull()?.toLong()?.convertDateWithMinutes() ?: "",
             style = MaterialTheme.typography.bodySmall,
             color = colors.black,
             modifier = Modifier.weight(1f),

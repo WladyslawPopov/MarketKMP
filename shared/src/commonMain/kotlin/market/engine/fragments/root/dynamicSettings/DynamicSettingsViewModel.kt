@@ -40,7 +40,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.network.networkObjects.ListItem
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goBack
@@ -381,71 +380,67 @@ class DynamicSettingsViewModel(
             val payload = buf?.success
             val resErr = buf?.error
 
-            withContext(Dispatchers.Main) {
-                setLoading(false)
+            setLoading(false)
 
-                if (payload != null) {
-                    if (payload.status == "operation_success") {
+            if (payload != null) {
+                if (payload.status == "operation_success") {
 
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "body" to body
-                        )
-                        analyticsHelper.reportEvent("${settingsType}_success", eventParameters)
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                        "body" to body
+                    )
+                    analyticsHelper.reportEvent("${settingsType}_success", eventParameters)
 
-                        showToast(
-                            successToastItem.copy(
-                                message = when (settingsType) {
-                                    "set_email", "forgot_password", "reset_password" -> getString(
-                                        strings.checkOutEmailToast
-                                    )
+                    showToast(
+                        successToastItem.copy(
+                            message = when (settingsType) {
+                                "set_email", "forgot_password", "reset_password" -> getString(
+                                    strings.checkOutEmailToast
+                                )
 
-                                    else -> payload.operationResult?.message ?: getString(strings.operationSuccess)
-                                }
-                            )
-                        )
-
-                        delay(1500)
-
-                        val body = try {
-                            payload.body?.jsonObject["action"]?.jsonPrimitive?.content
-                        }catch (_ : Exception){
-                            null
-                        }
-
-                        getMainTread {
-                            if (body?.isNotBlank() == true) {
-                                component.goToVerificationPage(body, owner, code)
-                            } else {
-                                goBack()
+                                else -> payload.operationResult?.message ?: getString(strings.operationSuccess)
                             }
-                        }
+                        )
+                    )
 
+                    delay(500)
+
+                    val body = try {
+                        payload.body?.jsonObject["action"]?.jsonPrimitive?.content
+                    }catch (_ : Exception){
+                        null
+                    }
+
+                    if (body?.isNotBlank() == true) {
+                        component.goToVerificationPage(body, owner, code)
                     } else {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "body" to body
-                        )
-                        analyticsHelper.reportEvent("${settingsType}_failed", eventParameters)
-
-                        _dynamicSettingsState.update {
-                            it.copy(
-                                fields = payload.recipe?.fields ?: payload.fields
-                            )
-                        }
-
-                        showToast(
-                            errorToastItem.copy(
-                                message = payload.recipe?.globalErrorMessage ?: getString(strings.operationFailed)
-                            )
-                        )
+                        goBack()
                     }
+
                 } else {
-                    if (resErr != null) {
-                        onError(resErr)
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings",
+                        "body" to body
+                    )
+                    analyticsHelper.reportEvent("${settingsType}_failed", eventParameters)
+
+                    _dynamicSettingsState.update {
+                        it.copy(
+                            fields = payload.recipe?.fields ?: payload.fields
+                        )
                     }
+
+                    showToast(
+                        errorToastItem.copy(
+                            message = payload.recipe?.globalErrorMessage ?: getString(strings.operationFailed)
+                        )
+                    )
+                }
+            } else {
+                if (resErr != null) {
+                    onError(resErr)
                 }
             }
         }
@@ -498,16 +493,14 @@ class DynamicSettingsViewModel(
                 userOperations.getUsersOperationsGetUserList(UserData.login, body)
             }
 
-            withContext(Dispatchers.Main) {
-                val buffer = res.success
-                val resErr = res.error
+            val buffer = res.success
+            val resErr = res.error
 
-                if (buffer != null) {
-                    _blocList.value = buffer.body?.data ?: emptyList()
-                }else{
-                    if (resErr != null) {
-                        onError(resErr)
-                    }
+            if (buffer != null) {
+                _blocList.value = buffer.body?.data ?: emptyList()
+            }else{
+                if (resErr != null) {
+                    onError(resErr)
                 }
             }
         }
@@ -541,18 +534,16 @@ class DynamicSettingsViewModel(
                 )
             }
 
-            withContext(Dispatchers.Main) {
-                if (res.success != null){
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
+            if (res.success != null){
+                showToast(
+                    successToastItem.copy(
+                        message = getString(strings.operationSuccess)
                     )
-                    getBlocList()
-                }else{
-                    if (res.error != null) {
-                        onError(res.error!!)
-                    }
+                )
+                getBlocList()
+            }else{
+                if (res.error != null) {
+                    onError(res.error!!)
                 }
             }
         }
@@ -585,21 +576,19 @@ class DynamicSettingsViewModel(
             val payload = res.success
             val resErr = res.error
 
-            withContext(Dispatchers.Main) {
-                if (payload != null) {
-                    if (payload.operationResult?.result == "ok") {
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+            if (payload != null) {
+                if (payload.operationResult?.result == "ok") {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                        delay(2000)
-                        goBack()
-                    }
-                } else {
-                    if (resErr != null) {
-                        onError(resErr)
-                    }
+                    )
+                    delay(500)
+                    goBack()
+                }
+            } else {
+                if (resErr != null) {
+                    onError(resErr)
                 }
             }
         }
@@ -614,33 +603,30 @@ class DynamicSettingsViewModel(
                     "users"
                 )
             }
-            withContext(Dispatchers.Main) {
-                if (res.success?.status == "operation_success") {
+            if (res.success?.status == "operation_success") {
+                val eventParameters = mapOf(
+                    "user_id" to UserData.login,
+                    "profile_source" to "settings",
+                )
+                analyticsHelper.reportEvent("disabled_watermark_success", eventParameters)
+
+                showToast(
+                    successToastItem.copy(
+                        message = getString(strings.operationSuccess)
+                    )
+                )
+                updateUserInfo()
+            } else {
+                if (res.error != null) {
                     val eventParameters = mapOf(
                         "user_id" to UserData.login,
                         "profile_source" to "settings",
+                        "human_message" to res.error?.humanMessage,
+                        "error_code" to res.error?.errorCode
                     )
-                    analyticsHelper.reportEvent("disabled_watermark_success", eventParameters)
+                    analyticsHelper.reportEvent("disabled_watermark_failed", eventParameters)
 
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    updateUserInfo()
-                } else {
-                    if (res.error != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "human_message" to res.error?.humanMessage,
-                            "error_code" to res.error?.errorCode
-                        )
-                        analyticsHelper.reportEvent("disabled_watermark_failed", eventParameters)
-
-                        onError(res.error!!)
-                    }
+                    onError(res.error!!)
                 }
             }
         }
@@ -655,33 +641,31 @@ class DynamicSettingsViewModel(
                     "users"
                 )
             }
-            withContext(Dispatchers.Main) {
-                if (res.success?.status == "operation_success") {
+            if (res.success?.status == "operation_success") {
+                val eventParameters = mapOf(
+                    "user_id" to UserData.login,
+                    "profile_source" to "settings",
+                )
+                analyticsHelper.reportEvent("enabled_watermark_success", eventParameters)
+
+                showToast(
+                    successToastItem.copy(
+                        message = getString(strings.operationSuccess)
+                    )
+                )
+
+                updateUserInfo()
+            } else {
+                if (res.error != null) {
                     val eventParameters = mapOf(
                         "user_id" to UserData.login,
                         "profile_source" to "settings",
+                        "human_message" to res.error?.humanMessage,
+                        "error_code" to res.error?.errorCode
                     )
-                    analyticsHelper.reportEvent("enabled_watermark_success", eventParameters)
+                    analyticsHelper.reportEvent("enabled_watermark_failed", eventParameters)
 
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    updateUserInfo()
-                } else {
-                    if (res.error != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "human_message" to res.error?.humanMessage,
-                            "error_code" to res.error?.errorCode
-                        )
-                        analyticsHelper.reportEvent("enabled_watermark_failed", eventParameters)
-
-                        onError(res.error!!)
-                    }
+                    onError(res.error!!)
                 }
             }
         }
@@ -712,33 +696,31 @@ class DynamicSettingsViewModel(
                     "users"
                 )
             }
-            withContext(Dispatchers.Main) {
-                if (res.success?.status == "operation_success") {
+            if (res.success?.status == "operation_success") {
+                val eventParameters = mapOf(
+                    "user_id" to UserData.login,
+                    "profile_source" to "settings",
+                )
+                analyticsHelper.reportEvent("enabled_block_rating_success", eventParameters)
+
+                showToast(
+                    successToastItem.copy(
+                        message = getString(strings.operationSuccess)
+                    )
+                )
+
+                updateUserInfo()
+            } else {
+                if (res.error != null) {
                     val eventParameters = mapOf(
                         "user_id" to UserData.login,
                         "profile_source" to "settings",
+                        "human_message" to res.error?.humanMessage,
+                        "error_code" to res.error?.errorCode
                     )
-                    analyticsHelper.reportEvent("enabled_block_rating_success", eventParameters)
+                    analyticsHelper.reportEvent("enabled_block_rating_failed", eventParameters)
 
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    updateUserInfo()
-                } else {
-                    if (res.error != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "human_message" to res.error?.humanMessage,
-                            "error_code" to res.error?.errorCode
-                        )
-                        analyticsHelper.reportEvent("enabled_block_rating_failed", eventParameters)
-
-                        onError(res.error!!)
-                    }
+                    onError(res.error!!)
                 }
             }
         }
@@ -768,33 +750,31 @@ class DynamicSettingsViewModel(
                     "users"
                 )
             }
-            withContext(Dispatchers.Main) {
-                if (res.success?.status == "operation_success") {
+            if (res.success?.status == "operation_success") {
+                val eventParameters = mapOf(
+                    "user_id" to UserData.login,
+                    "profile_source" to "settings",
+                )
+                analyticsHelper.reportEvent("disabled_block_rating_success", eventParameters)
+
+                showToast(
+                    successToastItem.copy(
+                        message = getString(strings.operationSuccess)
+                    )
+                )
+
+                updateUserInfo()
+            } else {
+                if (res.error != null) {
                     val eventParameters = mapOf(
                         "user_id" to UserData.login,
                         "profile_source" to "settings",
+                        "human_message" to res.error?.humanMessage,
+                        "error_code" to res.error?.errorCode
                     )
-                    analyticsHelper.reportEvent("disabled_block_rating_success", eventParameters)
+                    analyticsHelper.reportEvent("disabled_block_rating_failed", eventParameters)
 
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
-                    )
-
-                    updateUserInfo()
-                } else {
-                    if (res.error != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings",
-                            "human_message" to res.error?.humanMessage,
-                            "error_code" to res.error?.errorCode
-                        )
-                        analyticsHelper.reportEvent("disabled_block_rating_failed", eventParameters)
-
-                        onError(res.error!!)
-                    }
+                    onError(res.error!!)
                 }
             }
         }

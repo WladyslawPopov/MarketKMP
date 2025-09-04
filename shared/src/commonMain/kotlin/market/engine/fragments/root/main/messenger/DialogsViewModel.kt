@@ -67,7 +67,6 @@ import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.utils.Base64.encodeToBase64
 import market.engine.core.utils.convertDateYear
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.parseDeepLink
@@ -329,9 +328,7 @@ class DialogsViewModel(
                             title = deleteDialogLabel,
                             icon = drawables.deleteIcon,
                         ) {
-                            deleteConversation(conversation.id) {
-                                component.onBackClicked()
-                            }
+                            deleteConversation(conversation.id)
                         }
                     ),
                     closeMenu = {
@@ -510,7 +507,7 @@ class DialogsViewModel(
     fun markReadConversation(id : Long) {
         scope.launch {
             try {
-                withContext(Dispatchers.Unconfined) {
+                withContext(Dispatchers.IO) {
                     conversationsOperations.postMarkAsReadByInterlocutor(id)
                 }
             } catch (e: ServerErrorException) {
@@ -521,18 +518,16 @@ class DialogsViewModel(
         }
     }
 
-    fun deleteConversation(id : Long, onSuccess : () -> Unit) {
+    fun deleteConversation(id : Long) {
         scope.launch {
             val res = withContext(Dispatchers.IO) {
                 conversationsOperations.postDeleteForInterlocutor(id)
             }
 
-            withContext(Dispatchers.Main) {
-                if(res != null){
-                    onSuccess()
-                }else{
-                    showToast(errorToastItem.copy(message = getString(strings.operationFailed)))
-                }
+            if(res != null){
+                component.onBackClicked()
+            }else{
+                showToast(errorToastItem.copy(message = getString(strings.operationFailed)))
             }
         }
     }
@@ -545,13 +540,12 @@ class DialogsViewModel(
                 }
                 val buf = res.success
                 val e = res.error
-                withContext(Dispatchers.Main) {
-                    if (buf!= null) {
-                        onSuccess(res.success!!)
-                    }else{
-                        error()
-                        e?.let { throw it }
-                    }
+
+                if (buf!= null) {
+                    onSuccess(res.success!!)
+                }else{
+                    error()
+                    e?.let { throw it }
                 }
             }catch (e : ServerErrorException){
                 onError(e)
@@ -566,16 +560,18 @@ class DialogsViewModel(
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(files: PlatformFiles) {
         scope.launch {
-            val newImages = files.map { file ->
-                val barr = file.readBytes()
-                val resizeImage = compressImage(barr, 40)
+            val newImages = withContext(Dispatchers.IO){
+                files.map { file ->
+                    val barr = file.readBytes()
+                    val resizeImage = compressImage(barr, 40)
 
-                PhotoTemp(
-                    file = file,
-                    uri = getImageUriFromPlatformFile(file),
-                    id = Uuid.random().toString(),
-                    tempId = resizeImage.encodeToBase64()
-                )
+                    PhotoTemp(
+                        file = file,
+                        uri = getImageUriFromPlatformFile(file),
+                        id = Uuid.random().toString(),
+                        tempId = resizeImage.encodeToBase64()
+                    )
+                }
             }
 
             _responseImages.value = buildList {
@@ -623,39 +619,37 @@ class DialogsViewModel(
                 conversationsOperations.postAddMessage(dialogId, bodyMessage)
             }
 
-            withContext(Dispatchers.Main) {
-                if (res != null) {
-                    if (res == "true") {
-                        if (interlocutorRole == "buyer") {
-                            val eventParameters = mapOf(
-                                "buyer_id" to userId,
-                                "seller_id" to UserData.userInfo?.id,
-                                (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
-                                "message_type" to if (aboutObject == "offer") "lot" else "deal",
-                            )
-                            analyticsHelper.reportEvent("sent_message_to_buyer", eventParameters)
-                        } else {
-                            val eventParameters = mapOf(
-                                "seller_id" to userId,
-                                "buyer_id" to UserData.userInfo?.id,
-                                (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
-                                "message_type" to if (aboutObject == "offer") "lot" else "deal",
-                            )
-                            analyticsHelper.reportEvent("sent_message_to_seller", eventParameters)
-                        }
-
-                        updatePage()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = getString(strings.operationFailed)
-                            )
+            if (res != null) {
+                if (res == "true") {
+                    if (interlocutorRole == "buyer") {
+                        val eventParameters = mapOf(
+                            "buyer_id" to userId,
+                            "seller_id" to UserData.userInfo?.id,
+                            (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
+                            "message_type" to if (aboutObject == "offer") "lot" else "deal",
                         )
+                        analyticsHelper.reportEvent("sent_message_to_buyer", eventParameters)
+                    } else {
+                        val eventParameters = mapOf(
+                            "seller_id" to userId,
+                            "buyer_id" to UserData.userInfo?.id,
+                            (if (aboutObject == "offer") "lot_id" else "order_id") to idAboutDialog,
+                            "message_type" to if (aboutObject == "offer") "lot" else "deal",
+                        )
+                        analyticsHelper.reportEvent("sent_message_to_seller", eventParameters)
                     }
-                }
 
-                setLoading(false)
+                    updatePage()
+                } else {
+                    showToast(
+                        errorToastItem.copy(
+                            message = getString(strings.operationFailed)
+                        )
+                    )
+                }
             }
+
+            setLoading(false)
         }
     }
 
@@ -686,21 +680,19 @@ class DialogsViewModel(
             }
             val buf = res.success
             val err = res.error
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    showToast(
-                        newToast = successToastItem.copy(
-                            message = getString(strings.operationSuccess)
-                        )
+            if (buf != null) {
+                showToast(
+                    newToast = successToastItem.copy(
+                        message = getString(strings.operationSuccess)
                     )
-                    setUpdateItem(id)
-                } else {
-                    showToast(
-                        errorToastItem.copy(
-                            message = err?.humanMessage ?: getString(strings.operationFailed)
-                        )
+                )
+                update()
+            } else {
+                showToast(
+                    errorToastItem.copy(
+                        message = err?.humanMessage ?: getString(strings.operationFailed)
                     )
-                }
+                )
             }
         }
     }
@@ -733,21 +725,15 @@ data class DialogItemEventsImpl(
     override fun linkClicked(url: String) {
         when (val deepLink = parseDeepLink(url)) {
             is DeepLink.GoToOffer -> {
-                viewModel.getMainTread {
-                    component.goToOffer(deepLink.offerId)
-                }
+                component.goToOffer(deepLink.offerId)
             }
 
             is DeepLink.GoToListing -> {
-                viewModel.getMainTread {
-                    component.goToNewSearch(deepLink.ownerId ?: 1)
-                }
+                component.goToNewSearch(deepLink.ownerId ?: 1)
             }
 
             is DeepLink.GoToUser -> {
-                viewModel.getMainTread {
-                    component.goToUser(deepLink.userId)
-                }
+                component.goToUser(deepLink.userId)
             }
 
             is DeepLink.GoToAuth -> {

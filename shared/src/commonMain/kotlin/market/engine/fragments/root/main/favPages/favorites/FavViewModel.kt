@@ -5,12 +5,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import market.engine.core.data.baseFilters.Filter
@@ -189,19 +192,19 @@ class FavViewModel(
                     }
                 }
 
-                postOperationFields(
-                    item,
-                    type,
-                    "offers",
-                    body,
-                    onSuccess = {
+                withContext(Dispatchers.IO) {
+                    postOperationFields(
+                        item,
+                        type,
+                        "offers",
+                        body
+                    )
+                }.let { success ->
+                    if (success) {
                         listingBaseViewModel.clearSelectedItems()
                         updatePage()
-                    },
-                    errorCallback = {
-
                     }
-                )
+                }
             }
         }
     }

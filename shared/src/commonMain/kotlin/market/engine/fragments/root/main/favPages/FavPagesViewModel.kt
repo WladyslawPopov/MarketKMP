@@ -319,11 +319,13 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
         scope.launch {
             when (type) {
                 "create_blank_offer_list" -> {
-                    getOperationFields(
-                        UserData.login,
-                        type,
-                        "users"
-                    ) { t, f ->
+                    withContext(Dispatchers.IO) {
+                        getOperationFields(
+                            UserData.login,
+                            type,
+                            "users"
+                        )
+                    }?.let { (t, f) ->
                         _customDialogState.value = CustomDialogState(
                             typeDialog = type,
                             title = t,
@@ -333,7 +335,9 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 }
 
                 "copy_offers_list", "rename_offers_list" -> {
-                    getOperationFields(id, type, "offers_lists") { t, f ->
+                    withContext(Dispatchers.IO){
+                        getOperationFields(id, type, "offers_lists")
+                    }?.let { (t, f) ->
                         _customDialogState.value = CustomDialogState(
                             typeDialog = type,
                             title = t,
@@ -353,11 +357,14 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 }
 
                 "delete_offers_list" -> {
-                    postOperationFields(
-                        id,
-                        type,
-                        "offers_lists",
-                        onSuccess = {
+                    withContext(Dispatchers.IO) {
+                        postOperationFields(
+                            id,
+                            type,
+                            "offers_lists"
+                        )
+                    }.let { success ->
+                        if (success) {
                             _tabsDataList.update { tabs ->
                                 tabs.filter { it.id != id }
                             }
@@ -365,21 +372,21 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                             scope.launch {
                                 offerListRepository.deleteFavoritesTabListById(id)
                             }
-                        },
-                        errorCallback = {}
-                    )
+                        }
+                    }
                 }
 
                 "mark_as_primary_offers_list", "unmark_as_primary_offers_list" -> {
-                    postOperationFields(
-                        id,
-                        type,
-                        "offers_lists",
-                        onSuccess = {
+                    withContext(Dispatchers.IO) {
+                        postOperationFields(
+                            id,
+                            type,
+                            "offers_lists"
+                        )
+                    }.let { success ->
+                        if (success)
                             getFavTabList()
-                        },
-                        errorCallback = {}
-                    )
+                    }
                 }
 
                 else -> {
@@ -410,27 +417,30 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 }
             }
 
-            postOperationFields(
-                id,
-                type,
-                method,
-                bodyPost,
-                onSuccess = {
+            withContext(Dispatchers.IO){
+                postOperationFields(
+                    id,
+                    type,
+                    method,
+                    bodyPost,
+                    errorCallback = { f ->
+                        if (f != null) {
+                            _customDialogState.update {
+                                it.copy(
+                                    fields = f
+                                )
+                            }
+                        } else {
+                            closeDialog()
+                        }
+                    }
+                )
+            }.let { success ->
+                if(success) {
                     closeDialog()
                     getFavTabList()
-                },
-                errorCallback = { f ->
-                    if (f != null) {
-                        _customDialogState.update {
-                            it.copy(
-                                fields = f
-                            )
-                        }
-                    } else {
-                        closeDialog()
-                    }
                 }
-            )
+            }
         }
     }
 

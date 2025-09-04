@@ -16,27 +16,23 @@ import market.engine.fragments.root.DefaultRootComponent.Companion.goToMain
 
 class RootVewModel(val component: RootComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
     init {
-        scope.launch {
-            val isFirstLaunch = settings.getSettingValue("isFirstLaunch", true)
-            if (isFirstLaunch == true) {
-                settings.setSettingValue("isFirstLaunch", false)
-                analyticsHelper.reportEvent("launch_first_time", mapOf())
-            }
+        val isFirstLaunch = settings.getSettingValue("isFirstLaunch", true)
+        if (isFirstLaunch == true) {
+            settings.setSettingValue("isFirstLaunch", false)
+            analyticsHelper.reportEvent("launch_first_time", mapOf())
+        }
 
-            analyticsHelper.reportEvent("start_session", mapOf("traffic_source" to "direct"))
+        analyticsHelper.reportEvent("start_session", mapOf("traffic_source" to "direct"))
 
-            val appAttributes = mapOf("app_version" to SAPI.version)
-            analyticsHelper.updateUserProfile(appAttributes)
+        val appAttributes = mapOf("app_version" to SAPI.version)
+        analyticsHelper.updateUserProfile(appAttributes)
 
-            val countLaunch = settings.getSettingValue("count_start", 0) ?: 0
-            settings.setSettingValue("count_start", countLaunch+1)
-            printLogD("countLaunch", countLaunch.toString())
+        val countLaunch = settings.getSettingValue("count_start", 0) ?: 0
+        settings.setSettingValue("count_start", countLaunch+1)
+        printLogD("countLaunch", countLaunch.toString())
 
-            if(countLaunch == 10) {
-                withContext(Dispatchers.Main){
-                    showReviewManager()
-                }
-            }
+        if(countLaunch == 10) {
+            showReviewManager()
         }
     }
 

@@ -31,6 +31,7 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.CabinetOfferRepository
+import market.engine.core.utils.getIoTread
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
@@ -93,20 +94,10 @@ class OfferViewModel(
     }
 
     fun editNote(){
-        scope.launch {
-            cabinetOfferRepository.menuList.value.find { it.id == "edit_note" }?.onClick()
-        }
+        cabinetOfferRepository.menuList.value.find { it.id == "edit_note" }?.onClick()
     }
 
-    fun deleteNote(id: Long){
-        scope.launch {
-            this@OfferViewModel.deleteNote(id) {
-                refreshPage()
-            }
-        }
-    }
-
-    fun deleteNote(offerId: Long, onSuccess: () -> Unit) {
+    fun deleteNote(offerId: Long) {
         scope.launch {
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(offerId, "delete_note", "offers")
@@ -125,12 +116,12 @@ class OfferViewModel(
                                 "lot_id" to offerId,
                             )
                         )
-                        delay(2000)
-                        onSuccess()
-                    }else {
+                        refreshPage()
+                    } else {
                         showToast(
                             errorToastItem.copy(
-                                message = res.success?.operationResult?.message ?: getString(strings.operationFailed)
+                                message = res.success?.operationResult?.message
+                                    ?: getString(strings.operationFailed)
                             )
                         )
                     }
@@ -143,118 +134,120 @@ class OfferViewModel(
         scope.launch {
             try {
                 setLoading(true)
-                getHistory(offerId)
-                getOurChoice(offerId)
 
-                val res =
-                    withContext(Dispatchers.IO) { offerOperations.getOffer(offerId, isSnapshot) }
+                val res = withContext(Dispatchers.IO) {
+                        getHistory(offerId)
+                        getOurChoice(offerId)
+                        offerOperations.getOffer(offerId, isSnapshot)
+                }
+
                 val data = res.success
-                withContext(Dispatchers.Main) {
-                    setLoading(false)
 
-                    data?.let { offer ->
+                setLoading(false)
 
-                        getCategoriesHistory(offer.catpath)
-                        val initTimer =
-                            ((offer.session.end?.toLongOrNull() ?: 1L) - nowAsEpochSeconds()) * 1000
+                data?.let { offer ->
 
-                        val images = when {
-                            offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
-                                ?: emptyList()
+                    getCategoriesHistory(offer.catpath)
 
-                            offer.externalImages?.isNotEmpty() == true -> offer.externalImages
-                            else -> listOf("empty")
-                        }
-                        eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.title,
-                            "lot_city" to offer.freeLocation,
-                            "auc_delivery" to offer.safeDeal,
-                            "lot_category_id" to offer.catpath.lastOrNull(),
-                            "seller_id" to offer.sellerData?.id,
-                            "lot_price_start" to offer.currentPricePerItem,
-                            "visitor_id" to UserData.userInfo?.id
-                        )
+                    val initTimer =
+                        ((offer.session.end?.toLongOrNull() ?: 1L) - nowAsEpochSeconds()) * 1000
 
-                        val offerState = when {
-                            isSnapshot -> {
-                                analyticsHelper.reportEvent("view_item_snapshot", eventParameters)
-                                OfferStates.SNAPSHOT
-                            }
+                    val images = when {
+                        offer.images?.isNotEmpty() == true -> offer.images?.map { it.urls?.big?.content.orEmpty() }
+                            ?: emptyList()
 
-                            offer.isPrototype -> {
-                                analyticsHelper.reportEvent("view_item_prototype", eventParameters)
-                                OfferStates.PROTOTYPE
-                            }
-
-                            offer.state == "active" -> {
-                                analyticsHelper.reportEvent("view_item", eventParameters)
-                                when {
-                                    (offer.session.start?.toLongOrNull()
-                                        ?: 1L) > nowAsEpochSeconds() -> OfferStates.FUTURE
-
-                                    (offer.session.end?.toLongOrNull()
-                                        ?: 1L) - nowAsEpochSeconds() > 0 -> OfferStates.ACTIVE
-
-                                    else -> OfferStates.COMPLETED
-                                }
-                            }
-
-                            offer.state == "sleeping" -> {
-                                analyticsHelper.reportEvent("view_item", eventParameters)
-                                if (offer.session.start == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
-                            }
-
-                            else -> {
-                                analyticsHelper.reportEvent("view_item", eventParameters)
-                                OfferStates.ACTIVE
-                            }
-                        }
-
-                        if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
-                            startTimerUpdateBids(cabinetOfferRepository.offerState.value)
-                        }
-
-                        if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
-                            startTimer(initTimer) {
-                                getOffer(offer.id, isSnapshot)
-                            }
-                        } else {
-                            _remainingTime.value = initTimer
-                        }
-
-                        offer.sellerData =
-                            getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
-
-                        val columns =
-                            if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(
-                                1
-                            )
-
-                        val counts = (1..offer.currentQuantity).map { it.toString() }
-
-                        _responseOfferView.value = OfferViewState(
-                            statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
-                            columns = columns,
-                            images = images,
-                            countString = getCountString(offerState, offer),
-                            buyNowCounts = counts,
-                            isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
-                            offerState = offerState,
-                            dealTypeString = offer.dealTypes?.joinToString(separator = ". ") {
-                                it.name ?: ""
-                            }
-                                ?: "",
-                            deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
-                            paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") {
-                                it.name ?: ""
-                            } ?: "",
-                        )
-
-                        cabinetOfferRepository.setNewOfferData(offer.parseToOfferItem())
-
-                        updateUserState(offer.sellerData?.id ?: 1)
+                        offer.externalImages?.isNotEmpty() == true -> offer.externalImages
+                        else -> listOf("empty")
                     }
+                    eventParameters = mapOf(
+                        "lot_id" to offer.id,
+                        "lot_name" to offer.title,
+                        "lot_city" to offer.freeLocation,
+                        "auc_delivery" to offer.safeDeal,
+                        "lot_category_id" to offer.catpath.lastOrNull(),
+                        "seller_id" to offer.sellerData?.id,
+                        "lot_price_start" to offer.currentPricePerItem,
+                        "visitor_id" to UserData.userInfo?.id
+                    )
+
+                    val offerState = when {
+                        isSnapshot -> {
+                            analyticsHelper.reportEvent("view_item_snapshot", eventParameters)
+                            OfferStates.SNAPSHOT
+                        }
+
+                        offer.isPrototype -> {
+                            analyticsHelper.reportEvent("view_item_prototype", eventParameters)
+                            OfferStates.PROTOTYPE
+                        }
+
+                        offer.state == "active" -> {
+                            analyticsHelper.reportEvent("view_item", eventParameters)
+                            when {
+                                (offer.session.start?.toLongOrNull()
+                                    ?: 1L) > nowAsEpochSeconds() -> OfferStates.FUTURE
+
+                                (offer.session.end?.toLongOrNull()
+                                    ?: 1L) - nowAsEpochSeconds() > 0 -> OfferStates.ACTIVE
+
+                                else -> OfferStates.COMPLETED
+                            }
+                        }
+
+                        offer.state == "sleeping" -> {
+                            analyticsHelper.reportEvent("view_item", eventParameters)
+                            if (offer.session.start == null || offer.buyerData != null) OfferStates.COMPLETED else OfferStates.INACTIVE
+                        }
+
+                        else -> {
+                            analyticsHelper.reportEvent("view_item", eventParameters)
+                            OfferStates.ACTIVE
+                        }
+                    }
+
+                    if (offer.saleType != "buy_now" && offerState == OfferStates.ACTIVE) {
+                        startTimerUpdateBids(cabinetOfferRepository.offerState.value)
+                    }
+
+                    if (initTimer < 24 * 60 * 60 * 1000 && offerState == OfferStates.ACTIVE) {
+                        startTimer(initTimer) {
+                            getOffer(offer.id, isSnapshot)
+                        }
+                    } else {
+                        _remainingTime.value = initTimer
+                    }
+
+                    offer.sellerData =
+                        getUserInfo(offer.sellerData?.id ?: 1) ?: offer.sellerData
+
+                    val columns =
+                        if (isBigScreen.value) StaggeredGridCells.Fixed(2) else StaggeredGridCells.Fixed(
+                            1
+                        )
+
+                    val counts = (1..offer.currentQuantity).map { it.toString() }
+
+                    _responseOfferView.value = OfferViewState(
+                        statusList = checkStatusSeller(offer.sellerData?.id ?: 0),
+                        columns = columns,
+                        images = images,
+                        countString = getCountString(offerState, offer),
+                        buyNowCounts = counts,
+                        isMyOffer = offer.sellerData?.login == UserData.userInfo?.login,
+                        offerState = offerState,
+                        dealTypeString = offer.dealTypes?.joinToString(separator = ". ") {
+                            it.name ?: ""
+                        }
+                            ?: "",
+                        deliveryMethodString = formatDeliveryMethods(offer.deliveryMethods),
+                        paymentMethodString = offer.paymentMethods?.joinToString(separator = ". ") {
+                            it.name ?: ""
+                        } ?: "",
+                    )
+
+                    cabinetOfferRepository.setNewOfferData(offer.parseToOfferItem())
+
+                    updateUserState(offer.sellerData?.id ?: 1)
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))
@@ -311,18 +304,16 @@ class OfferViewModel(
         }
     }
 
-    private fun getCategoriesHistory(catPath: List<Long>) {
-        scope.launch {
-            try {
-                val categories = withContext(Dispatchers.IO) {
-                    catPath.reversed().mapNotNull { id ->
-                        categoryOperations.getCategoryInfo(id).success
-                    }
+    private suspend fun getCategoriesHistory(catPath: List<Long>) {
+        try {
+            val categories = withContext(Dispatchers.IO) {
+                catPath.reversed().mapNotNull { id ->
+                    categoryOperations.getCategoryInfo(id).success
                 }
-                _responseCatHistory.value = categories
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
             }
+            _responseCatHistory.value = categories
+        } catch (e: Exception) {
+            onError(ServerErrorException(e.message ?: "Error fetching categories", ""))
         }
     }
 
@@ -362,20 +353,16 @@ class OfferViewModel(
         }
     }
 
-    fun updateUserState(id: Long){
-        scope.launch {
-            val user = withContext(Dispatchers.IO) {
-                getUserInfo(id)
-            }
-            withContext(Dispatchers.Main) {
-                if (user != null) {
-                    cabinetOfferRepository.setNewOfferData(
-                        cabinetOfferRepository.offerState.value.copy(
-                            seller = user,
-                        )
-                    )
-                }
-            }
+    suspend fun updateUserState(id: Long) {
+        val user = withContext(Dispatchers.IO) {
+            getUserInfo(id)
+        }
+        if (user != null) {
+            cabinetOfferRepository.setNewOfferData(
+                cabinetOfferRepository.offerState.value.copy(
+                    seller = user,
+                )
+            )
         }
     }
 
@@ -388,207 +375,194 @@ class OfferViewModel(
         }
     }
 
-    fun updateBidsInfo(offer: OfferItem) {
+   suspend fun updateBidsInfo(offer: OfferItem) {
+       try {
+           val response = withContext(Dispatchers.IO) {
+               offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
+           }
+
+           response.success?.body?.let { body ->
+               if (body.isChanged) {
+                   cabinetOfferRepository.setNewOfferData(
+                       cabinetOfferRepository.offerState.value.copy(
+                           bids = body.bids,
+                           version = JsonPrimitive(body.currentVersion),
+                           price = body.currentPrice ?: "",
+                           minimalAcceptablePrice = body.minimalAcceptablePrice ?: "",
+                       )
+                   )
+               }
+           }
+       } catch (e: Exception) {
+           onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
+       }
+   }
+
+    fun addOfferToBasket(offer: OfferItem) {
         scope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
+            if (UserData.token != "") {
+                val body = HashMap<String, JsonElement>()
+                body["offer_id"] = JsonPrimitive(offer.id)
+
+                val res = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperationFields(
+                        UserData.login,
+                        "add_item_to_cart",
+                        "users",
+                        body
+                    )
                 }
-                withContext(Dispatchers.Main) {
-                    response.success?.body?.let { body ->
-                        if (body.isChanged) {
-                            cabinetOfferRepository.setNewOfferData(
-                                cabinetOfferRepository.offerState.value.copy(
-                                    bids = body.bids,
-                                    version = JsonPrimitive(body.currentVersion),
-                                    price = body.currentPrice ?: "",
-                                    minimalAcceptablePrice = body.minimalAcceptablePrice ?: "",
-                                )
-                            )
-                        }
+
+                val buffer = res.success
+                val error = res.error
+
+                if (buffer != null) {
+                    updateUserInfo()
+                    showToast(
+                        successToastItem.copy(
+                            message = buffer.operationResult?.message
+                                ?: getString(strings.operationSuccess)
+                        )
+                    )
+                } else {
+                    if (error != null) {
+                        onError(error)
                     }
                 }
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
-            }
-        }
-    }
-
-    fun onAddToCartClick(offer: OfferItem){
-        if (UserData.token != "") {
-            val bodyAddB = HashMap<String, JsonElement>()
-            bodyAddB["offer_id"] = JsonPrimitive(offer.id)
-            addOfferToBasket(
-                bodyAddB
-            ) { hm ->
-                showToast(
-                    successToastItem.copy(
-                        message = hm
-                    )
-                )
-            }
-        } else {
-            getMainTread {
-                component.goToLogin()
-            }
-        }
-    }
-
-    fun addOfferToBasket(body : HashMap<String, JsonElement>, onSuccess: (String) -> Unit) {
-        scope.launch {
-            val res = withContext(Dispatchers.IO) {
-                operationsMethods.postOperationFields(
-                    UserData.login,
-                    "add_item_to_cart",
-                    "users",
-                    body
-                )
-            }
-
-            val buffer = res.success
-            val error = res.error
-
-            if (buffer != null) {
-                updateUserInfo()
-                onSuccess(buffer.operationResult?.message ?: getString(strings.operationSuccess))
             } else {
-                if (error != null) {
-                    onError(error)
-                }
-            }
-        }
-    }
-
-    fun addToSubscriptions(offer: OfferItem, errorCallback: (String) -> Unit){
-        if (UserData.token != "") {
-            addNewSubscribe(
-                LD(),
-                SD().copy(
-                    userLogin = offer.seller.login,
-                    userID = offer.seller.id,
-                    userSearch = true
-                ),
-                onSuccess = {
-                    updateUserState(offer.seller.id)
-                },
-                errorCallback = { es ->
-                    errorCallback(es)
-                }
-            )
-        } else {
-            getMainTread {
                 component.goToLogin()
             }
         }
     }
 
     fun addNewSubscribe(
-        listingData : LD,
-        searchData : SD,
-        onSuccess: () -> Unit,
+        offer: OfferItem,
         errorCallback: (String) -> Unit
     ) {
-        scope.launch(Dispatchers.IO) {
-            val response = operationsMethods.getOperationFields(
-                UserData.login,
-                "create_subscription",
-                "users"
-            )
+        scope.launch {
+            if (UserData.token != "") {
+                val listingData = LD()
 
-            val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
-                "buyer_id" to UserData.login.toString(),
-            )
-            analyticsHelper.reportEvent("click_subscribe_query", eventParameters.toMap())
+                val searchData = SD().copy(
+                    userLogin = offer.seller.login,
+                    userID = offer.seller.id,
+                    userSearch = true
+                )
 
-            val body = HashMap<String, JsonElement>()
-            response.success?.fields?.forEach { field ->
-                when(field.key) {
-                    "category_id" -> {
-                        if (searchData.searchCategoryID != 1L) {
-                            body["category_id"] = JsonPrimitive(searchData.searchCategoryID)
-                            eventParameters.add("category_id" to searchData.searchCategoryID.toString())
-                        }
-                    }
-                    "offer_scope" -> {
-                        body["offer_scope"] = JsonPrimitive(1)
-                    }
-                    "search_query" -> {
-                        if(searchData.searchString != "") {
-                            body["search_query"] = JsonPrimitive(searchData.searchString)
-                            eventParameters.add("search_query" to searchData.searchString)
-                        }
-                    }
-                    "seller" -> {
-                        if(searchData.userSearch) {
-                            body["seller"] = JsonPrimitive(searchData.userLogin)
-                            eventParameters.add("seller" to searchData.userLogin.toString())
-                        }
-                    }
-                    "saletype" -> {
-                        when (listingData.filters.find { it.key == "sale_type" }?.value) {
-                            "buynow" -> {
-                                body["saletype"] = JsonPrimitive(0)
-                            }
-                            "auction" -> {
-                                body["saletype"] = JsonPrimitive(1)
+                val response = withContext(Dispatchers.IO) {
+                    operationsMethods.getOperationFields(
+                        UserData.login,
+                        "create_subscription",
+                        "users"
+                    )
+                }
+
+                val eventParameters: ArrayList<Pair<String, Any?>> = arrayListOf(
+                    "buyer_id" to UserData.login.toString(),
+                )
+                analyticsHelper.reportEvent("click_subscribe_query", eventParameters.toMap())
+
+                val body = HashMap<String, JsonElement>()
+                response.success?.fields?.forEach { field ->
+                    when (field.key) {
+                        "category_id" -> {
+                            if (searchData.searchCategoryID != 1L) {
+                                body["category_id"] = JsonPrimitive(searchData.searchCategoryID)
+                                eventParameters.add("category_id" to searchData.searchCategoryID.toString())
                             }
                         }
-                        eventParameters.add("saletype" to listingData.filters.find { it.key == "sale_type" }?.value.toString())
-                    }
-                    "region" -> {
-                        listingData.filters.find { it.key == "region" }?.value?.let {
-                            if (it != "") {
-                                body["region"] = JsonPrimitive(it)
-                                eventParameters.add("region" to it)
+
+                        "offer_scope" -> {
+                            body["offer_scope"] = JsonPrimitive(1)
+                        }
+
+                        "search_query" -> {
+                            if (searchData.searchString != "") {
+                                body["search_query"] = JsonPrimitive(searchData.searchString)
+                                eventParameters.add("search_query" to searchData.searchString)
                             }
                         }
-                    }
-                    "price_from" -> {
-                        listingData.filters.find { it.key == "current_price" && it.operation == "gte" }?.value?.let {
-                            if (it != "") {
-                                body["price_from"] = JsonPrimitive(it)
-                                eventParameters.add("price_from" to it)
+
+                        "seller" -> {
+                            if (searchData.userSearch) {
+                                body["seller"] = JsonPrimitive(searchData.userLogin)
+                                eventParameters.add("seller" to searchData.userLogin.toString())
                             }
                         }
-                    }
-                    "price_to" -> {
-                        listingData.filters.find { it.key == "current_price" && it.operation == "lte" }?.value?.let {
-                            if (it != "") {
-                                body["price_to"] = JsonPrimitive(it)
-                                eventParameters.add("price_to" to it)
+
+                        "saletype" -> {
+                            when (listingData.filters.find { it.key == "sale_type" }?.value) {
+                                "buynow" -> {
+                                    body["saletype"] = JsonPrimitive(0)
+                                }
+
+                                "auction" -> {
+                                    body["saletype"] = JsonPrimitive(1)
+                                }
+                            }
+                            eventParameters.add("saletype" to listingData.filters.find { it.key == "sale_type" }?.value.toString())
+                        }
+
+                        "region" -> {
+                            listingData.filters.find { it.key == "region" }?.value?.let {
+                                if (it != "") {
+                                    body["region"] = JsonPrimitive(it)
+                                    eventParameters.add("region" to it)
+                                }
                             }
                         }
-                    }
-                    else ->{
-                        if (field.data != null){
-                            body[field.key ?: ""] = field.data!!
+
+                        "price_from" -> {
+                            listingData.filters.find { it.key == "current_price" && it.operation == "gte" }?.value?.let {
+                                if (it != "") {
+                                    body["price_from"] = JsonPrimitive(it)
+                                    eventParameters.add("price_from" to it)
+                                }
+                            }
+                        }
+
+                        "price_to" -> {
+                            listingData.filters.find { it.key == "current_price" && it.operation == "lte" }?.value?.let {
+                                if (it != "") {
+                                    body["price_to"] = JsonPrimitive(it)
+                                    eventParameters.add("price_to" to it)
+                                }
+                            }
+                        }
+
+                        else -> {
+                            if (field.data != null) {
+                                body[field.key ?: ""] = field.data!!
+                            }
                         }
                     }
                 }
-            }
 
-            val res = operationsMethods.postOperationFields(
-                UserData.login,
-                "create_subscription",
-                "users",
-                body
-            )
+                val res = withContext(Dispatchers.IO) {
+                    operationsMethods.postOperationFields(
+                        UserData.login,
+                        "create_subscription",
+                        "users",
+                        body
+                    )
+                }
 
-            val buf = res.success
-            val err = res.error
-
-            withContext(Dispatchers.Main) {
+                val buf = res.success
+                val err = res.error
                 if (buf != null) {
                     showToast(
                         successToastItem.copy(
-                            message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
+                            message = res.success?.operationResult?.message
+                                ?: getString(strings.operationSuccess)
                         )
                     )
                     delay(1000)
-                    onSuccess()
-                }else {
+                    updateUserState(offer.seller.id)
+                } else {
                     errorCallback(err?.humanMessage ?: "")
                 }
+            } else {
+                component.goToLogin()
             }
         }
     }
@@ -747,6 +721,8 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun updateBidsInfo(item: OfferItem) {
-        viewModel.updateBidsInfo(viewModel.cabinetOfferRepository.offerState.value)
+        viewModel.getIoTread {
+            viewModel.updateBidsInfo(viewModel.cabinetOfferRepository.offerState.value)
+        }
     }
 }

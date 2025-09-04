@@ -53,8 +53,6 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getIoTread
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.core.utils.setNewParams
 import market.engine.fragments.base.CoreViewModel
@@ -103,210 +101,219 @@ class CabinetOfferRepository(
     
     val annotatedTitle = mutableStateOf<AnnotatedString?>(null)
 
-    val menuList = _operationsList.map { operations ->
-        operations.map { operation ->
-            MenuItem(
-                id = operation.id ?: "",
-                title = operation.name ?: "",
-                onClick = {
-                    operation.run {
-                        when {
-                            id == "copy_offer_without_old_photo" -> {
-                                events.goToCreateOffer(
-                                    CreateOfferType.COPY_WITHOUT_IMAGE,
-                                    offerState.value.catPath,
-                                    offerState.value.id,
-                                    offerState.value.externalImages
-                                )
-                            }
+    val menuList = _operationsList.let { list ->
+        list.map { operations ->
+            operations.map { operation ->
+                MenuItem(
+                    id = operation.id ?: "",
+                    title = operation.name ?: "",
+                    onClick = {
+                        core.scope.launch {
+                            operation.run {
+                                when {
+                                    id == "copy_offer_without_old_photo" -> {
+                                        events.goToCreateOffer(
+                                            CreateOfferType.COPY_WITHOUT_IMAGE,
+                                            offerState.value.catPath,
+                                            offerState.value.id,
+                                            offerState.value.externalImages
+                                        )
+                                    }
 
-                            id == "edit_offer" -> {
-                                events.goToCreateOffer(
-                                    CreateOfferType.EDIT,
-                                    offerState.value.catPath,
-                                    offerState.value.id,
-                                    offerState.value.externalImages
-                                )
-                            }
+                                    id == "edit_offer" -> {
+                                        events.goToCreateOffer(
+                                            CreateOfferType.EDIT,
+                                            offerState.value.catPath,
+                                            offerState.value.id,
+                                            offerState.value.externalImages
+                                        )
+                                    }
 
-                            id == "copy_offer" -> {
-                                events.goToCreateOffer(
-                                    CreateOfferType.COPY,
-                                    offerState.value.catPath,
-                                    offerState.value.id,
-                                    offerState.value.externalImages
-                                )
-                            }
+                                    id == "copy_offer" -> {
+                                        events.goToCreateOffer(
+                                            CreateOfferType.COPY,
+                                            offerState.value.catPath,
+                                            offerState.value.id,
+                                            offerState.value.externalImages
+                                        )
+                                    }
 
-                            id == "act_on_proposal" -> {
-                                events.goToProposalPage(
-                                    offerState.value.id, ProposalType.ACT_ON_PROPOSAL
-                                )
-                            }
+                                    id == "act_on_proposal" -> {
+                                        events.goToProposalPage(
+                                            offerState.value.id, ProposalType.ACT_ON_PROPOSAL
+                                        )
+                                    }
 
-                            id == "make_proposal" -> {
-                                events.goToProposalPage(
-                                    offerState.value.id, ProposalType.MAKE_PROPOSAL
-                                )
-                            }
+                                    id == "make_proposal" -> {
+                                        events.goToProposalPage(
+                                            offerState.value.id, ProposalType.MAKE_PROPOSAL
+                                        )
+                                    }
 
-                            id == "cancel_all_bids" -> {
-                                events.goToDynamicSettings(
-                                    "cancel_all_bids",
-                                    offerState.value.id
-                                )
-                            }
+                                    id == "cancel_all_bids" -> {
+                                        events.goToDynamicSettings(
+                                            "cancel_all_bids",
+                                            offerState.value.id
+                                        )
+                                    }
 
-                            id == "remove_bids_of_users" -> {
-                                events.goToDynamicSettings(
-                                    "remove_bids_of_users",
-                                    offerState.value.id
-                                )
-                            }
+                                    id == "remove_bids_of_users" -> {
+                                        events.goToDynamicSettings(
+                                            "remove_bids_of_users",
+                                            offerState.value.id
+                                        )
+                                    }
 
-                            !isDataless -> {
-                                core.getOperationFields(
-                                    offerState.value.id,
-                                    id ?: "",
-                                    "offers",
-                                )
-                                { t, f ->
-                                    var fields = f
-                                    when (id) {
-                                        "edit_offer_in_list", "add_to_list", "remove_from_list" -> {
-                                            getOffersList { list ->
-                                                when (id) {
-                                                    "add_to_list" -> {
-                                                        fields.firstOrNull()?.choices =
-                                                            buildList {
-                                                                list.filter {
-                                                                    !it.offers.contains(
-                                                                        offerState.value.id
-                                                                    )
-                                                                }.fastForEach { item ->
-                                                                    add(
+                                    !isDataless -> {
+                                        withContext(Dispatchers.IO) {
+                                            core.getOperationFields(
+                                                offerState.value.id,
+                                                id ?: "",
+                                                "offers",
+                                            )
+                                        }?.let { (t, f) ->
+                                            var fields = f
+
+                                            when (id) {
+                                                "edit_offer_in_list", "add_to_list", "remove_from_list" -> {
+                                                    withContext(Dispatchers.IO) {
+                                                        getOffersList()
+                                                    }?.
+                                                    let { list ->
+                                                        when (id) {
+                                                            "add_to_list" -> {
+                                                                fields.firstOrNull()?.choices =
+                                                                    buildList {
+                                                                        list.filter {
+                                                                            !it.offers.contains(
+                                                                                offerState.value.id
+                                                                            )
+                                                                        }.fastForEach { item ->
+                                                                            add(
+                                                                                Choices(
+                                                                                    code = JsonPrimitive(
+                                                                                        item.id
+                                                                                    ),
+                                                                                    name = item.title
+                                                                                )
+                                                                            )
+                                                                        }
+                                                                    }
+                                                            }
+
+                                                            "remove_from_list" -> {
+                                                                fields.firstOrNull()?.choices =
+                                                                    buildList {
+                                                                        list.filter {
+                                                                            it.offers.contains(
+                                                                                offerState.value.id
+                                                                            )
+                                                                        }.fastForEach { item ->
+                                                                            add(
+                                                                                Choices(
+                                                                                    code = JsonPrimitive(
+                                                                                        item.id
+                                                                                    ),
+                                                                                    name = item.title
+                                                                                )
+                                                                            )
+                                                                        }
+                                                                    }
+                                                            }
+
+                                                            "edit_offer_in_list" -> {
+                                                                val newField = Fields(
+                                                                    widgetType = "checkbox_group",
+                                                                    choices = list.map {
                                                                         Choices(
                                                                             code = JsonPrimitive(
-                                                                                item.id
+                                                                                it.id
                                                                             ),
-                                                                            name = item.title
+                                                                            name = it.title
                                                                         )
-                                                                    )
-                                                                }
-                                                            }
-                                                    }
-
-                                                    "remove_from_list" -> {
-                                                        fields.firstOrNull()?.choices =
-                                                            buildList {
-                                                                list.filter {
-                                                                    it.offers.contains(
-                                                                        offerState.value.id
-                                                                    )
-                                                                }.fastForEach { item ->
-                                                                    add(
-                                                                        Choices(
-                                                                            code = JsonPrimitive(
-                                                                                item.id
-                                                                            ),
-                                                                            name = item.title
-                                                                        )
-                                                                    )
-                                                                }
-                                                            }
-                                                    }
-
-                                                    "edit_offer_in_list" -> {
-                                                        val newField = Fields(
-                                                            widgetType = "checkbox_group",
-                                                            choices = list.map {
-                                                                Choices(
-                                                                    code = JsonPrimitive(
-                                                                        it.id
-                                                                    ),
-                                                                    name = it.title
+                                                                    },
+                                                                    data = fields.firstOrNull()?.data,
+                                                                    key = fields.firstOrNull()?.key,
+                                                                    errors = fields.firstOrNull()?.errors,
+                                                                    shortDescription = fields.firstOrNull()?.shortDescription,
+                                                                    longDescription = fields.firstOrNull()?.longDescription,
+                                                                    validators = fields.firstOrNull()?.validators,
                                                                 )
-                                                            },
-                                                            data = fields.firstOrNull()?.data,
-                                                            key = fields.firstOrNull()?.key,
-                                                            errors = fields.firstOrNull()?.errors,
-                                                            shortDescription = fields.firstOrNull()?.shortDescription,
-                                                            longDescription = fields.firstOrNull()?.longDescription,
-                                                            validators = fields.firstOrNull()?.validators,
-                                                        )
-                                                        fields.fastForEach {
-                                                            if (it.widgetType == "input") {
-                                                                it.widgetType = "hidden"
+                                                                fields.fastForEach {
+                                                                    if (it.widgetType == "input") {
+                                                                        it.widgetType = "hidden"
+                                                                    }
+                                                                }
+                                                                fields = buildList {
+                                                                    addAll(fields)
+                                                                    remove(newField)
+                                                                    add(newField)
+                                                                }
                                                             }
                                                         }
-                                                        fields = buildList {
-                                                            addAll(fields)
-                                                            remove(newField)
-                                                            add(newField)
-                                                        }
+
+                                                        _customDialogState.value =
+                                                            CustomDialogState(
+                                                                title = t,
+                                                                fields = fields,
+                                                                typeDialog = id,
+                                                            )
                                                     }
                                                 }
 
-                                                _customDialogState.value =
-                                                    CustomDialogState(
-                                                        title = t,
-                                                        fields = fields,
-                                                        typeDialog = id,
-                                                    )
+                                                else -> {
+                                                    _customDialogState.value =
+                                                        CustomDialogState(
+                                                            title = t,
+                                                            fields = fields,
+                                                            typeDialog = id ?: ""
+                                                        )
+                                                }
                                             }
-                                        }
-
-                                        else -> {
-                                            _customDialogState.value =
-                                                CustomDialogState(
-                                                    title = t,
-                                                    fields = fields,
-                                                    typeDialog = id ?: ""
-                                                )
                                         }
                                     }
-                                }
-                            }
+                                    else -> {
+                                        withContext(Dispatchers.IO) {
+                                            core.postOperationFields(
+                                                offerState.value.id,
+                                                id ?: "",
+                                                "offers",
+                                                errorCallback = {}
+                                            )
 
-                            else -> {
-                                core.getIoTread {
-                                    core.postOperationFields(
-                                        offerState.value.id,
-                                        id ?: "",
-                                        "offers",
-                                        onSuccess = {
-                                            val eventParameters = mapOf(
-                                                "lot_id" to offerState.value.id,
-                                                "lot_name" to offerState.value.title,
-                                                "lot_city" to offerState.value.location,
-                                                "auc_delivery" to offerState.value.safeDeal,
-                                                "lot_category" to offerState.value.catPath.firstOrNull(),
-                                                "seller_id" to offerState.value.seller.id,
-                                                "lot_price_start" to offerState.value.price,
-                                            )
-                                            core.analyticsHelper.reportEvent(
-                                                "${id}_success",
-                                                eventParameters
-                                            )
-                                            when (operation.id) {
-                                                "watch", "unwatch", "create_blank_offer_list" -> {}
-                                                else -> {
-                                                    refreshOffer()
-                                                }
+                                            core.updateUserInfo()
+                                        }
+
+                                        val eventParameters = mapOf(
+                                            "lot_id" to offerState.value.id,
+                                            "lot_name" to offerState.value.title,
+                                            "lot_city" to offerState.value.location,
+                                            "auc_delivery" to offerState.value.safeDeal,
+                                            "lot_category" to offerState.value.catPath.firstOrNull(),
+                                            "seller_id" to offerState.value.seller.id,
+                                            "lot_price_start" to offerState.value.price,
+                                        )
+
+                                        core.analyticsHelper.reportEvent(
+                                            "${id}_success",
+                                            eventParameters
+                                        )
+
+                                        when (operation.id) {
+                                            "watch", "unwatch", "create_blank_offer_list" -> {}
+                                            else -> {
+                                                refreshOffer()
                                             }
-                                            updateItem()
-                                            core.getIoTread {
-                                                core.updateUserInfo()
-                                            }
-                                        },
-                                        errorCallback = {}
-                                    )
+                                        }
+
+                                        updateItem()
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
         }
     }.stateIn(
         core.scope,
@@ -321,28 +328,31 @@ class CabinetOfferRepository(
                 id = operation.id ?: "",
                 title = "${(operation.name ?: "")} (${operation.price * -1}$currency)",
                 onClick = {
-                    core.getOperationFields(
-                        offerState.value.id,
-                        operation.id ?: "",
-                        "offers"
-                    )
-                    { t, f ->
-                        annotatedTitle.value = buildAnnotatedString {
-                            append(t)
-                            withStyle(
-                                SpanStyle(
-                                    color = colors.notifyTextColor,
-                                )
-                            ) {
-                                append(" ${operation.price}$currency")
+                    core.scope.launch {
+                        withContext(Dispatchers.IO) {
+                            core.getOperationFields(
+                                offerState.value.id,
+                                operation.id ?: "",
+                                "offers"
+                            )
+                        }?.let { (t, f) ->
+                            annotatedTitle.value = buildAnnotatedString {
+                                append(t)
+                                withStyle(
+                                    SpanStyle(
+                                        color = colors.notifyTextColor,
+                                    )
+                                ) {
+                                    append(" ${operation.price}$currency")
+                                }
                             }
-                        }
 
-                        _customDialogState.value = CustomDialogState(
-                            title = "",
-                            fields = f,
-                            typeDialog = operation.id ?: "",
-                        )
+                            _customDialogState.value = CustomDialogState(
+                                title = "",
+                                fields = f,
+                                typeDialog = operation.id ?: "",
+                            )
+                        }
                     }
                 }
             )
@@ -417,32 +427,30 @@ class CabinetOfferRepository(
     }
 
     fun updateItem() {
-        updateOperations()
         if(listingData.data.methodServer.isNotBlank()) {
             core.scope.launch {
                 val buf = withContext(Dispatchers.IO) {
+                    updateOperations()
                     getItem()
                 }
 
-                withContext(Dispatchers.Main) {
-                    if (buf != null) {
-                        _offerState.update {
-                            it.copy().setNewParams(buf)
-                        }
-                    } else {
-                        _offerState.update {
-                            it.copy(
-                                session = null
-                            )
-                        }
+                if (buf != null) {
+                    _offerState.update {
+                        it.copy().setNewParams(buf)
+                    }
+                } else {
+                    _offerState.update {
+                        it.copy(
+                            session = null
+                        )
                     }
                 }
             }
         }
     }
 
-    fun updateOperations(){
-        core.scope.launch {
+    suspend fun updateOperations(){
+        withContext(Dispatchers.IO) {
             getOfferOperations(
                 offerState.value.id
             ) { list ->
@@ -460,123 +468,122 @@ class CabinetOfferRepository(
     }
 
     fun makeOperations(){
-        var method = "offers"
-        var idMethod =
-            offerState.value.id
+        core.scope.launch {
+            var method = "offers"
+            var idMethod =
+                offerState.value.id
 
-        val body = HashMap<String, JsonElement>()
-        val fields = customDialogState.value.fields
-        val id = customDialogState.value.typeDialog
+            val body = HashMap<String, JsonElement>()
+            val fields = customDialogState.value.fields
+            val id = customDialogState.value.typeDialog
 
-        when(id){
-            "send_message" -> {
-                writeToSeller(
-                    offerState.value.id, messageText.value,
-                ) {
-                    events.goToDialog(it)
-                    clearDialogFields()
-                }
-            }
-            "add_bid" -> {
-                addBid(
-                    myMaximalBid.value,
-                    offerState.value,
-                    onSuccess = {
-                        events.updateBidsInfo(offerState.value)
-                        events.scrollToBids()
-                        clearDialogFields()
-                    },
-                    onDismiss = {
+            when (id) {
+                "send_message" -> {
+                    writeToSeller(
+                        offerState.value.id, messageText.value,
+                    ) {
+                        events.goToDialog(it)
                         clearDialogFields()
                     }
-                )
-            }
-            "buy_now" -> {
-                buyNowSuccessDialog(valuesPickerState.value.toIntOrNull() ?: 1)
-            }
-            else -> {
-                when(id){
-                    "edit_offer_in_list" -> {
-                        val addList =
-                            customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
-                        val removeList =
-                            buildJsonArray {
-                                fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
-                                    !addList.toString()
-                                        .contains(
-                                            it.code.toString()
-                                        )
-                                }
-                                    ?.map { it.code }
-                                    ?.fastForEach {
-                                        if (it != null) {
-                                            add(it)
-                                        }
-                                    }
-                            }
-                        _customDialogState.update { dialog ->
-                            dialog.copy(
-                                fields = buildList {
-                                    addAll(
-                                        fields.map { field ->
-                                            when (field.key) {
-                                                "offers_list_ids_add" -> {
-                                                    field.copy(
-                                                        data = addList
-                                                    )
-                                                }
-
-                                                "offers_list_ids_remove" -> {
-                                                    field.copy(
-                                                        data = removeList
-                                                    )
-                                                }
-
-                                                else -> {
-                                                    field.copy()
-                                                }
-                                            }
-                                        })
-                                    remove(
-                                        fields.find { it.widgetType == "checkbox_group" })
-                                }
-                            )
-                        }
-                    }
-
-                    "create_blank_offer_list" -> {
-                        idMethod =
-                            UserData.login
-                        method = "users"
-                    }
                 }
 
-                customDialogState.value.fields.forEach {
-                    if (it.data != null) {
-                        body[it.key ?: ""] =
-                            it.data!!
-                    }
-                }
-                core.getIoTread {
-                    core.postOperationFields(
-                        idMethod,
-                        id,
-                        method,
-                        body = body,
-                        onSuccess = {
-                            refreshOffer()
-                            clearDialogFields()
-                        },
-                        errorCallback = { errFields ->
-                            if (errFields != null) {
-                                _customDialogState.update {
-                                    it.copy(
-                                        fields = errFields
-                                    )
-                                }
-                            }
-                        }
+                "add_bid" -> {
+                    addBid(
+                        myMaximalBid.value,
+                        offerState.value
                     )
+                }
+
+                "buy_now" -> {
+                    buyNowSuccessDialog(valuesPickerState.value.toIntOrNull() ?: 1)
+                }
+
+                else -> {
+                    when (id) {
+                        "edit_offer_in_list" -> {
+                            val addList =
+                                customDialogState.value.fields.find { it.widgetType == "checkbox_group" }?.data
+                            val removeList =
+                                buildJsonArray {
+                                    fields.find { it.widgetType == "checkbox_group" }?.choices?.filter {
+                                        !addList.toString()
+                                            .contains(
+                                                it.code.toString()
+                                            )
+                                    }
+                                        ?.map { it.code }
+                                        ?.fastForEach {
+                                            if (it != null) {
+                                                add(it)
+                                            }
+                                        }
+                                }
+                            _customDialogState.update { dialog ->
+                                dialog.copy(
+                                    fields = buildList {
+                                        addAll(
+                                            fields.map { field ->
+                                                when (field.key) {
+                                                    "offers_list_ids_add" -> {
+                                                        field.copy(
+                                                            data = addList
+                                                        )
+                                                    }
+
+                                                    "offers_list_ids_remove" -> {
+                                                        field.copy(
+                                                            data = removeList
+                                                        )
+                                                    }
+
+                                                    else -> {
+                                                        field.copy()
+                                                    }
+                                                }
+                                            })
+                                        remove(
+                                            fields.find { it.widgetType == "checkbox_group" })
+                                    }
+                                )
+                            }
+                        }
+
+                        "create_blank_offer_list" -> {
+                            idMethod =
+                                UserData.login
+                            method = "users"
+                        }
+                    }
+
+                    customDialogState.value.fields.forEach {
+                        if (it.data != null) {
+                            body[it.key ?: ""] =
+                                it.data!!
+                        }
+                    }
+
+                    val res = withContext(Dispatchers.IO) {
+                        core.postOperationFields(
+                            idMethod,
+                            id,
+                            method,
+                            body = body,
+                            errorCallback = { errFields ->
+                                if (errFields != null) {
+                                    _customDialogState.update {
+                                        it.copy(
+                                            fields = errFields
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+
+                    if (res) {
+                        refreshOffer()
+                        clearDialogFields()
+                    }
                 }
             }
         }
@@ -586,74 +593,68 @@ class CabinetOfferRepository(
         _customDialogState.value = CustomDialogState()
     }
 
-    private fun addBid(
+    private suspend fun addBid(
         sum: String,
-        offer: OfferItem,
-        onSuccess: () -> Unit,
-        onDismiss: () -> Unit
+        offer: OfferItem
     ) {
-        core.scope.launch {
-            val res = withContext(Dispatchers.IO) {
-                core.operationsMethods.postOperationAdditionalData(
-                    offer.id,
-                    "add_bid",
-                    "offers",
-                    hashMapOf("price" to JsonPrimitive(sum))
+        val res = withContext(Dispatchers.IO) {
+            core.operationsMethods.postOperationAdditionalData(
+                offer.id,
+                "add_bid",
+                "offers",
+                hashMapOf("price" to JsonPrimitive(sum))
+            )
+        }
+
+        val buf = res.success
+        val error = res.error
+
+        withContext(Dispatchers.Main) {
+            if (buf != null) {
+                core.showToast(
+                    successToastItem.copy(
+                        message = buf.operationResult?.result ?: getString(strings.operationSuccess)
+                    )
                 )
-            }
-
-            val buf = res.success
-            val error = res.error
-
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    core.showToast(
-                        successToastItem.copy(
-                            message = buf.operationResult?.result ?: getString(strings.operationSuccess)
-                        )
-                    )
-                    val eventParameters = mapOf(
-                        "lot_id" to offer.id,
-                        "lot_name" to offer.title,
-                        "lot_city" to offer.location,
-                        "auc_delivery" to offer.safeDeal,
-                        "lot_category" to offer.catPath.firstOrNull(),
-                        "seller_id" to offer.seller.id,
-                        "lot_price_start" to offer.price,
-                        "buyer_id" to UserData.login,
-                        "bid_amount" to sum,
-                        "bids_all" to offer.bids?.size
-                    )
-                    core.analyticsHelper.reportEvent(
-                        "bid_made",
-                        eventParameters
-                    )
-                    onSuccess()
-                    onDismiss()
-                } else {
-                    error?.let {  core.onError(it) }
-                    onDismiss()
-                }
+                val eventParameters = mapOf(
+                    "lot_id" to offer.id,
+                    "lot_name" to offer.title,
+                    "lot_city" to offer.location,
+                    "auc_delivery" to offer.safeDeal,
+                    "lot_category" to offer.catPath.firstOrNull(),
+                    "seller_id" to offer.seller.id,
+                    "lot_price_start" to offer.price,
+                    "buyer_id" to UserData.login,
+                    "bid_amount" to sum,
+                    "bids_all" to offer.bids?.size
+                )
+                core.analyticsHelper.reportEvent(
+                    "bid_made",
+                    eventParameters
+                )
+                events.updateBidsInfo(offerState.value)
+                events.scrollToBids()
+                clearDialogFields()
+            } else {
+                error?.let { core.onError(it) }
+                clearDialogFields()
             }
         }
     }
 
-    fun getOffersList(onSuccess: (List<FavoriteListItem>) -> Unit) {
+    suspend fun getOffersList() : List<FavoriteListItem>? {
         val offersListOperations = OffersListOperations( core.apiService)
-        core.scope.launch {
-            val data = withContext(Dispatchers.IO) { offersListOperations.getOffersList() }
+        val data = withContext(Dispatchers.IO) { offersListOperations.getOffersList() }
 
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                if (res != null) {
-                    val buf = arrayListOf<FavoriteListItem>()
-                    buf.addAll(res)
-                    onSuccess(res)
-                }else{
-                    if (data.error != null)
-                        core.onError(data.error!!)
-                }
-            }
+        val res = data.success
+        return if (res != null) {
+            val buf = arrayListOf<FavoriteListItem>()
+            buf.addAll(res)
+            res
+        }else{
+            if (data.error != null)
+                core.onError(data.error!!)
+            null
         }
     }
 
@@ -663,79 +664,81 @@ class CabinetOfferRepository(
                 val sellerLabel = getString(strings.sellerLabel)
                 val conversationTitle = getString(strings.createConversationLabel)
                 val aboutOrder = getString(strings.aboutOfferLabel)
-                core.postOperationAdditionalData(
-                    offerState.value.id,
-                    "checking_conversation_existence",
-                    "offers",
-                    onSuccess = { body ->
-                        val dialogId = body?.operationResult?.additionalData?.conversationId
-                        if (dialogId != null) {
-                            events.goToDialog(dialogId)
-                        } else {
-                            val userName = offerState.value.seller.login ?: sellerLabel
-                            annotatedTitle.value = buildAnnotatedString {
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.grayText,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                ) {
-                                    append(
-                                        conversationTitle
-                                    )
-                                }
-
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.actionTextColor,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                ) {
-                                    append(" $userName ")
-                                }
-
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.grayText,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                ) {
-                                    append(aboutOrder)
-                                }
-
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.titleTextColor,
-                                    )
-                                ) {
-                                    append(" #${offerState.value.id}")
-                                }
-                            }
-                            
-                            _customDialogState.value = CustomDialogState(
-                                title = "",
-                                fields = emptyList(),
-                                typeDialog = "send_message",
-                            )
-                        }
-                    }
-                )
-            } else {
-                core.getMainTread {
-                    goToLogin()
+                val res = withContext(Dispatchers.IO) {
+                    core.postOperationAdditionalData(
+                        offerState.value.id,
+                        "checking_conversation_existence",
+                        "offers",
+                    )
                 }
+                if (res != null){
+                    val dialogId = res.operationResult?.additionalData?.conversationId
+                    if (dialogId != null) {
+                        events.goToDialog(dialogId)
+                    } else {
+                        val userName = offerState.value.seller.login ?: sellerLabel
+                        annotatedTitle.value = buildAnnotatedString {
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.grayText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(
+                                    conversationTitle
+                                )
+                            }
+
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.actionTextColor,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(" $userName ")
+                            }
+
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.grayText,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(aboutOrder)
+                            }
+
+                            withStyle(
+                                SpanStyle(
+                                    color = colors.titleTextColor,
+                                )
+                            ) {
+                                append(" #${offerState.value.id}")
+                            }
+                        }
+
+                        _customDialogState.value = CustomDialogState(
+                            title = "",
+                            fields = emptyList(),
+                            typeDialog = "send_message",
+                        )
+                    }
+                }
+            } else {
+                goToLogin()
             }
         }
     }
 
     fun writeToSeller(offerId : Long, messageText : String, onSuccess: (Long?) -> Unit){
-        core.scope.launch(Dispatchers.IO) {
-            val res = core.operationsMethods.postOperationAdditionalData(
-                offerId,
-                "write_to_seller",
-                "offers",
-                hashMapOf("message" to JsonPrimitive(messageText))
-            )
+        core.scope.launch {
+            val res = withContext(Dispatchers.IO){
+                core.operationsMethods.postOperationAdditionalData(
+                    offerId,
+                    "write_to_seller",
+                    "offers",
+                    hashMapOf("message" to JsonPrimitive(messageText))
+                )
+            }
             val buffer1 = res.success
             val error = res.error
             withContext(Dispatchers.Main) {
@@ -798,13 +801,10 @@ class CabinetOfferRepository(
                 _customDialogState.value = CustomDialogState(
                     typeDialog = "add_bid",
                     title = conversationTitle,
-
                 )
             }
         } else {
-            core.getMainTread {
-                goToLogin()
-            }
+            goToLogin()
         }
     }
     fun buyNowSuccessDialog(valuesPicker: Int){
@@ -840,9 +840,7 @@ class CabinetOfferRepository(
                 events.goToCreateOrder(item)
             }
         } else {
-            core.getMainTread {
-                goToLogin()
-            }
+            goToLogin()
         }
     }
 
@@ -894,12 +892,16 @@ class CabinetOfferRepository(
                         id = "create_blank_offer_list",
                         title = stringResource(strings.createNewOffersListLabel),
                         onClick = {
-                            getFieldsCreateBlankOfferList { t, f ->
-                                _customDialogState.value = CustomDialogState(
-                                    title = t,
-                                    fields = f,
-                                    typeDialog = "create_blank_offer_list",
-                                )
+                            core.scope.launch {
+                                withContext(Dispatchers.IO){
+                                    getFieldsCreateBlankOfferList()
+                                }?.let { (t, f) ->
+                                    _customDialogState.value = CustomDialogState(
+                                        title = t,
+                                        fields = f,
+                                        typeDialog = "create_blank_offer_list",
+                                    )
+                                }
                             }
                         },
                         icon = drawables.addFolderIcon,
@@ -909,23 +911,19 @@ class CabinetOfferRepository(
         }
     }
 
-    fun getFieldsCreateBlankOfferList(onSuccess: (title: String, List<Fields>) -> Unit){
-        core.scope.launch {
-            val data = withContext(Dispatchers.IO) {
-                core.operationsMethods.getOperationFields(
-                    UserData.login,
-                    "create_blank_offer_list",
-                    "users"
-                )
-            }
-
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                if (!res?.fields.isNullOrEmpty()){
-                    onSuccess(res.description?:"", res.fields)
-                }
-            }
+    suspend fun getFieldsCreateBlankOfferList(): Pair<String, List<Fields>>? {
+        val data = withContext(Dispatchers.IO) {
+            core.operationsMethods.getOperationFields(
+                UserData.login,
+                "create_blank_offer_list",
+                "users"
+            )
         }
+
+        val res = data.success
+        return if (!res?.fields.isNullOrEmpty()) {
+            Pair(res.description ?: "", res.fields)
+        } else null
     }
 
     fun getAppBarOfferList(): List<NavigationItem> {

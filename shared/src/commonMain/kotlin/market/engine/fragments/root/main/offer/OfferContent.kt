@@ -634,7 +634,7 @@ fun OfferContent(
                                             offerRepository.buyNowClick()
                                         },
                                         onAddToCartClick = {
-                                            viewModel.onAddToCartClick(offer)
+                                            viewModel.addOfferToBasket(offer)
                                         },
                                         onSaleClick = {
                                             component.goToCreateOffer(
@@ -748,7 +748,7 @@ fun OfferContent(
                                                 component.goToUser(offer.seller.id, true)
                                             },
                                             addToSubscriptions = { callBack ->
-                                                viewModel.addToSubscriptions(offer) { es ->
+                                                viewModel.addNewSubscribe(offer) { es ->
                                                     callBack(es)
                                                 }
                                             },

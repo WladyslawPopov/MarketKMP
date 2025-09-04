@@ -316,11 +316,17 @@ class ListingViewModel(
             scope.launch {
                 val opId = if (offer.isWatchedByMe) "unwatch" else "watch"
 
-                postOperationFields(
-                    offer.id,
-                    opId,
-                    "offers",
-                    onSuccess = {
+                withContext(Dispatchers.IO) {
+                    postOperationFields(
+                        offer.id,
+                        opId,
+                        "offers",
+                        errorCallback = {
+                            onSuccess(offer.isWatchedByMe)
+                        }
+                    )
+                }.let { success ->
+                    if (success) {
                         val eventParameters = mapOf(
                             "lot_id" to offer.id,
                             "lot_name" to offer.title,
@@ -338,11 +344,8 @@ class ListingViewModel(
                             updateUserInfo()
                         }
                         onSuccess(!offer.isWatchedByMe)
-                    },
-                    errorCallback = {
-                        onSuccess(offer.isWatchedByMe)
                     }
-                )
+                }
             }
         }else{
             goToLogin()

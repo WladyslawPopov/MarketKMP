@@ -143,29 +143,25 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
-    fun getOperationFields(
+    suspend fun getOperationFields(
         id: Long,
         type: String,
-        method: String,
-        onSuccess: (title: String, List<Fields>) -> Unit
-    )
+        method: String
+    ): Pair<String, List<Fields>>?
     {
-        scope.launch {
-            val data = withContext(Dispatchers.IO) {
-                operationsMethods.getOperationFields(id, type, method)
-            }
+        val data = withContext(Dispatchers.IO) {
+            operationsMethods.getOperationFields(id, type, method)
+        }
 
-            withContext(Dispatchers.Main) {
-                val res = data.success
-                val error = data.error
+        val res = data.success
+        val error = data.error
 
-                if (!res?.fields.isNullOrEmpty()){
-                    onSuccess(res.description?:"", res.fields)
-                }else{
-                    if (error != null)
-                        onError(error)
-                }
-            }
+        return if (!res?.fields.isNullOrEmpty()){
+            Pair(res.description?:"", res.fields)
+        }else{
+            if (error != null)
+                onError(error)
+            null
         }
     }
 
@@ -174,9 +170,8 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         type: String,
         method: String,
         body: HashMap<String, JsonElement> = hashMapOf(),
-        onSuccess: () -> Unit,
-        errorCallback: (List<Fields>?) -> Unit
-    ) {
+        errorCallback: (List<Fields>?) -> Unit = {}
+    ) : Boolean {
         setLoading(true)
         val data = withContext(Dispatchers.IO) {
             operationsMethods.postOperationFields(
@@ -186,56 +181,59 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 body
             )
         }
-        withContext(Dispatchers.Main) {
-            val res = data.success
-            val error = data.error
 
-            setLoading(false)
-            if (res != null) {
-                if (res.operationResult?.result == "ok") {
-                    showToast(
-                        successToastItem.copy(
-                            message = getString(
-                                strings.operationSuccess
-                            )
-                        )
-                    )
-                    analyticsHelper.reportEvent(
-                        "${type}_success",
-                        eventParameters = mapOf(
-                            "id" to id,
-                        )
-                    )
+        val res = data.success
+        val error = data.error
 
-                    onSuccess()
-                } else {
-                    analyticsHelper.reportEvent(
-                        "${type}_error",
-                        eventParameters = mapOf(
-                            "id" to id,
-                            "body" to body.toString()
+        setLoading(false)
+        return if (res != null) {
+            if (res.operationResult?.result == "ok") {
+                showToast(
+                    successToastItem.copy(
+                        message = getString(
+                            strings.operationSuccess
                         )
                     )
-                    showToast(
-                        errorToastItem.copy(
-                            message = getString(
-                                strings.operationFailed
-                            )
-                        )
+                )
+                analyticsHelper.reportEvent(
+                    "${type}_success",
+                    eventParameters = mapOf(
+                        "id" to id,
                     )
+                )
 
-                    errorCallback(res.recipe?.fields ?: res.fields)
-                }
+                true
             } else {
-                if (error != null)
-                    onError(error)
+                analyticsHelper.reportEvent(
+                    "${type}_error",
+                    eventParameters = mapOf(
+                        "id" to id,
+                        "body" to body.toString()
+                    )
+                )
+                showToast(
+                    errorToastItem.copy(
+                        message = getString(
+                            strings.operationFailed
+                        )
+                    )
+                )
+
+                errorCallback(res.recipe?.fields ?: res.fields)
+
+                false
             }
+        } else {
+            if (error != null)
+                onError(error)
+
+            false
         }
     }
 
     suspend fun updateUserInfo() {
         try {
-            withContext(Dispatchers.Unconfined) {
+            withContext(Dispatchers.IO) {
                 userRepository.updateToken()
                 userRepository.updateUserInfo()
             }
@@ -302,8 +300,7 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         type: String,
         method: String,
         body: HashMap<String, JsonElement> = hashMapOf(),
-        onSuccess: (PayloadExistence<AdditionalData>?) -> Unit
-    ) {
+    ) : PayloadExistence<AdditionalData>? {
         val data = withContext(Dispatchers.IO) {
             operationsMethods.postOperationAdditionalData(
                 id,
@@ -312,29 +309,31 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 body
             )
         }
-        withContext(Dispatchers.Main) {
-            val res = data.success
-            val error = data.error
-            if (res != null) {
-                if (res.operationResult?.result != null) {
-                    showToast(
-                        successToastItem.copy(
-                            message = res.operationResult.result!!
-                        )
-                    )
-                }
-                analyticsHelper.reportEvent(
-                    type,
-                    eventParameters = mapOf(
-                        "id" to id,
+
+        val res = data.success
+        val error = data.error
+
+        if (res != null) {
+            if (res.operationResult?.result != null) {
+                showToast(
+                    successToastItem.copy(
+                        message = res.operationResult.result!!
                     )
                 )
-
-                onSuccess(res)
-            } else {
-                if (error != null)
-                    onError(error)
             }
+            analyticsHelper.reportEvent(
+                type,
+                eventParameters = mapOf(
+                    "id" to id,
+                )
+            )
+
+            return res
+        } else {
+            if (error != null)
+                onError(error)
+
+            return null
         }
     }
 

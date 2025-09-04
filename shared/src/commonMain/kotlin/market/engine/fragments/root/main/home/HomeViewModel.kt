@@ -36,7 +36,6 @@ import market.engine.core.data.items.SimpleAppBarData
 import market.engine.core.data.types.PlatformWindowType
 import market.engine.core.network.networkObjects.Category
 import market.engine.core.repositories.NotificationsRepository
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
@@ -128,9 +127,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                         icon = drawables.currencyIcon,
                         tint = colors.titleTextColor,
                         onClick = {
-                            getMainTread {
-                                component.goToMyProposals()
-                            }
+                            component.goToMyProposals()
                         }
                     ),
                     NavigationItem(
@@ -142,9 +139,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                         icon = drawables.mail,
                         tint = colors.brightBlue,
                         onClick = {
-                            getMainTread {
-                                component.goToMessenger()
-                            }
+                            component.goToMessenger()
                         }
                     ),
                     NavigationItem(
@@ -155,9 +150,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                         icon = drawables.notification,
                         tint = colors.titleTextColor,
                         onClick = {
-                            getMainTread {
-                                component.goToNotificationHistory()
-                            }
+                            component.goToNotificationHistory()
                         }
                     ),
                 )
@@ -219,9 +212,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.contactUsIcon,
                     tint = colors.black,
                     onClick = {
-                        getMainTread {
-                            component.goToContactUs()
-                        }
+                        component.goToContactUs()
                     }
                 ),
                 NavigationItem(
@@ -255,9 +246,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
                     icon = drawables.settingsIcon,
                     tint = colors.black,
                     onClick = {
-                        getMainTread {
-                            component.goToAppSettings()
-                        }
+                        component.goToAppSettings()
                     }
                 )
             )
@@ -307,13 +296,12 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         val listSerializer = ListSerializer(Category.serializer())
         val lifetime = 30.days
         val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-        val categories = cacheRepository.get(cacheKey, listSerializer)
-            ?: run {
-                val buf =
-                    getCategories(listingData = LD(), searchData = SD(), withoutCounter = true)
-                cacheRepository.put(cacheKey, buf, expirationTimestamp, listSerializer)
-                buf
-            }
+        var categories = cacheRepository.get(cacheKey, listSerializer)
+
+        if(categories == null || categories.isEmpty()){
+            categories = getCategories(listingData = LD(), searchData = SD(), withoutCounter = true)
+            cacheRepository.put(cacheKey, categories, expirationTimestamp, listSerializer)
+        }
 
         _responseCategory.value = categories
     }
@@ -324,19 +312,20 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
 
             val cacheKey = "home_page_${page}_${ipp}"
             val listSerializer = ListSerializer(OfferItem.serializer())
-            val offers = cacheRepository.get(cacheKey, listSerializer) ?: run {
+            var offers = cacheRepository.get(cacheKey, listSerializer)
+
+            if(offers == null || offers.isEmpty()) {
                 val response = withContext(Dispatchers.IO) {
                     apiService.getOffersPromotedOnMainPage(page, ipp)
                 }
                 val serializer = Payload.serializer(Offer.serializer())
                 val payload: Payload<Offer> = deserializePayload(response.payload, serializer)
-                val newOffers = payload.objects.map { it.parseToOfferItem() }
+                offers = payload.objects.map { it.parseToOfferItem() }
 
                 val lifetime = 1.days
                 val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
 
-                cacheRepository.put(cacheKey, newOffers, expirationTimestamp, listSerializer)
-                newOffers
+                cacheRepository.put(cacheKey, offers, expirationTimestamp, listSerializer)
             }
 
             when (page) {
@@ -353,8 +342,8 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     }
 
     fun goToAllPromo() {
-        ld.data.filters = ListingFilters.getEmpty()
-        getMainTread {
+        scope.launch {
+            ld.data.filters = ListingFilters.getEmpty()
             val allPromo = getString(strings.allPromoOffersBtn)
 
             ld.data.filters.find { filter ->

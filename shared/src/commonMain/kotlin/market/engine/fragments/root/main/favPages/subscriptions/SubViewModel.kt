@@ -188,30 +188,30 @@ class SubViewModel(component: SubscriptionsComponent, savedStateHandle: SavedSta
         scope.launch {
             val ops = getString(strings.operationSuccess)
 
-            postOperationFields(
-                subId,
-                "delete_subscription",
-                "subscriptions",
-                onSuccess = {
-                    val eventParameters = mapOf(
-                        "buyer_id" to UserData.login,
-                        "item_id" to subId
-                    )
-                    analyticsHelper.reportEvent(
-                        "delete_subscription",
-                        eventParameters
-                    )
-                    showToast(
-                        successToastItem.copy(
-                            message = ops
-                        )
-                    )
-                    setUpdateItem(subId)
-                },
-                errorCallback = {
+            withContext(Dispatchers.IO) {
+                postOperationFields(
+                    subId,
+                    "delete_subscription",
+                    "subscriptions"
+                )
+            }.let { success ->
+                if (!success) return@let
 
-                }
-            )
+                val eventParameters = mapOf(
+                    "buyer_id" to UserData.login,
+                    "item_id" to subId
+                )
+                analyticsHelper.reportEvent(
+                    "delete_subscription",
+                    eventParameters
+                )
+                showToast(
+                    successToastItem.copy(
+                        message = ops
+                    )
+                )
+                setUpdateItem(subId)
+            }
 
             deleteId.value = 1L
         }
@@ -288,26 +288,26 @@ data class SubItemEventsImpl(
 
                                     else -> {
                                         viewModel.scope.launch {
-                                            viewModel.postOperationFields(
-                                                sub.id,
-                                                operation.id ?: "",
-                                                "subscriptions",
-                                                onSuccess = {
-                                                    val eventParameters = mapOf(
-                                                        "buyer_id" to UserData.login,
-                                                        "item_id" to sub.id
-                                                    )
-                                                    viewModel.analyticsHelper.reportEvent(
-                                                        "delete_subscription",
-                                                        eventParameters
-                                                    )
+                                            withContext(Dispatchers.IO){
+                                                viewModel.postOperationFields(
+                                                    sub.id,
+                                                    operation.id ?: "",
+                                                    "subscriptions"
+                                                )
+                                            }.let { success ->
+                                                if (!success) return@let
 
-                                                    viewModel.setUpdateItem(sub.id)
-                                                },
-                                                errorCallback = {
+                                                val eventParameters = mapOf(
+                                                    "buyer_id" to UserData.login,
+                                                    "item_id" to sub.id
+                                                )
+                                                viewModel.analyticsHelper.reportEvent(
+                                                    "delete_subscription",
+                                                    eventParameters
+                                                )
 
-                                                }
-                                            )
+                                                viewModel.setUpdateItem(sub.id)
+                                            }
                                         }
                                     }
                                 }

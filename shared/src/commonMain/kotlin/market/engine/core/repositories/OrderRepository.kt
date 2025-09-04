@@ -37,13 +37,11 @@ import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getIoTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
 import kotlin.collections.contains
-
 
 class OrderRepository(
     val order : Order,
@@ -71,57 +69,58 @@ class OrderRepository(
                 id = operation.id ?: "",
                 title = operation.name ?: "",
                 onClick = {
-                    operation.run {
-                        when {
-                            !isDataless -> {
-                                core.getOperationFields(
-                                    order.id,
-                                    id ?: "",
-                                    "orders",
-                                )
-                                { t, fields ->
+                    core.scope.launch {
+                        operation.run {
+                            when {
+                                !isDataless -> {
+                                    withContext(Dispatchers.IO) {
+                                            core.getOperationFields(
+                                            order.id,
+                                            id ?: "",
+                                            "orders",
+                                        )
+                                    }?.let { (t, fields) ->
 
-                                    val fieldFeedbackType =
-                                        fields.find { it.key == "feedback_type" }
-                                    if (fieldFeedbackType != null) {
-                                        fields.find { it.key == "comment" }?.let {
-                                            fieldFeedbackType.data = JsonPrimitive(1)
-                                            it.data = JsonPrimitive(commentText)
+                                        val fieldFeedbackType =
+                                            fields.find { it.key == "feedback_type" }
+                                        if (fieldFeedbackType != null) {
+                                            fields.find { it.key == "comment" }?.let {
+                                                fieldFeedbackType.data = JsonPrimitive(1)
+                                                it.data = JsonPrimitive(commentText)
+                                            }
                                         }
+
+                                        _customDialogState.value = CustomDialogState(
+                                            title = t,
+                                            typeDialog = id ?: "",
+                                            fields = fields
+                                        )
+                                    }
+                                }
+
+                                else -> {
+                                    val res = withContext(Dispatchers.IO) {
+                                        core.postOperationFields(
+                                            order.id,
+                                            id ?: "",
+                                            "orders"
+                                        )
                                     }
 
-                                    _customDialogState.value = CustomDialogState(
-                                        title = t,
-                                        typeDialog = id ?: "",
-                                        fields = fields
-                                    )
-                                }
-                            }
+                                    if (res) {
+                                        val eventParameters = mapOf(
+                                            "order_id" to order.id,
+                                            "seller_id" to order.sellerData?.id,
+                                            "buyer_id" to order.buyerData?.id
+                                        )
 
-                            else -> {
-                                core.getIoTread {
-                                    core.postOperationFields(
-                                        order.id,
-                                        id ?: "",
-                                        "orders",
-                                        onSuccess = {
-                                            val eventParameters = mapOf(
-                                                "order_id" to order.id,
-                                                "seller_id" to order.sellerData?.id,
-                                                "buyer_id" to order.buyerData?.id
-                                            )
-
-                                            core.analyticsHelper.reportEvent(
-                                                operation.id ?: "",
-                                                eventParameters
-                                            )
-                                            getOperations()
-                                            core.setUpdateItem(order.id)
-                                        },
-                                        errorCallback = {
-
-                                        }
-                                    )
+                                        core.analyticsHelper.reportEvent(
+                                            operation.id ?: "",
+                                            eventParameters
+                                        )
+                                        getOperations()
+                                        core.setUpdateItem(order.id)
+                                    }
                                 }
                             }
                         }
@@ -296,53 +295,56 @@ class OrderRepository(
             val conversationTitle = getString(strings.createConversationLabel)
             val aboutOrder = getString(strings.aboutOrderLabel)
 
-            core.postOperationAdditionalData(
-                order.id,
-                "checking_conversation_existence",
-                "orders",
-                onSuccess = { body ->
-                    val dialogId = body?.operationResult?.additionalData?.conversationId
-                    if (dialogId != null) {
-                        events.goToDialog(dialogId)
-                    } else {
-                        annotatedTitle.value = buildAnnotatedString {
-                            withStyle(SpanStyle(
-                                color = colors.grayText,
-                                fontWeight = FontWeight.Bold
-                            )) {
-                                append(
-                                    conversationTitle
-                                )
-                            }
+            val res = withContext(Dispatchers.IO) {
+                core.postOperationAdditionalData(
+                    order.id,
+                    "checking_conversation_existence",
+                    "orders"
+                )
+            }
+            if (res != null){
+                val dialogId = res.operationResult?.additionalData?.conversationId
 
-                            withStyle(SpanStyle(
-                                color = colors.actionTextColor,
-                                fontWeight = FontWeight.Bold
-                            )) {
-                                append(" $userName ")
-                            }
-
-                            withStyle(SpanStyle(
-                                color = colors.grayText,
-                                fontWeight = FontWeight.Bold
-                            )) {
-                                append(aboutOrder)
-                            }
-
-                            withStyle(SpanStyle(
-                                color = colors.titleTextColor,
-                            )) {
-                                append(" #${order.id}")
-                            }
+                if (dialogId != null) {
+                    events.goToDialog(dialogId)
+                } else {
+                    annotatedTitle.value = buildAnnotatedString {
+                        withStyle(SpanStyle(
+                            color = colors.grayText,
+                            fontWeight = FontWeight.Bold
+                        )) {
+                            append(
+                                conversationTitle
+                            )
                         }
 
-                        _customDialogState.value = CustomDialogState(
-                            title = "",
-                            typeDialog = "send_message",
-                        )
+                        withStyle(SpanStyle(
+                            color = colors.actionTextColor,
+                            fontWeight = FontWeight.Bold
+                        )) {
+                            append(" $userName ")
+                        }
+
+                        withStyle(SpanStyle(
+                            color = colors.grayText,
+                            fontWeight = FontWeight.Bold
+                        )) {
+                            append(aboutOrder)
+                        }
+
+                        withStyle(SpanStyle(
+                            color = colors.titleTextColor,
+                        )) {
+                            append(" #${order.id}")
+                        }
                     }
+
+                    _customDialogState.value = CustomDialogState(
+                        title = "",
+                        typeDialog = "send_message",
+                    )
                 }
-            )
+            }
         }
     }
 
@@ -356,24 +358,26 @@ class OrderRepository(
     }
 
     fun makeOperation(type : String){
-        when(type){
-            "send_message" -> {
-                core.getIoTread {
-                    core.postOperationAdditionalData(
-                        order.id,
-                        "write_to_partner",
-                        "orders",
-                        hashMapOf("message" to JsonPrimitive(messageText.value)),
-                        onSuccess = {
-                            val dialogId = it?.operationResult?.additionalData?.conversationId
-                            clearDialogFields()
-                            events.goToDialog(dialogId)
-                        }
-                    )
+        core.scope.launch {
+            when (type) {
+                "send_message" -> {
+                    val res = withContext(Dispatchers.IO) {
+                        core.postOperationAdditionalData(
+                            order.id,
+                            "write_to_partner",
+                            "orders",
+                            hashMapOf("message" to JsonPrimitive(messageText.value)),
+                        )
+                    }
+
+                    if (res != null) {
+                        val dialogId = res.operationResult?.additionalData?.conversationId
+                        clearDialogFields()
+                        events.goToDialog(dialogId)
+                    }
                 }
-            }
-            else -> {
-                core.getIoTread {
+
+                else -> {
                     val body = HashMap<String, JsonElement>()
                     _customDialogState.value.fields.forEach {
                         if (it.data != null) {
@@ -381,26 +385,29 @@ class OrderRepository(
                         }
                     }
 
-                    core.postOperationFields(
-                        order.id,
-                        type,
-                        "orders",
-                        body = body,
-                        onSuccess = {
-                            clearDialogFields()
-                            getOperations()
-                            core.setUpdateItem(order.id)
-                        },
-                        errorCallback = { errFields ->
-                            if (errFields != null) {
-                                _customDialogState.update {
-                                    it.copy(
-                                        fields = errFields
-                                    )
+                    val res = withContext(Dispatchers.IO) {
+                        core.postOperationFields(
+                            order.id,
+                            type,
+                            "orders",
+                            body = body,
+                            errorCallback = { errFields ->
+                                if (errFields != null) {
+                                    _customDialogState.update {
+                                        it.copy(
+                                            fields = errFields
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
+
+                    if (res) {
+                        clearDialogFields()
+                        getOperations()
+                        core.setUpdateItem(order.id)
+                    }
                 }
             }
         }
