@@ -27,7 +27,6 @@ import market.engine.core.network.ServerErrorException
 import market.engine.core.network.functions.ConversationsOperations
 import market.engine.core.network.networkObjects.Conversations
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import org.koin.mp.KoinPlatform.getKoin
@@ -222,9 +221,7 @@ data class ConversationEventsImpl(
                 viewModel.listingBaseViewModel.removeSelectItem(conversation.id)
             }
         } else {
-            viewModel.getMainTread {
-                component.goToMessenger(conversation)
-            }
+            component.goToMessenger(conversation)
         }
     }
 

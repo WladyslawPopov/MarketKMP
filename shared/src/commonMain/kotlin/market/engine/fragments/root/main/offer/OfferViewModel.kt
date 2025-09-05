@@ -31,9 +31,7 @@ import market.engine.core.network.functions.UserOperations
 import market.engine.core.network.networkObjects.DeliveryMethod
 import market.engine.core.network.networkObjects.User
 import market.engine.core.repositories.CabinetOfferRepository
-import market.engine.core.utils.getIoTread
 import market.engine.core.utils.nowAsEpochSeconds
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.shared.AuctionMarketDb
@@ -340,7 +338,7 @@ class OfferViewModel(
             var currentInterval = calculateNewInterval(millisUntilFinished)
 
             while (millisUntilFinished > 0) {
-                updateBidsInfo(offer)
+                cabinetOfferRepository.updateBidsInfo(offer)
                 val newInterval = calculateNewInterval(millisUntilFinished)
                 if (newInterval != currentInterval) {
                     currentInterval = newInterval
@@ -374,29 +372,6 @@ class OfferViewModel(
             else -> 1_000L // Every second
         }
     }
-
-   suspend fun updateBidsInfo(offer: OfferItem) {
-       try {
-           val response = withContext(Dispatchers.IO) {
-               offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
-           }
-
-           response.success?.body?.let { body ->
-               if (body.isChanged) {
-                   cabinetOfferRepository.setNewOfferData(
-                       cabinetOfferRepository.offerState.value.copy(
-                           bids = body.bids,
-                           version = JsonPrimitive(body.currentVersion),
-                           price = body.currentPrice ?: "",
-                           minimalAcceptablePrice = body.minimalAcceptablePrice ?: "",
-                       )
-                   )
-               }
-           }
-       } catch (e: Exception) {
-           onError(ServerErrorException(e.message ?: "Error updating bids info", ""))
-       }
-   }
 
     fun addOfferToBasket(offer: OfferItem) {
         scope.launch {
@@ -674,36 +649,26 @@ data class OfferRepositoryEventsImpl(
         id: Long,
         externalImages: List<String>?
     ) {
-        viewModel.getMainTread {
-            component.goToCreateOffer(type, catpath, id, externalImages)
-        }
+        component.goToCreateOffer(type, catpath, id, externalImages)
     }
 
     override fun goToProposalPage(
         offerId: Long,
         type: ProposalType
     ) {
-        viewModel.getMainTread {
-            component.goToProposalPage(type)
-        }
+        component.goToProposalPage(type)
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        viewModel.getMainTread {
-            component.goToDynamicSettings(type, id)
-        }
+        component.goToDynamicSettings(type, id)
     }
 
     override fun goToDialog(id: Long?) {
-        viewModel.getMainTread {
-            component.goToDialog(id)
-        }
+        component.goToDialog(id)
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {
-        viewModel.getMainTread {
-            component.goToCreateOrder(item)
-        }
+        component.goToCreateOrder(item)
     }
 
     override fun goToUserPage(sellerId: Long) {}
@@ -711,18 +676,10 @@ data class OfferRepositoryEventsImpl(
     override fun openCabinetOffer(offer: OfferItem) {}
 
     override fun scrollToBids() {
-        viewModel.getMainTread {
-            viewModel.scrollToBids()
-        }
+        viewModel.scrollToBids()
     }
 
     override fun refreshPage() {
         viewModel.refreshPage()
-    }
-
-    override fun updateBidsInfo(item: OfferItem) {
-        viewModel.getIoTread {
-            viewModel.updateBidsInfo(viewModel.cabinetOfferRepository.offerState.value)
-        }
     }
 }

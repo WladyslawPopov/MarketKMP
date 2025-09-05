@@ -8,7 +8,6 @@ import app.cash.paging.PagingData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,8 +42,6 @@ import market.engine.core.network.networkObjects.Payload
 import market.engine.core.utils.deserializePayload
 import market.engine.core.repositories.PagingRepository
 import market.engine.core.repositories.PublicOfferRepository
-import market.engine.core.utils.getIoTread
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.parseToOfferItem
@@ -141,7 +138,7 @@ class ListingViewModel(
     }.cachedIn(scope)
 
     init {
-        getIoTread {
+        scope.launch {
             val ld = listingBaseVM.listingData.value
             ld.data.methodServer = "get_public_listing"
             ld.data.objServer = "offers"
@@ -221,16 +218,10 @@ class ListingViewModel(
                             if (UserData.token != "") {
                                 addNewSubscribe(
                                     ld.data,
-                                    searchData,
-                                    onSuccess = {},
-                                    errorCallback = { es ->
-                                        errorString.value = es
-                                    }
+                                    searchData
                                 )
                             } else {
-                                getMainTread {
-                                    goToLogin()
-                                }
+                                goToLogin()
                             }
                         }
                     ),
@@ -354,7 +345,9 @@ class ListingViewModel(
 
     fun updateOffer(id : Long, onSuccess: (Offer) -> Unit){
         scope.launch {
-            val res = offerOperations.getOffer(id)
+            val res = withContext(Dispatchers.IO) {
+                offerOperations.getOffer(id)
+            }
             val offer = res.success
             if (offer != null) {
                 onSuccess(offer)
@@ -362,43 +355,41 @@ class ListingViewModel(
         }
     }
 
-    private fun getRegions(){
-        scope.launch {
-            val cacheKey = "regions"
-            val serializer = ListSerializer(Options.serializer())
-            val cacheRegions = cacheRepository.get(cacheKey, serializer)
+    private suspend fun getRegions() {
+        val cacheKey = "regions"
+        val serializer = ListSerializer(Options.serializer())
+        val cacheRegions = cacheRepository.get(cacheKey, serializer)
 
-            if (cacheRegions == null) {
-                val res = withContext(Dispatchers.IO) {
-                    categoryOperations.getRegions()
-                }
-                withContext(Dispatchers.Main) {
-                    res?.firstOrNull()?.options?.sortedBy { it.weight }
-                        ?.let {
-                            val lifetime = 130.days
-                            val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
-                            cacheRepository.put(cacheKey, it,expirationTimestamp,serializer)
-                            _regionOptions.value = it
-                        }
-                }
-            }else{
-                _regionOptions.value = cacheRegions
+        if (cacheRegions == null) {
+            val res = withContext(Dispatchers.IO) {
+                categoryOperations.getRegions()
             }
+
+            res?.firstOrNull()?.options?.sortedBy { it.weight }
+                ?.let {
+                    val lifetime = 130.days
+                    val expirationTimestamp = nowAsEpochSeconds() + lifetime.inWholeSeconds
+                    cacheRepository.put(cacheKey, it, expirationTimestamp, serializer)
+                    _regionOptions.value = it
+                }
+
+        } else {
+            _regionOptions.value = cacheRegions
         }
     }
 
     fun addNewSubscribe(
         listingData : LD,
-        searchData : SD,
-        onSuccess: () -> Unit,
-        errorCallback: (String) -> Unit
+        searchData : SD
     ) {
-        scope.launch(Dispatchers.IO) {
-            val response = operationsMethods.getOperationFields(
-                UserData.login,
-                "create_subscription",
-                "users"
-            )
+        scope.launch {
+            val response = withContext(Dispatchers.IO){
+                operationsMethods.getOperationFields(
+                    UserData.login,
+                    "create_subscription",
+                    "users"
+                )
+            }
 
             val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
                 "buyer_id" to UserData.login.toString(),
@@ -472,28 +463,26 @@ class ListingViewModel(
                 }
             }
 
-            val res = operationsMethods.postOperationFields(
-                UserData.login,
-                "create_subscription",
-                "users",
-                body
-            )
+            val res = withContext(Dispatchers.IO){
+                operationsMethods.postOperationFields(
+                    UserData.login,
+                    "create_subscription",
+                    "users",
+                    body
+                )
+            }
 
             val buf = res.success
             val err = res.error
 
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    showToast(
-                        successToastItem.copy(
-                            message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
-                        )
+            if (buf != null) {
+                showToast(
+                    successToastItem.copy(
+                        message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
                     )
-                    delay(1000)
-                    onSuccess()
-                }else {
-                    errorCallback(err?.humanMessage ?: "")
-                }
+                )
+            }else {
+                errorString.value = err?.humanMessage ?: ""
             }
         }
     }

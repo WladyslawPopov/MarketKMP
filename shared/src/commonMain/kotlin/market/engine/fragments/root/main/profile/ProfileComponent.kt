@@ -14,12 +14,13 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import market.engine.core.data.globalData.UserData
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.globalData.isBigScreen
 import market.engine.core.data.types.DealTypeGroup
-import market.engine.core.utils.getIoTread
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToDynamicSettings
@@ -66,7 +67,7 @@ class DefaultProfileComponent(
         model.value.backHandler.register(backCallback)
 
         lifecycle.doOnResume {
-            viewModel.getIoTread {
+            viewModel.scope.launch(Dispatchers.IO) {
                 viewModel.updateUserInfo()
             }
         }

@@ -27,7 +27,6 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
@@ -144,24 +143,18 @@ data class OfferRepositoryEventsImpl(
         id: Long,
         externalImages: List<String>?
     ) {
-        viewModel.getMainTread {
-            component.goToCreateOffer(type, id, catpath)
-        }
+        component.goToCreateOffer(type, id, catpath)
     }
 
     override fun goToProposalPage(
         offerId: Long,
         type: ProposalType
     ) {
-        viewModel.getMainTread {
-            component.goToProposals(offerId, type)
-        }
+        component.goToProposals(offerId, type)
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        viewModel.getMainTread {
-            component.goToDynamicSettings(type, id)
-        }
+        component.goToDynamicSettings(type, id)
     }
 
     override fun goToDialog(id: Long?) {}
@@ -177,13 +170,10 @@ data class OfferRepositoryEventsImpl(
                 viewModel.listingBaseViewModel.addSelectItem(offer.id)
             }
         } else {
-            viewModel.getMainTread {
-                component.goToOffer(offer)
-            }
+            component.goToOffer(offer)
         }
     }
 
     override fun scrollToBids() {}
     override fun refreshPage() {}
-    override fun updateBidsInfo(item: OfferItem) {}
 }

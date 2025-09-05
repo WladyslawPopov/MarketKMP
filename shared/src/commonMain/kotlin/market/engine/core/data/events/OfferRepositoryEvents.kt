@@ -23,5 +23,4 @@ interface OfferRepositoryEvents {
 
     fun scrollToBids()
     fun refreshPage()
-    fun updateBidsInfo(item: OfferItem)
 }

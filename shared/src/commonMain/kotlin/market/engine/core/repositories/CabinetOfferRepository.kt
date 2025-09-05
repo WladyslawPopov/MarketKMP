@@ -609,36 +609,34 @@ class CabinetOfferRepository(
         val buf = res.success
         val error = res.error
 
-        withContext(Dispatchers.Main) {
-            if (buf != null) {
-                core.showToast(
-                    successToastItem.copy(
-                        message = buf.operationResult?.result ?: getString(strings.operationSuccess)
-                    )
+        if (buf != null) {
+            core.showToast(
+                successToastItem.copy(
+                    message = buf.operationResult?.result ?: getString(strings.operationSuccess)
                 )
-                val eventParameters = mapOf(
-                    "lot_id" to offer.id,
-                    "lot_name" to offer.title,
-                    "lot_city" to offer.location,
-                    "auc_delivery" to offer.safeDeal,
-                    "lot_category" to offer.catPath.firstOrNull(),
-                    "seller_id" to offer.seller.id,
-                    "lot_price_start" to offer.price,
-                    "buyer_id" to UserData.login,
-                    "bid_amount" to sum,
-                    "bids_all" to offer.bids?.size
-                )
-                core.analyticsHelper.reportEvent(
-                    "bid_made",
-                    eventParameters
-                )
-                events.updateBidsInfo(offerState.value)
-                events.scrollToBids()
-                clearDialogFields()
-            } else {
-                error?.let { core.onError(it) }
-                clearDialogFields()
-            }
+            )
+            val eventParameters = mapOf(
+                "lot_id" to offer.id,
+                "lot_name" to offer.title,
+                "lot_city" to offer.location,
+                "auc_delivery" to offer.safeDeal,
+                "lot_category" to offer.catPath.firstOrNull(),
+                "seller_id" to offer.seller.id,
+                "lot_price_start" to offer.price,
+                "buyer_id" to UserData.login,
+                "bid_amount" to sum,
+                "bids_all" to offer.bids?.size
+            )
+            core.analyticsHelper.reportEvent(
+                "bid_made",
+                eventParameters
+            )
+            updateBidsInfo(offerState.value)
+            events.scrollToBids()
+            clearDialogFields()
+        } else {
+            error?.let { core.onError(it) }
+            clearDialogFields()
         }
     }
 
@@ -1016,6 +1014,27 @@ class CabinetOfferRepository(
                 }
             )
         }
+    }
+
+    suspend fun updateBidsInfo(offer: OfferItem) {
+        try {
+            val response = withContext(Dispatchers.IO) {
+                offerOperations.postGetLeaderAndPrice(offer.id, offer.version)
+            }
+
+            response.success?.body?.let { body ->
+                if (body.isChanged) {
+                    _offerState.update {
+                        it.copy(
+                            bids = body.bids,
+                            version = JsonPrimitive(body.currentVersion),
+                            price = body.currentPrice ?: "",
+                            minimalAcceptablePrice = body.minimalAcceptablePrice ?: "",
+                        )
+                    }
+                }
+            }
+        } catch (_: Exception) { }
     }
 
     fun setNewField(field: Fields){

@@ -34,7 +34,6 @@ import market.engine.core.network.networkObjects.Offer
 import market.engine.core.network.networkObjects.OperationResult
 import market.engine.core.network.networkObjects.Proposals
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getOfferImagePreview
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
@@ -187,9 +186,7 @@ class ProposalViewModel(
                     },
                     image = offer.getOfferImagePreview(),
                 ) {
-                    getMainTread {
-                        component.goToOffer(offer.id)
-                    }
+                    component.goToOffer(offer.id)
                 }
 
                 _body.value = payload

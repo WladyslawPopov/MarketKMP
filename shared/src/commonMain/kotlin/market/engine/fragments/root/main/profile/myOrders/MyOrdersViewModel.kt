@@ -27,7 +27,6 @@ import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.network.networkObjects.Order
 import market.engine.core.repositories.OrderRepository
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 import kotlin.collections.contains
@@ -163,15 +162,11 @@ data class MyOrderItemEventsImpl(
     val component: MyOrdersComponent
 ) : OrderItemEvents {
     override fun onGoToUser(id: Long) {
-        viewModel.getMainTread {
-            component.goToUser(id)
-        }
+        component.goToUser(id)
     }
 
     override fun onGoToOffer(id: Long) {
-        viewModel.getMainTread {
-            component.goToOffer(id)
-        }
+        component.goToOffer(id)
     }
 
     override fun goToDialog(dialogId: Long?) {

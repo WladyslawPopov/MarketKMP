@@ -17,7 +17,6 @@ import market.engine.core.data.baseFilters.SD
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.states.CategoryPageState
 import market.engine.core.network.networkObjects.Category
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
@@ -106,6 +105,7 @@ class CategoryViewModel(
                         categoryWithoutCounter = (isFilters || isCreateOffer)
                     )
                 }
+
                 fetchCategories()
             } catch (_ : Exception){ }
         }
@@ -116,29 +116,23 @@ class CategoryViewModel(
     }
 
     // Actions implementation
-    fun fetchCategories() {
+    suspend fun fetchCategories() {
         _isLoading.value = true
 
-        scope.launch {
-            val cats = withContext(Dispatchers.IO) {
-                getCategories(
-                    searchData.value,
-                    LD(filters.value),
-                    pageState.value.categoryWithoutCounter
-                )
-            }
-            getMainTread {
-                _categories.value = cats
-                _isLoading.value = false
-            }
-        }
+        val cats = getCategories(
+            searchData.value,
+            LD(filters.value),
+            pageState.value.categoryWithoutCounter
+        )
+        _categories.value = cats
+        _isLoading.value = false
     }
 
     fun navigateBack() {
         if (searchData.value.searchCategoryID != 1L) {
             _isLoading.value = true
             scope.launch {
-                onCatBack(searchData.value.searchParentID ?: 1L) { newCat ->
+                onCatBack(searchData.value.searchParentID ?: 1L)?.let { newCat ->
                     setUpNewParams(newCat)
                     fetchCategories()
                 }
@@ -147,29 +141,33 @@ class CategoryViewModel(
     }
 
     fun resetToRoot() {
-        if (searchData.value.searchCategoryID != 1L) {
-            setUpNewParams(Category(id = 1L, name = pageState.value.catDef))
+        scope.launch {
+            if (searchData.value.searchCategoryID != 1L) {
+                setUpNewParams(Category(id = 1L, name = pageState.value.catDef))
+            }
+            fetchCategories()
         }
-        fetchCategories()
     }
 
     fun selectCategory(category: Category) {
         setUpNewParams(category)
-
-        if (!category.isLeaf) {
-            fetchCategories()
-        } else {
-            _selectedId.value = category.id
+        scope.launch {
+            if (!category.isLeaf) {
+                fetchCategories()
+            } else {
+                _selectedId.value = category.id
+            }
         }
     }
 
     fun initialize(filters: List<Filter> = this.filters.value) {
-        _filters.value = filters
+        scope.launch {
+            _filters.value = filters
 
-        if (searchData.value.searchIsLeaf) {
-            _isLoading.value = true
-            scope.launch {
-                onCatBack(searchData.value.searchParentID ?: 1L) { newCat ->
+            if (searchData.value.searchIsLeaf) {
+                _isLoading.value = true
+
+                onCatBack(searchData.value.searchParentID ?: 1L)?.let { newCat ->
                     val cat = if (searchData.value.searchParentID == newCat.id && newCat.isLeaf) {
                         newCat.copy(id = newCat.parentId, isLeaf = false)
                     } else {
@@ -178,9 +176,10 @@ class CategoryViewModel(
                     setUpNewParams(cat)
                     fetchCategories()
                 }
+
+            } else {
+                fetchCategories()
             }
-        } else {
-            fetchCategories()
         }
     }
 
@@ -203,19 +202,14 @@ class CategoryViewModel(
         initialize()
     }
 
-    fun onCatBack(
-        uploadId: Long,
-        onSuccess: (Category) -> Unit
-    ) {
-        scope.launch {
-            val response = withContext(Dispatchers.IO) {
-                categoryOperations.getCategoryInfo(
-                    uploadId
-                )
-            }
-            if (response.success != null){
-                onSuccess(response.success!!)
-            }
+    suspend fun onCatBack(
+        uploadId: Long
+    ) : Category? {
+        val response = withContext(Dispatchers.IO) {
+            categoryOperations.getCategoryInfo(
+                uploadId
+            )
         }
+        return response.success
     }
 }

@@ -27,7 +27,6 @@ import market.engine.core.data.types.ProposalType
 import market.engine.core.network.networkObjects.Offer
 import market.engine.core.repositories.CabinetOfferRepository
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.getMainTread
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent
 import org.jetbrains.compose.resources.getString
@@ -149,38 +148,27 @@ data class OfferRepositoryEventsImpl(
     }
 
     override fun goToProposalPage(offerId: Long, type: ProposalType) {
-        viewModel.getMainTread {
-            component.goToProposal(offerId, type)
-        }
+        component.goToProposal(offerId, type)
     }
 
     override fun goToDynamicSettings(type: String, id: Long) {
-        viewModel.getMainTread {
-            DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
-        }
+        DefaultRootComponent.Companion.goToDynamicSettings(type, id, null)
     }
 
     override fun goToDialog(id: Long?) {
-        viewModel.getMainTread {
-            component.goToDialog(id)
-        }
+        component.goToDialog(id)
     }
 
     override fun goToCreateOrder(item: Pair<Long, List<SelectedBasketItem>>) {}
 
     override fun goToUserPage(sellerId : Long) {
-        viewModel.getMainTread {
-            component.goToUser(sellerId)
-        }
+        component.goToUser(sellerId)
     }
 
     override fun openCabinetOffer(offer: OfferItem) {
-        viewModel.getMainTread {
-            component.goToOffer(offer)
-        }
+        component.goToOffer(offer)
     }
 
     override fun scrollToBids() {}
     override fun refreshPage() {}
-    override fun updateBidsInfo(item: OfferItem) {}
 }

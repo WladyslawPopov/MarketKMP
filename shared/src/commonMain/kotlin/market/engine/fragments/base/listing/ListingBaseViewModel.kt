@@ -167,10 +167,8 @@ class ListingBaseViewModel(
     )
 
     init {
-        scope.launch {
-            if (listingComponent != null) {
-                getSearchHistory()
-            }
+        if (listingComponent != null) {
+            getSearchHistory()
         }
     }
 
@@ -490,9 +488,7 @@ class ListingBaseViewModel(
                 "user_finished" to sd.searchFinished
             )
             analyticsHelper.reportEvent("open_search_listing", eventParameters)
-            scope.launch {
-                getSearchHistory()
-            }
+            getSearchHistory()
 
             setActiveWindowType(ActiveWindowListingType.SEARCH)
         } else {
@@ -511,7 +507,7 @@ class ListingBaseViewModel(
         listingComponent?.onTabSelect(tab)
     }
 
-    suspend fun getSearchHistory(searchString: String = "") {
+    fun getSearchHistory(searchString: String = "") {
         try {
             val searchHistory = searchRepository.getHistory(searchString)
             _responseHistory.value = searchHistory.map {
@@ -586,10 +582,10 @@ class ListingBaseViewModel(
         setLoading(true)
         onError(ServerErrorException())
         setSearchFilters()
+        getSearchHistory(_searchString.value)
+        setLoading(false)
         scope.launch {
-            getSearchHistory(_searchString.value)
             delay(1000)
-            setLoading(false)
         }
     }
 
@@ -616,10 +612,8 @@ class ListingBaseViewModel(
     }
 
     fun deleteItemHistory(id: Long) {
-        scope.launch {
-            searchRepository.deleteHistoryItemById(id)
-            getSearchHistory()
-        }
+        searchRepository.deleteHistoryItemById(id)
+        getSearchHistory()
     }
 
     fun addHistory(
@@ -627,13 +621,11 @@ class ListingBaseViewModel(
         isUsersSearch: Boolean = false,
         isFinished: Boolean = false
     ) {
-        scope.launch {
-            if (searchString != "") {
-                val s =
-                    searchString.trim() + if (isUsersSearch) " _user" else "" + if (isFinished) " _finished" else ""
-                if (searchRepository.getHistory(s).isEmpty()) {
-                    searchRepository.addHistory(s)
-                }
+        if (searchString != "") {
+            val s =
+                searchString.trim() + if (isUsersSearch) " _user" else "" + if (isFinished) " _finished" else ""
+            if (searchRepository.getHistory(s).isEmpty()) {
+                searchRepository.addHistory(s)
             }
         }
     }
@@ -654,16 +646,12 @@ class ListingBaseViewModel(
 
     fun onUpdateSearchString(value: String) {
         _searchString.value = value
-        scope.launch {
-            getSearchHistory(value)
-        }
+        getSearchHistory(value)
     }
 
     fun deleteHistory() {
-        scope.launch {
-            searchRepository.clearHistory()
-            getSearchHistory()
-        }
+        searchRepository.clearHistory()
+        getSearchHistory()
     }
 
     fun setPromoList(list: List<OfferItem>) {

@@ -9,11 +9,13 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import market.engine.core.data.items.OfferItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.FavScreenType
 import market.engine.core.data.types.ProposalType
-import market.engine.core.utils.getIoTread
 import market.engine.fragments.base.listing.ListingBaseViewModel
 import market.engine.widgets.filterContents.categories.CategoryViewModel
 
@@ -90,7 +92,7 @@ class DefaultFavoritesComponent(
 
     init {
         lifecycle.doOnResume {
-            favViewModel.getIoTread {
+            favViewModel.scope.launch(Dispatchers.IO) {
                 favViewModel.updateUserInfo()
             }
 

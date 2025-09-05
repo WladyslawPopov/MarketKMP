@@ -23,6 +23,7 @@ import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.value.Value
+import kotlinx.coroutines.delay
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
 import market.engine.core.data.globalData.ThemeResources.strings
@@ -54,6 +55,7 @@ fun SearchContent(
 
     LaunchedEffect(openCategory){
         if (openCategory == true){
+            delay(30)
             focusManager.clearFocus()
         }
     }

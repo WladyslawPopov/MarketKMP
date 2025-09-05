@@ -43,7 +43,6 @@ import market.engine.core.network.networkObjects.BodyListPayload
 import market.engine.core.network.networkObjects.User
 import market.engine.core.network.networkObjects.UserBody
 import market.engine.core.utils.deserializePayload
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
@@ -563,36 +562,24 @@ data class BasketEventsImpl(
         }
     }
     override fun onQuantityChanged(offerId: Long, newQuantity: Int) {
-        viewModel.getMainTread {
-            val body = HashMap<String, JsonElement>()
-            body["offer_id"] = JsonPrimitive(offerId)
-            body["quantity"] = JsonPrimitive(newQuantity)
-            viewModel.addOfferToBasket(body, newQuantity, offerId)
-        }
+        val body = HashMap<String, JsonElement>()
+        body["offer_id"] = JsonPrimitive(offerId)
+        body["quantity"] = JsonPrimitive(newQuantity)
+        viewModel.addOfferToBasket(body, newQuantity, offerId)
     }
     override fun onAddToFavorites(offer: OfferItem) {
-        viewModel.getMainTread {
-            viewModel.addToFavorites(offer)
-        }
+        viewModel.addToFavorites(offer)
     }
     override fun onDeleteOffersRequest(ids: List<Long>) {
-        viewModel.getMainTread {
-            viewModel.setDeleteItems(ids)
-        }
+        viewModel.setDeleteItems(ids)
     }
     override fun onCreateOrder(userId: Long, selectedOffers: List<SelectedBasketItem>) {
-        viewModel.getMainTread {
-            component.goToCreateOrder(Pair(userId, selectedOffers))
-        }
+        component.goToCreateOrder(Pair(userId, selectedOffers))
     }
     override fun onGoToUser(userId: Long) {
-        viewModel.getMainTread {
-            component.goToUser(userId)
-        }
+        component.goToUser(userId)
     }
     override fun onGoToOffer(offerId: Long) {
-        viewModel.getMainTread {
-            component.goToOffer(offerId)
-        }
+        component.goToOffer(offerId)
     }
 }

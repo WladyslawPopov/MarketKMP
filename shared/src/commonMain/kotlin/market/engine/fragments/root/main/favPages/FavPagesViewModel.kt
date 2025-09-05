@@ -30,7 +30,6 @@ import market.engine.core.network.functions.OffersListOperations
 import market.engine.core.network.networkObjects.FavoriteListItem
 import market.engine.core.network.networkObjects.Fields
 import market.engine.core.repositories.FavoritesTabListRepository
-import market.engine.core.utils.getIoTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import market.engine.widgets.dialogs.CustomDialogState
@@ -184,10 +183,12 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     init {
         getFavTabList()
 
-        getIoTread {
-            favoritesTabList.collect { updatedList ->
-                withContext(Dispatchers.Main){
-                    component.updateNavigationPages()
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                favoritesTabList.collect { updatedList ->
+                    withContext(Dispatchers.Main) {
+                        component.updateNavigationPages()
+                    }
                 }
             }
         }

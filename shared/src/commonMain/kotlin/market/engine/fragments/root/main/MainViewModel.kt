@@ -27,8 +27,6 @@ import market.engine.core.data.items.NavigationItem
 import market.engine.core.data.types.CreateOfferType
 import market.engine.core.data.types.DealTypeGroup
 import market.engine.core.data.types.PlatformWindowType
-import market.engine.core.utils.getIoTread
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.nowAsEpochSeconds
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
@@ -82,11 +80,10 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
         }
     }
 
-    fun updateNavLists() {
-        val userInfo = UserData.userInfo
-        val profileNavigation = component.modelNavigation.value.profileNavigation
-        getIoTread {
-
+    suspend fun updateNavLists() {
+        withContext(Dispatchers.Main) {
+            val userInfo = UserData.userInfo
+            val profileNavigation = component.modelNavigation.value.profileNavigation
             val balanceLabel = getString(strings.myBalanceTitle)
 
             _bottomList.value = listOf(
@@ -334,15 +331,13 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     }
 
     fun debouncedNavigate(targetConfig : MainConfig) {
-        getMainTread {
-            try {
-                val currentTime = (nowAsEpochSeconds()) * 1000L
-                if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
-                    lastNavigationClickTime = currentTime
-                    component.navigateToBottomItem(targetConfig)
-                }
-            }catch (_ : Exception){}
-        }
+        try {
+            val currentTime = (nowAsEpochSeconds()) * 1000L
+            if (currentTime - lastNavigationClickTime > NAVIGATION_DEBOUNCE_DELAY_MS) {
+                lastNavigationClickTime = currentTime
+                component.navigateToBottomItem(targetConfig)
+            }
+        }catch (_ : Exception){}
     }
 
     fun handleDeepLink(deepLink: DeepLink) {

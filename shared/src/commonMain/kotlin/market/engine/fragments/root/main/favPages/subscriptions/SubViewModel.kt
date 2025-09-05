@@ -28,7 +28,6 @@ import market.engine.core.network.functions.SubscriptionOperations
 import market.engine.core.network.networkObjects.Operations
 import market.engine.core.network.networkObjects.Subscription
 import market.engine.core.repositories.PagingRepository
-import market.engine.core.utils.getMainTread
 import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
@@ -324,9 +323,7 @@ data class SubItemEventsImpl(
     }
 
     override fun onItemClick() {
-        viewModel.getMainTread {
-            component.goToListing(sub)
-        }
+        component.goToListing(sub)
     }
 }
 
