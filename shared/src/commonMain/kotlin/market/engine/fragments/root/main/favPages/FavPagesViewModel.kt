@@ -235,7 +235,7 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 offersListOperations.getOffersList()
             }
 
-            val positionsFromDb = withContext(Dispatchers.IO) { offerListRepository.getFavoritesTabList() }
+            val positionsFromDb = offerListRepository.getFavoritesTabList()
 
             val res = data.success
             val buf = mutableListOf<FavoriteListItem>()

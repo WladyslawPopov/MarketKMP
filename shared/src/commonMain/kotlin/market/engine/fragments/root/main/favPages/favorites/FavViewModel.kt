@@ -138,8 +138,12 @@ class FavViewModel(
 
             listingBaseViewModel.setListItemsFilterBar(
                 buildList {
-                    val filterString = getString(strings.filter)
-                    val sortString = getString(strings.sort)
+                    val filterString = withContext(Dispatchers.IO){
+                        getString(strings.filter)
+                    }
+                    val sortString = withContext(Dispatchers.IO){
+                        getString(strings.sort)
+                    }
                     val filters = ld.filters.filter {
                         it.value != "" &&
                                 it.interpretation?.isNotBlank() == true

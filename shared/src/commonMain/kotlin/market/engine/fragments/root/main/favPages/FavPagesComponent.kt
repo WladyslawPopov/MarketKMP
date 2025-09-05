@@ -1,4 +1,4 @@
-package market.engine.fragments.root.main.favPages
+ package market.engine.fragments.root.main.favPages
 
 import androidx.lifecycle.createSavedStateHandle
 import com.arkivanov.decompose.ExperimentalDecomposeApi

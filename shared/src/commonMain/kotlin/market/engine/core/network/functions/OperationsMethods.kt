@@ -1,5 +1,8 @@
 package market.engine.core.network.functions
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.network.APIService
@@ -55,7 +58,9 @@ class OperationsMethods(private val apiService: APIService) {
         body: HashMap<String, JsonElement> = hashMapOf()
     ): ServerResponse<DynamicPayload<OperationResult>> {
         return try {
-            val response = apiService.postOperation(id,operation, method, body)
+            val response = withContext(Dispatchers.IO){
+                apiService.postOperation(id,operation, method, body)
+            }
             try {
                 val serializer = DynamicPayload.serializer(OperationResult.serializer())
                 val payload: DynamicPayload<OperationResult> =
@@ -87,7 +92,9 @@ class OperationsMethods(private val apiService: APIService) {
         body: HashMap<String, JsonElement> = hashMapOf()
     ): ServerResponse<PayloadExistence<AdditionalData>> {
         return try {
-            val response = apiService.postOperation(id,operation, method, body)
+            val response = withContext(Dispatchers.IO){
+                apiService.postOperation(id,operation, method, body)
+            }
             try {
                 val serializer = PayloadExistence.serializer(AdditionalData.serializer())
                 val payload: PayloadExistence<AdditionalData> =
