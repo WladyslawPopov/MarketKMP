@@ -113,7 +113,7 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
     }
 
     fun refreshPage(){
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             setLoading(true)
             refresh()
             delay(2000)
@@ -146,91 +146,95 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
                         apiService.postAuth(body = body)
                     }
 
-                    withContext(Dispatchers.Main) {
-                        setLoading(false)
+                    setLoading(false)
 
-                        try {
-                            val serializer = UserPayload.serializer()
-                            val payload: UserPayload =
-                                deserializePayload(response.payload, serializer)
-                            when (payload.result) {
-                                "SUCCESS" -> {
-                                    userRepository.setToken(payload.user, payload.token ?: "")
-                                    updateUserInfo()
-                                    showToast(
-                                        successToastItem.copy(
-                                            message = getString(strings.operationSuccess)
-                                        )
+                    try {
+                        val serializer = UserPayload.serializer()
+                        val payload: UserPayload =
+                            deserializePayload(response.payload, serializer)
+                        when (payload.result) {
+                            "SUCCESS" -> {
+                                userRepository.setToken(payload.user, payload.token ?: "")
+                                updateUserInfo()
+                                showToast(
+                                    successToastItem.copy(
+                                        message = withContext(Dispatchers.IO){
+                                            getString(strings.operationSuccess)
+                                        }
                                     )
+                                )
 
-                                    val events = mapOf(
-                                        "login_type" to "email",
-                                        "login_result" to "success",
-                                        "login_email" to body["identity"]
-                                    )
-                                    analyticsHelper.reportEvent("login_success", events)
+                                val events = mapOf(
+                                    "login_type" to "email",
+                                    "login_result" to "success",
+                                    "login_email" to body["identity"]
+                                )
+                                analyticsHelper.reportEvent("login_success", events)
+                                withContext(Dispatchers.IO){
                                     delay(1000)
-                                    component.onBack()
                                 }
+                                component.onBack()
+                            }
 
-                                "needs_code" -> {
-                                    val events = mapOf(
-                                        "login_type" to "email",
-                                        "login_result" to "fail",
-                                        "login_email" to body["identity"]
+                            "needs_code" -> {
+                                val events = mapOf(
+                                    "login_type" to "email",
+                                    "login_result" to "fail",
+                                    "login_email" to body["identity"]
+                                )
+                                analyticsHelper.reportEvent("login_fail_need_code", events)
+
+                                auth2ContentRepository.updateAuthData(
+                                    auth2ContentRepository.auth2ContentState.value.copy(
+                                        user = payload.user,
+                                        obfuscatedIdentity = payload.obfuscatedIdentity,
+                                        lastRequestByIdentity = payload.lastRequestByIdentity,
+                                        humanMessage = response.humanMessage,
                                     )
-                                    analyticsHelper.reportEvent("login_fail_need_code", events)
+                                )
 
-                                    auth2ContentRepository.updateAuthData(
-                                        auth2ContentRepository.auth2ContentState.value.copy(
-                                            user = payload.user,
-                                            obfuscatedIdentity = payload.obfuscatedIdentity,
-                                            lastRequestByIdentity = payload.lastRequestByIdentity,
-                                            humanMessage = response.humanMessage,
-                                        )
-                                    )
+                                _openContent.value = true
+                            }
 
-                                    _openContent.value = true
-                                }
+                            else -> {
+                                val events = mapOf(
+                                    "login_type" to "email",
+                                    "login_result" to "fail",
+                                    "login_email" to body["identity"]
+                                )
 
-                                else -> {
-                                    val events = mapOf(
-                                        "login_type" to "email",
-                                        "login_result" to "fail",
-                                        "login_email" to body["identity"]
-                                    )
-
-                                    if (payload.captchaImage != null && payload.captchaKey != null) {
-                                        if(captchaState.value.captchaKey == payload.captchaKey){
-                                            postAuth()
-                                        }else {
-                                            captchaState.update {
-                                                it.copy(
-                                                    captchaImage = payload.captchaImage,
-                                                    captchaKey = payload.captchaKey
-                                                )
-                                            }
+                                if (payload.captchaImage != null && payload.captchaKey != null) {
+                                    if(captchaState.value.captchaKey == payload.captchaKey){
+                                        postAuth()
+                                    }else {
+                                        captchaState.update {
+                                            it.copy(
+                                                captchaImage = payload.captchaImage,
+                                                captchaKey = payload.captchaKey
+                                            )
                                         }
                                     }
-
-                                    analyticsHelper.reportEvent("login_fail", events)
-                                    if (response.humanMessage != "") {
-                                        showToast(
-                                            errorToastItem.copy(
-                                                message = response.humanMessage
-                                                    ?: getString(strings.errorLogin)
-                                            )
-                                        )
-                                    }
-
                                 }
+
+                                analyticsHelper.reportEvent("login_fail", events)
+                                if (response.humanMessage != "") {
+                                    showToast(
+                                        errorToastItem.copy(
+                                            message = response.humanMessage
+                                                ?: withContext(Dispatchers.IO){
+                                                    getString(strings.errorLogin)
+                                                }
+                                        )
+                                    )
+                                }
+
                             }
-                        } catch (_: Exception) {
-                            throw ServerErrorException(
-                                response.errorCode.toString(),
-                                response.humanMessage.toString()
-                            )
                         }
+                    } catch (_: Exception) {
+                        throw ServerErrorException(
+                            response.errorCode.toString(),
+                            response.humanMessage.toString()
+                        )
                     }
                 } catch (exception: ServerErrorException) {
                     onError(exception)
@@ -257,50 +261,54 @@ class LoginViewModel(val component: LoginComponent, savedStateHandle: SavedState
                 val response = withContext(Dispatchers.IO) {
                     apiService.postAuthExternal(body = body)
                 }
-                withContext(Dispatchers.Main) {
-                    try {
-                        val serializer = UserPayload.serializer()
-                        val payload = deserializePayload(response.payload, serializer)
-                        if (payload.result == "SUCCESS") {
-                            userRepository.setToken(payload.user, payload.token ?: "")
+                try {
+                    val serializer = UserPayload.serializer()
+                    val payload = deserializePayload(response.payload, serializer)
+                    if (payload.result == "SUCCESS") {
+                        userRepository.setToken(payload.user, payload.token ?: "")
 
-                            updateUserInfo()
+                        updateUserInfo()
 
-                            setLoading(false)
-                            showToast(
-                                successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
-                                )
+                        setLoading(false)
+                        showToast(
+                            successToastItem.copy(
+                                message = withContext(Dispatchers.IO){
+                                    getString(strings.operationSuccess)
+                                }
                             )
+                        )
 
-                            val events = mapOf(
-                                "login_type" to "email",
-                                "login_result" to "success",
-                                "login_email" to body["identity"]
-                            )
-                            analyticsHelper.reportEvent("login_success",events)
-                            delay(1000)
-                            component.onBack()
-                        } else {
-                            val events = mapOf(
-                                "login_type" to "email",
-                                "login_result" to "fail",
-                                "login_email" to body["identity"]
-                            )
-
-                            analyticsHelper.reportEvent("login_fail",events)
-
-                            if(response.humanMessage != "") {
-                                showToast(
-                                    errorToastItem.copy(
-                                        message = response.humanMessage ?: getString(strings.errorLogin)
-                                    )
-                                )
-                            }
+                        val events = mapOf(
+                            "login_type" to "email",
+                            "login_result" to "success",
+                            "login_email" to body["identity"]
+                        )
+                        analyticsHelper.reportEvent("login_success",events)
+                        withContext(Dispatchers.IO){
+                            delay(500)
                         }
-                    }catch (_ : Exception){
-                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
+                        component.onBack()
+                    } else {
+                        val events = mapOf(
+                            "login_type" to "email",
+                            "login_result" to "fail",
+                            "login_email" to body["identity"]
+                        )
+
+                        analyticsHelper.reportEvent("login_fail",events)
+
+                        if(response.humanMessage != "") {
+                            showToast(
+                                errorToastItem.copy(
+                                    message = response.humanMessage ?: withContext(Dispatchers.IO){
+                                        getString(strings.errorLogin)
+                                    }
+                                )
+                            )
+                        }
                     }
+                }catch (_ : Exception){
+                    throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)

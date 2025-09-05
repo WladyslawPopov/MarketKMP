@@ -81,253 +81,301 @@ class MainViewModel(val component: MainComponent, savedStateHandle: SavedStateHa
     }
 
     suspend fun updateNavLists() {
-        withContext(Dispatchers.Main) {
-            val userInfo = UserData.userInfo
-            val profileNavigation = component.modelNavigation.value.profileNavigation
-            val balanceLabel = getString(strings.myBalanceTitle)
+        val userInfo = UserData.userInfo
+        val profileNavigation = component.modelNavigation.value.profileNavigation
+        val balanceLabel = withContext(Dispatchers.IO){
+            getString(strings.myBalanceTitle)
+        }
 
-            _bottomList.value = listOf(
-                NavigationItem(
-                    title = getString(strings.homeTitle),
-                    icon = drawables.home,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        debouncedNavigate(MainConfig.Home)
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.searchTitle),
-                    icon = drawables.search,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        debouncedNavigate(MainConfig.Search)
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.basketTitle),
-                    icon = drawables.basketIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = if ((userInfo?.countOffersInCart
-                            ?: 0) > 0
-                    ) userInfo?.countOffersInCart else null,
-                    onClick = {
-                        debouncedNavigate(MainConfig.Basket)
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.favoritesTitle),
-                    icon = drawables.favoritesIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = if ((userInfo?.countWatchedOffers
-                            ?: 0) > 0
-                    ) userInfo?.countWatchedOffers else null,
-                    onClick = {
-                        debouncedNavigate(MainConfig.Favorites)
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.profileTitleBottom),
-                    icon = drawables.profileIcon,
-                    imageString = userInfo?.avatar?.thumb?.content,
-                    tint = colors.black,
-                    hasNews = (
-                            (userInfo?.countUnreadMessages ?: 0) > 0 ||
-                                    (userInfo?.countUnreadPriceProposals ?: 0) > 0
-                            ),
-                    badgeCount = null,
-                    onClick = {
-                        debouncedNavigate(MainConfig.Profile)
-                    }
-                )
+        _bottomList.value = listOf(
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.homeTitle)
+                },
+                icon = drawables.home,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    debouncedNavigate(MainConfig.Home)
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.searchTitle)
+                },
+                icon = drawables.search,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    debouncedNavigate(MainConfig.Search)
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.basketTitle)
+                },
+                icon = drawables.basketIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = if ((userInfo?.countOffersInCart
+                        ?: 0) > 0
+                ) userInfo?.countOffersInCart else null,
+                onClick = {
+                    debouncedNavigate(MainConfig.Basket)
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.favoritesTitle)
+                },
+                icon = drawables.favoritesIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = if ((userInfo?.countWatchedOffers
+                        ?: 0) > 0
+                ) userInfo?.countWatchedOffers else null,
+                onClick = {
+                    debouncedNavigate(MainConfig.Favorites)
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.profileTitleBottom)
+                },
+                icon = drawables.profileIcon,
+                imageString = userInfo?.avatar?.thumb?.content,
+                tint = colors.black,
+                hasNews = (
+                        (userInfo?.countUnreadMessages ?: 0) > 0 ||
+                                (userInfo?.countUnreadPriceProposals ?: 0) > 0
+                        ),
+                badgeCount = null,
+                onClick = {
+                    debouncedNavigate(MainConfig.Profile)
+                }
             )
+        )
 
-            _publicProfileNavigationItems.value = listOf(
-                NavigationItem(
-                    title = getString(strings.myProfileTitle),
-                    subtitle = getString(strings.myProfileSubTitle),
-                    icon = drawables.profileIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        try {
-                            profileNavigation.pushNew(
-                                ProfileConfig.UserScreen(
-                                    UserData.login,
-                                    nowAsEpochSeconds(),
-                                    false
-                                )
+        _publicProfileNavigationItems.value = listOf(
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.myProfileTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.myProfileSubTitle)
+                },
+                icon = drawables.profileIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    try {
+                        profileNavigation.pushNew(
+                            ProfileConfig.UserScreen(
+                                UserData.login,
+                                nowAsEpochSeconds(),
+                                false
                             )
-                        } catch (_: Exception) {
-                        }
+                        )
+                    } catch (_: Exception) {
                     }
-                ),
-                NavigationItem(
-                    title = getString(strings.myBidsTitle),
-                    subtitle = getString(strings.myBidsSubTitle),
-                    icon = drawables.bidsIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.myBidsTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.myBidsSubTitle)
+                },
+                icon = drawables.bidsIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    profileNavigation.popToFirst()
+                    profileNavigation.pushNew(
+                        ProfileConfig.MyBidsScreen
+                    )
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.proposalTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.proposalPriceSubTitle)
+                },
+                icon = drawables.proposalIcon,
+                tint = colors.black,
+                hasNews = false,
+                isVisible = true,
+                badgeCount = if ((userInfo?.countUnreadPriceProposals ?: 0) > 0)
+                    userInfo?.countUnreadPriceProposals else null,
+                onClick = {
+                    try {
                         profileNavigation.popToFirst()
                         profileNavigation.pushNew(
-                            ProfileConfig.MyBidsScreen
+                            ProfileConfig.MyProposalsScreen
                         )
+                    } catch (_: Exception) {
                     }
-                ),
-                NavigationItem(
-                    title = getString(strings.proposalTitle),
-                    subtitle = getString(strings.proposalPriceSubTitle),
-                    icon = drawables.proposalIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    isVisible = true,
-                    badgeCount = if ((userInfo?.countUnreadPriceProposals ?: 0) > 0)
-                        userInfo?.countUnreadPriceProposals else null,
-                    onClick = {
-                        try {
-                            profileNavigation.popToFirst()
-                            profileNavigation.pushNew(
-                                ProfileConfig.MyProposalsScreen
-                            )
-                        } catch (_: Exception) {
-                        }
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.myPurchasesTitle),
-                    subtitle = getString(strings.myPurchasesSubTitle),
-                    icon = drawables.purchasesIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        try {
-                            profileNavigation.popToFirst()
-                            profileNavigation.pushNew(
-                                ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
-                            )
-                        } catch (_: Exception) {
-                        }
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.myOffersTitle),
-                    subtitle = getString(strings.myOffersSubTitle),
-                    icon = drawables.tagIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        try {
-                            profileNavigation.popToFirst()
-                            profileNavigation.pushNew(
-                                ProfileConfig.MyOffersScreen
-                            )
-                        } catch (_: Exception) {
-                        }
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.mySalesTitle),
-                    subtitle = getString(strings.mySalesSubTitle),
-                    icon = drawables.salesIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        try {
-                            profileNavigation.popToFirst()
-                            profileNavigation.pushNew(
-                                ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
-                            )
-                        } catch (_: Exception) {
-                        }
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.messageTitle),
-                    subtitle = getString(strings.messageSubTitle),
-                    icon = drawables.dialogIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = if ((userInfo?.countUnreadMessages
-                            ?: 0) > 0
-                    ) userInfo?.countUnreadMessages else null,
-                    onClick = {
-                        try {
-                            profileNavigation.popToFirst()
-                            profileNavigation.pushNew(
-                                ProfileConfig.ConversationsScreen()
-                            )
-                        } catch (_: Exception) {
-                        }
-                    }
-                ),
-                NavigationItem(
-                    title = getString(strings.createNewOfferTitle),
-                    icon = drawables.newLotIcon,
-                    tint = colors.actionItemColors,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.myPurchasesTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.myPurchasesSubTitle)
+                },
+                icon = drawables.purchasesIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    try {
+                        profileNavigation.popToFirst()
                         profileNavigation.pushNew(
-                            ProfileConfig.CreateOfferScreen(
-                                null,
-                                null,
-                                CreateOfferType.CREATE,
-                                null
-                            )
+                            ProfileConfig.MyOrdersScreen(DealTypeGroup.BUY)
                         )
+                    } catch (_: Exception) {
                     }
-                ),
-                NavigationItem(
-                    title = getString(strings.settingsProfileTitle),
-                    subtitle = getString(strings.profileSettingsSubTitle),
-                    icon = drawables.settingsIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        try {
-                            profileNavigation.popToFirst()
-                            profileNavigation.pushNew(
-                                ProfileConfig.ProfileSettingsScreen
-                            )
-                        } catch (_: Exception) {
-                        }
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.myOffersTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.myOffersSubTitle)
+                },
+                icon = drawables.tagIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    try {
+                        profileNavigation.popToFirst()
+                        profileNavigation.pushNew(
+                            ProfileConfig.MyOffersScreen
+                        )
+                    } catch (_: Exception) {
                     }
-                ),
-                NavigationItem(
-                    title = balanceLabel,
-                    subtitle = getString(strings.myBalanceSubTitle),
-                    icon = drawables.balanceIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        goToWebView(balanceLabel, SAPI.SERVER_BASE + "/cabinet/balance")
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.mySalesTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.mySalesSubTitle)
+                },
+                icon = drawables.salesIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    try {
+                        profileNavigation.popToFirst()
+                        profileNavigation.pushNew(
+                            ProfileConfig.MyOrdersScreen(DealTypeGroup.SELL)
+                        )
+                    } catch (_: Exception) {
                     }
-                ),
-                NavigationItem(
-                    title = getString(strings.logoutTitle),
-                    icon = drawables.logoutIcon,
-                    tint = colors.black,
-                    hasNews = false,
-                    badgeCount = null,
-                    onClick = {
-                        setLogoutDialog(true)
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.messageTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.messageSubTitle)
+                },
+                icon = drawables.dialogIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = if ((userInfo?.countUnreadMessages
+                        ?: 0) > 0
+                ) userInfo?.countUnreadMessages else null,
+                onClick = {
+                    try {
+                        profileNavigation.popToFirst()
+                        profileNavigation.pushNew(
+                            ProfileConfig.ConversationsScreen()
+                        )
+                    } catch (_: Exception) {
                     }
-                ),
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.createNewOfferTitle)
+                },
+                icon = drawables.newLotIcon,
+                tint = colors.actionItemColors,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    profileNavigation.pushNew(
+                        ProfileConfig.CreateOfferScreen(
+                            null,
+                            null,
+                            CreateOfferType.CREATE,
+                            null
+                        )
+                    )
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO){
+                    getString(strings.settingsProfileTitle)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.profileSettingsSubTitle)
+                },
+                icon = drawables.settingsIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    try {
+                        profileNavigation.popToFirst()
+                        profileNavigation.pushNew(
+                            ProfileConfig.ProfileSettingsScreen
+                        )
+                    } catch (_: Exception) {
+                    }
+                }
+            ),
+            NavigationItem(
+                title = balanceLabel,
+                subtitle = withContext(Dispatchers.IO){
+                    getString(strings.myBalanceSubTitle)
+                },
+                icon = drawables.balanceIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    goToWebView(balanceLabel, SAPI.SERVER_BASE + "/cabinet/balance")
+                }
+            ),
+            NavigationItem(
+                title = withContext(Dispatchers.IO) {
+                    getString(strings.logoutTitle)
+                },
+                icon = drawables.logoutIcon,
+                tint = colors.black,
+                hasNews = false,
+                badgeCount = null,
+                onClick = {
+                    setLogoutDialog(true)
+                }
             )
-        }
+        )
     }
 
     fun debouncedNavigate(targetConfig : MainConfig) {

@@ -122,8 +122,12 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
         _deleteIds.state,
         _isMenuVisibility
     ) { subtitle, deleteIds, isMenuVisibility ->
-        val menuString = getString(strings.menuTitle)
-        val clearBasketString = getString(strings.actionClearBasket)
+        val menuString = withContext(Dispatchers.IO){
+            getString(strings.menuTitle)
+        }
+        val clearBasketString = withContext(Dispatchers.IO){
+            getString(strings.actionClearBasket)
+        }
 
         BasketUiState(
             appBarData = SimpleAppBarData(
@@ -181,10 +185,10 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
 
     init {
         scope.launch {
-            val oneOffer = getString(strings.oneOfferLabel)
-            val manyOffers = getString(strings.manyOffersLabel)
-            val exManyOffers = getString(strings.exManyOffersLabel)
             withContext(Dispatchers.IO) {
+                val oneOffer = getString(strings.oneOfferLabel)
+                val manyOffers = getString(strings.manyOffersLabel)
+                val exManyOffers = getString(strings.exManyOffersLabel)
                 snapshotFlow {
                     UserData.userInfo
                 }.collectLatest { info ->
@@ -320,15 +324,10 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                 userOperations.getUsers(id)
             }
 
-            return withContext(Dispatchers.Main){
-                val user = res.success?.firstOrNull()
-                val error = res.error
-                if (user != null){
-                    return@withContext user
-                }else{
-                    error?.let { throw it }
-                }
-            }
+            val user = res.success?.firstOrNull()
+            val error = res.error
+            return user ?: error?.let { throw it }
+
         } catch (exception: ServerErrorException) {
             onError(exception)
             return null
@@ -355,7 +354,9 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                 if (res != null) {
                     updateUserInfo()
                     showToast(
-                        successToastItem.copy(message = getString(strings.operationSuccess))
+                        successToastItem.copy(message = withContext(Dispatchers.IO){
+                            getString(strings.operationSuccess)
+                        })
                     )
                     refreshPage()
                 } else {
@@ -413,34 +414,34 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
             val buffer = res.success
             val error = res.error
 
-            withContext(Dispatchers.Main) {
-                if (buffer != null) {
-                    updateUserInfo()
+            if (buffer != null) {
+                updateUserInfo()
 
-                    val eventParameters = mapOf(
-                        "lot_id" to lotData?.id,
-                        "lot_name" to lotData?.title,
-                        "lot_city" to lotData?.location,
-                        "auc_delivery" to "false",
-                        "lot_category" to "-",
-                        "seller_id" to userId,
-                        "lot_price_start" to lotData?.price,
-                        "cart_id" to userId
-                    )
-                    analyticsHelper.reportEvent(
-                        "click_del_item",
-                        eventParameters
-                    )
-                    showToast(
-                        successToastItem.copy(message = getString(strings.operationSuccess))
-                    )
-                    uncheckAll(userId)
-                    clearDeleteIds()
-                    refreshPage()
-                } else {
-                    if (error != null) {
-                        onError(error)
-                    }
+                val eventParameters = mapOf(
+                    "lot_id" to lotData?.id,
+                    "lot_name" to lotData?.title,
+                    "lot_city" to lotData?.location,
+                    "auc_delivery" to "false",
+                    "lot_category" to "-",
+                    "seller_id" to userId,
+                    "lot_price_start" to lotData?.price,
+                    "cart_id" to userId
+                )
+                analyticsHelper.reportEvent(
+                    "click_del_item",
+                    eventParameters
+                )
+                showToast(
+                    successToastItem.copy(message = withContext(Dispatchers.IO){
+                        getString(strings.operationSuccess)
+                    })
+                )
+                uncheckAll(userId)
+                clearDeleteIds()
+                refreshPage()
+            } else {
+                if (error != null) {
+                    onError(error)
                 }
             }
         }
@@ -488,48 +489,46 @@ class BasketViewModel(component: BasketComponent, savedStateHandle: SavedStateHa
                 }
 
                 val res = buf.success
-                withContext(Dispatchers.Main) {
-                    if (res != null && res.operationResult?.result == "ok") {
-                        val eventParameters = mapOf(
-                            "lot_id" to offer.id,
-                            "lot_name" to offer.title,
-                            "lot_city" to offer.location,
-                            "auc_delivery" to offer.safeDeal,
-                            "lot_category" to offer.catPath.firstOrNull(),
-                            "seller_id" to offer.seller.id,
-                            "lot_price_start" to offer.price,
-                        )
-                        if (!offer.isWatchedByMe) {
-                            analyticsHelper.reportEvent("offer_watch", eventParameters)
-                        } else {
-                            analyticsHelper.reportEvent("offer_unwatch", eventParameters)
-                        }
-
-                        updateUserInfo()
-
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
-                        )
-                        responseGetUserCart.update { userCart ->
-                            userCart.map { item ->
-                                item.copy(
-                                    offerList = item.offerList.map {
-                                        if (it.id == offer.id) {
-                                            it.copy(isWatchedByMe = !it.isWatchedByMe)
-                                        } else {
-                                            it
-                                        }
-                                    }
-                                )
-                            }
-                        }
-
+                if (res != null && res.operationResult?.result == "ok") {
+                    val eventParameters = mapOf(
+                        "lot_id" to offer.id,
+                        "lot_name" to offer.title,
+                        "lot_city" to offer.location,
+                        "auc_delivery" to offer.safeDeal,
+                        "lot_category" to offer.catPath.firstOrNull(),
+                        "seller_id" to offer.seller.id,
+                        "lot_price_start" to offer.price,
+                    )
+                    if (!offer.isWatchedByMe) {
+                        analyticsHelper.reportEvent("offer_watch", eventParameters)
                     } else {
-                        if (buf.error != null)
-                            onError(buf.error!!)
+                        analyticsHelper.reportEvent("offer_unwatch", eventParameters)
                     }
+
+                    updateUserInfo()
+
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
+                        )
+                    )
+                    responseGetUserCart.update { userCart ->
+                        userCart.map { item ->
+                            item.copy(
+                                offerList = item.offerList.map {
+                                    if (it.id == offer.id) {
+                                        it.copy(isWatchedByMe = !it.isWatchedByMe)
+                                    } else {
+                                        it
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                } else {
+                    if (buf.error != null)
+                        onError(buf.error!!)
                 }
             }
         }else{

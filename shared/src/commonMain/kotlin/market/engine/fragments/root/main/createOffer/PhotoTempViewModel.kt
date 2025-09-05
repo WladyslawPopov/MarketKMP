@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.createOffer
 
 import androidx.lifecycle.SavedStateHandle
-
 import io.github.vinceglb.filekit.core.PlatformFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -48,30 +47,28 @@ class PhotoTempViewModel(
 
     @OptIn(ExperimentalUuidApi::class)
     fun getImages(pickImagesRaw : PlatformFiles) {
-        scope.launch {
-            val photos = pickImagesRaw.map { file ->
-                PhotoTemp(
-                    file = file,
-                    id = Uuid.random().toString(),
-                    uri = file.path
-                )
-            }
+        val photos = pickImagesRaw.map { file ->
+            PhotoTemp(
+                file = file,
+                id = Uuid.random().toString(),
+                uri = file.path
+            )
+        }
 
-            _responseImages.value = buildList {
-                addAll(_responseImages.value)
-                photos.forEach {
-                    uploadPhotoTemp(it)
-                    if (size < MAX_IMAGE_COUNT) {
-                        add(
-                            PhotoSave(
-                                id = it.id,
-                                uri = it.uri,
-                                tempId = it.tempId,
-                                url = it.url,
-                                rotate = it.rotate
-                            )
+        _responseImages.value = buildList {
+            addAll(_responseImages.value)
+            photos.forEach {
+                uploadPhotoTemp(it)
+                if (size < MAX_IMAGE_COUNT) {
+                    add(
+                        PhotoSave(
+                            id = it.id,
+                            uri = it.uri,
+                            tempId = it.tempId,
+                            url = it.url,
+                            rotate = it.rotate
                         )
-                    }
+                    )
                 }
             }
         }
@@ -174,27 +171,24 @@ class PhotoTempViewModel(
                 getFileUpload(photoTemp)
             }
 
-            return withContext(Dispatchers.Main) {
-                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
-                photoTemp.tempId = cleanedSuccess
-                ServerResponse(PhotoSave(
+            val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
+            photoTemp.tempId = cleanedSuccess
+
+            return ServerResponse(
+                PhotoSave(
                     id = photoTemp.id,
                     uri = photoTemp.uri,
                     tempId = photoTemp.tempId,
                     url = photoTemp.url,
                     rotate = photoTemp.rotate
-                ))
-            }
+                )
+            )
         } catch (e : ServerErrorException){
             onError(e)
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = e)
-            }
+            return ServerResponse(error = e)
         }catch (e : Exception){
             onError(ServerErrorException(e.message ?: "", ""))
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
-            }
+            return ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
         }
     }
 }

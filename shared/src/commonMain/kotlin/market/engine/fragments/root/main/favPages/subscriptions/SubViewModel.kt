@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.favPages.subscriptions
 
 import androidx.lifecycle.SavedStateHandle
-
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
@@ -326,6 +325,3 @@ data class SubItemEventsImpl(
         component.goToListing(sub)
     }
 }
-
-
-

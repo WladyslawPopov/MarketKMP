@@ -1,9 +1,6 @@
 package market.engine.fragments.root.main.notificationsHistory
 
 import androidx.lifecycle.SavedStateHandle
-
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
 import market.engine.core.data.items.NotificationItem
 import market.engine.core.network.ServerErrorException
@@ -32,48 +29,44 @@ class NotificationsHistoryViewModel(savedStateHandle: SavedStateHandle) : CoreVi
 
     fun getPage() {
         refresh()
-        scope.launch {
-            setLoading(true)
-            try {
-                val notificationsFromDb = notificationsRepository.getNotificationList()
-                _responseGetPage.value = buildList {
-                    addAll(notificationsFromDb.groupBy { it.body to it.data_ }
-                        .map { (_, group) ->
-                            val latestNotification = group.maxByOrNull { it.timestemp }!!
+        setLoading(true)
+        try {
+            val notificationsFromDb = notificationsRepository.getNotificationList()
 
-                            printLogD("NotificationsHistoryViewModel", "getPage: $latestNotification")
+            _responseGetPage.value = buildList {
+                addAll(notificationsFromDb.groupBy { it.body to it.data_ }
+                    .map { (_, group) ->
+                        val latestNotification = group.maxByOrNull { it.timestemp }!!
 
-                            NotificationItem(
-                                id = latestNotification.id,
-                                type = latestNotification.type,
-                                title = latestNotification.title,
-                                body = latestNotification.body,
-                                data = latestNotification.data_,
-                                timeCreated = latestNotification.timestemp,
-                                unreadCount = group.count { it.isRead < 1 || it.isRead > 1 },
-                                unreadIds = group.filter {
-                                    it.isRead < 1 || it.isRead > 1
-                                }.map {
-                                    it.id
-                                },
-                                isRead = latestNotification.isRead < 1 || latestNotification.isRead > 1 ,
-                            )
-                        }.sortedByDescending { it.timeCreated }
-                    )
-                }
+                        printLogD("NotificationsHistoryViewModel", "getPage: $latestNotification")
 
-                delay(1000)
-                setLoading(false)
-            } catch (e : Exception) {
-                onError(ServerErrorException("errorDB", e.message.toString()))
+                        NotificationItem(
+                            id = latestNotification.id,
+                            type = latestNotification.type,
+                            title = latestNotification.title,
+                            body = latestNotification.body,
+                            data = latestNotification.data_,
+                            timeCreated = latestNotification.timestemp,
+                            unreadCount = group.count { it.isRead < 1 || it.isRead > 1 },
+                            unreadIds = group.filter {
+                                it.isRead < 1 || it.isRead > 1
+                            }.map {
+                                it.id
+                            },
+                            isRead = latestNotification.isRead < 1 || latestNotification.isRead > 1,
+                        )
+                    }.sortedByDescending { it.timeCreated }
+                )
             }
+
+            setLoading(false)
+        } catch (e: Exception) {
+            onError(ServerErrorException("errorDB", e.message.toString()))
         }
     }
 
     fun deleteNotification(id: String) {
-        scope.launch {
-            notificationsRepository.deleteNotificationById(id)
-            getPage()
-        }
+        notificationsRepository.deleteNotificationById(id)
+        getPage()
     }
 }

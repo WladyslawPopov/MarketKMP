@@ -61,14 +61,15 @@ class Auth2ContentRepository(
         }
     }
 
-    fun startTimer(leftTimer : Int){
-        _leftTimerState.value = leftTimer
-        core.scope.launch {
-            while (_leftTimerState.value > 0){
+    suspend fun startTimer(leftTimer : Int){
+        withContext(Dispatchers.IO) {
+            _leftTimerState.value = leftTimer
+
+            while (_leftTimerState.value > 0) {
                 delay(1000)
                 _leftTimerState.value--
 
-                if(_leftTimerState.value == 0){
+                if (_leftTimerState.value == 0) {
                     changeO2AuthState(auth2ContentState.value.humanMessage, null)
                 }
             }
@@ -107,35 +108,37 @@ class Auth2ContentRepository(
                 val payload: UserPayload =
                     deserializePayload(res.payload, serializer)
 
-                withContext(Dispatchers.Main) {
-                    if (payload.result == "SUCCESS") {
-                        core.userRepository.setToken(payload.user, payload.token ?: "")
-                        core.updateUserInfo()
-                        core.showToast(
-                            successToastItem.copy(
-                                message = getString(ThemeResources.strings.operationSuccess)
-                            )
+                if (payload.result == "SUCCESS") {
+                    core.userRepository.setToken(payload.user, payload.token ?: "")
+                    core.updateUserInfo()
+                    core.showToast(
+                        successToastItem.copy(
+                            message = withContext(Dispatchers.IO){
+                                getString(ThemeResources.strings.operationSuccess)
+                            }
                         )
+                    )
 
-                        val events = mapOf(
-                            "login_type" to "email",
-                            "login_result" to "success",
-                            "login_email" to body["identity"]
-                        )
-                        core.analyticsHelper.reportEvent("login_success", events)
+                    val events = mapOf(
+                        "login_type" to "email",
+                        "login_result" to "success",
+                        "login_email" to body["identity"]
+                    )
+                    core.analyticsHelper.reportEvent("login_success", events)
+                    withContext(Dispatchers.IO){
                         delay(1000)
-                        onBack()
-                    } else {
-                        if (auth2ContentState.value.lastRequestByIdentity != null) {
-                            core.showToast(
-                                errorToastItem.copy(
-                                    message = res.humanMessage
-                                        ?: getString(ThemeResources.strings.errorLogin)
-                                )
-                            )
-                        }
-                        changeO2AuthState(res.humanMessage, payload.lastRequestByIdentity)
                     }
+                    onBack()
+                } else {
+                    if (auth2ContentState.value.lastRequestByIdentity != null) {
+                        core.showToast(
+                            errorToastItem.copy(
+                                message = res.humanMessage
+                                    ?: getString(ThemeResources.strings.errorLogin)
+                            )
+                        )
+                    }
+                    changeO2AuthState(res.humanMessage, payload.lastRequestByIdentity)
                 }
             } catch (e: ServerErrorException) {
                 core.onError(e)

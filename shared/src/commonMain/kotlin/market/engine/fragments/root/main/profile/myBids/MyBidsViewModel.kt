@@ -5,12 +5,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import market.engine.core.data.baseFilters.LD
 import market.engine.core.data.baseFilters.ListingData
 import market.engine.core.data.events.OfferRepositoryEvents
@@ -93,8 +96,12 @@ class MyBidsViewModel(
             )
             listingBaseViewModel.setListItemsFilterBar(
                 buildList {
-                    val filterString = getString(strings.filter)
-                    val sortString = getString(strings.sort)
+                    val filterString = withContext(Dispatchers.IO){
+                        getString(strings.filter)
+                    }
+                    val sortString = withContext(Dispatchers.IO){
+                        getString(strings.sort)
+                    }
                     val filters = ld.value.data.filters.filter {
                         it.value != "" &&
                                 it.interpretation?.isNotBlank() == true

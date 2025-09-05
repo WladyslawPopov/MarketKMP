@@ -42,42 +42,54 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
         scope.launch {
             sellerSettingsItems.addAll(listOf(
                 NavigationItem(
-                    title = getString(strings.pageAboutMeParameterName),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.pageAboutMeParameterName)
+                    },
                     icon = drawables.infoIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_about_me")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.vacationTitle),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.vacationTitle)
+                    },
                     icon = drawables.vacationIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_vacation")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.messageToBuyersLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.messageToBuyersLabel)
+                    },
                     icon = drawables.dialogIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_message_to_buyer")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.settingsBiddingStepsLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsBiddingStepsLabel)
+                    },
                     icon = drawables.listIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_bidding_step")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.settingsAutoFeedbacksLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsAutoFeedbacksLabel)
+                    },
                     icon = drawables.timerListIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_auto_feedback")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.settingsWatermarkLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsWatermarkLabel)
+                    },
                     icon = drawables.watermarkIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_watermark")
@@ -87,14 +99,18 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
 
             addressItems.addAll(listOf(
                 NavigationItem(
-                    title = getString(strings.outgoingAddressLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.outgoingAddressLabel)
+                    },
                     icon = drawables.locationIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_outgoing_address")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.addressCardsTitle),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.addressCardsTitle)
+                    },
                     icon = drawables.emptyOffersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_address_cards")
@@ -104,28 +120,36 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
 
             blackListItems.addAll(listOf(
                 NavigationItem(
-                    title = getString(strings.settingsBlackListSellersLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsBlackListSellersLabel)
+                    },
                     icon = drawables.blackSellersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("add_to_seller_blacklist")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.settingsBlackListBuyersLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsBlackListBuyersLabel)
+                    },
                     icon = drawables.blackBuyersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("add_to_buyer_blacklist")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.settingsWhiteListBuyersLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsWhiteListBuyersLabel)
+                    },
                     icon = drawables.whiteBuyersIcon,
                     onClick = {
                         component.navigateToDynamicSettings("add_to_whitelist")
                     }
                 ),
                 NavigationItem(
-                    title = getString(strings.settingsBlockRatingLabel),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.settingsBlockRatingLabel)
+                    },
                     icon = drawables.blockRatingIcon,
                     onClick = {
                         component.navigateToDynamicSettings("set_block_rating")
@@ -156,14 +180,12 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
             }
             val payload = buffer.success
             val resErr = buffer.error
-            withContext(Dispatchers.Main) {
-                if (payload != null) {
-                    payload.fields.firstOrNull()?.choices?.let {
-                        _genderSelects.value = it
-                    }
-                } else {
-                    resErr?.let { onError(it) }
+            if (payload != null) {
+                payload.fields.firstOrNull()?.choices?.let {
+                    _genderSelects.value = it
                 }
+            } else {
+                resErr?.let { onError(it) }
             }
         }
     }
@@ -189,18 +211,16 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
                 val res = buffer.success
                 val error = buffer.error
 
-                withContext(Dispatchers.Main){
-                    if (res != null){
-                        updateUserInfo()
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+                if (res != null){
+                    updateUserInfo()
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                    } else {
-                        if (error != null){
-                            onError(error)
-                        }
+                    )
+                } else {
+                    if (error != null){
+                        onError(error)
                     }
                 }
             }
@@ -227,18 +247,16 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
                 val res = buffer.success
                 val error = buffer.error
 
-                withContext(Dispatchers.Main) {
-                    if (res != null) {
-                        updateUserInfo()
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+                if (res != null) {
+                    updateUserInfo()
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                    } else {
-                        if (error != null) {
-                            onError(error)
-                        }
+                    )
+                } else {
+                    if (error != null) {
+                        onError(error)
                     }
                 }
             }
@@ -258,18 +276,16 @@ class ProfileSettingsViewModel(val component : ProfileSettingsComponent, savedSt
                 val res = buffer.success
                 val error = buffer.error
 
-                withContext(Dispatchers.Main) {
-                    if (res != null) {
-                        updateUserInfo()
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+                if (res != null) {
+                    updateUserInfo()
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                    } else {
-                        if (error != null) {
-                            onError(error)
-                        }
+                    )
+                } else {
+                    if (error != null) {
+                        onError(error)
                     }
                 }
             }

@@ -58,30 +58,30 @@ class ContactUsViewModel(
         setLoading(true)
         scope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    setLoading(true)
-                    val response = apiService.getSupServViewModel()
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                            val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            if (UserData.token != "") {
-                                payload.fields.find { it.key == "email" }?.data =
-                                    JsonPrimitive(UserData.userInfo?.email)
-                                payload.fields.find { it.key == "name" }?.data =
-                                    JsonPrimitive(UserData.userInfo?.login)
-                            }
-                            val selectedType = component.model.value.selectedType
-
-                            if (selectedType == "delete_account") {
-                                payload.fields.find { it.key == "variant" }?.data = JsonPrimitive(9)
-                            }
-
-                            _responseGetFields.value = payload.fields
-                        }catch (e : Exception){
-                            throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
-                        }
+                setLoading(true)
+                val response = withContext(Dispatchers.IO) { apiService.getSupServViewModel() }
+                try {
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(response.payload, serializer)
+                    if (UserData.token != "") {
+                        payload.fields.find { it.key == "email" }?.data =
+                            JsonPrimitive(UserData.userInfo?.email)
+                        payload.fields.find { it.key == "name" }?.data =
+                            JsonPrimitive(UserData.userInfo?.login)
                     }
+                    val selectedType = component.model.value.selectedType
+
+                    if (selectedType == "delete_account") {
+                        payload.fields.find { it.key == "variant" }?.data = JsonPrimitive(9)
+                    }
+
+                    _responseGetFields.value = payload.fields
+                } catch (e: Exception) {
+                    throw ServerErrorException(
+                        errorCode = e.message.toString(),
+                        humanMessage = e.message.toString()
+                    )
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -108,40 +108,42 @@ class ContactUsViewModel(
                     apiService.postSupServViewModel(body)
                 }
 
-                withContext(Dispatchers.Main) {
-                    setLoading(false)
+                setLoading(false)
 
-                    try {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                        if (payload.operationResult?.result == "ok") {
-                            val events = mapOf(
-                                "body" to body.toString()
+                try {
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(response.payload, serializer)
+                    if (payload.operationResult?.result == "ok") {
+                        val events = mapOf(
+                            "body" to body.toString()
+                        )
+                        analyticsHelper.reportEvent("support_letter_send", events)
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
                             )
-                            analyticsHelper.reportEvent("support_letter_send", events)
-                            showToast(
-                                successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
-                                )
+                        )
+                        delay(2000)
+                        onSuccess()
+                    } else {
+                        _responseGetFields.value = payload.recipe?.fields ?: payload.fields
+                        val events = mapOf(
+                            "body" to body.toString(),
+                            "error_type" to payload.operationResult?.message
+                        )
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
                             )
-                            delay(2000)
-                            onSuccess()
-                        }else{
-                            _responseGetFields.value = payload.recipe?.fields ?: payload.fields
-                            val events = mapOf(
-                                "body" to body.toString(),
-                                "error_type" to payload.operationResult?.message
-                            )
-                            showToast(
-                                errorToastItem.copy(
-                                    message = getString(strings.operationFailed)
-                                )
-                            )
-                            analyticsHelper.reportEvent("support_letter_fail", events)
-                        }
-                    }catch (e : Exception){
-                        throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
+                        )
+                        analyticsHelper.reportEvent("support_letter_fail", events)
                     }
+                } catch (e: Exception) {
+                    throw ServerErrorException(
+                        errorCode = e.message.toString(),
+                        humanMessage = e.message.toString()
+                    )
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -153,23 +155,25 @@ class ContactUsViewModel(
 
     fun uploadPhotoTemp(item : PhotoTemp) {
         scope.launch {
-            val res = uploadFile(item)
+            val res = withContext(Dispatchers.IO) {
+                uploadFile(item)
+            }
 
             if (res.success != null) {
-                withContext(Dispatchers.Main){
-                    val result = res.success!!
 
-                    _responseGetFields.update { res ->
-                        res.map {
-                            if (it.key == "attachment") {
-                                it.copy(data = JsonPrimitive(result.tempId))
-                            } else {
-                                it.copy()
-                            }
+                val result = res.success!!
+
+                _responseGetFields.update { res ->
+                    res.map {
+                        if (it.key == "attachment") {
+                            it.copy(data = JsonPrimitive(result.tempId))
+                        } else {
+                            it.copy()
                         }
                     }
-                    _dataImage.value = item.file?.name ?: ""
                 }
+                _dataImage.value = item.file?.name ?: ""
+
             } else {
                 showToast(
                     errorToastItem.copy(
@@ -211,21 +215,16 @@ class ContactUsViewModel(
                 getFileUpload(photoTemp)
             }
 
-            return withContext(Dispatchers.Main) {
-                val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
-                photoTemp.tempId = cleanedSuccess
-                ServerResponse(photoTemp)
-            }
+            val cleanedSuccess = res.success?.trimStart('[')?.trimEnd(']')?.replace("\"", "")
+            photoTemp.tempId = cleanedSuccess
+            return ServerResponse(photoTemp)
+
         } catch (e : ServerErrorException){
             onError(e)
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = e)
-            }
+            return ServerResponse(error = e)
         }catch (e : Exception){
             onError(ServerErrorException(e.message ?: "", ""))
-            return withContext(Dispatchers.Main) {
-                ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
-            }
+            return ServerResponse(error = ServerErrorException(errorCode = e.message ?: ""))
         }
     }
 }

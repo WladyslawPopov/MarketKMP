@@ -7,6 +7,7 @@ import app.cash.paging.PagingData
 import app.cash.paging.cachedIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -114,8 +115,12 @@ class MyOrdersViewModel(
 
             listingBaseViewModel.setListItemsFilterBar(
                 buildList {
-                    val filterString = getString(strings.filter)
-                    val sortString = getString(strings.sort)
+                    val filterString = withContext(Dispatchers.IO){
+                        getString(strings.filter)
+                    }
+                    val sortString = withContext(Dispatchers.IO){
+                        getString(strings.sort)
+                    }
                     val filters = ld.value.data.filters.filter {
                         it.value != "" &&
                                 it.interpretation?.isNotBlank() == true

@@ -195,15 +195,26 @@ class DialogsViewModel(
         listingData
     )
     { isMenuVisible, conversation, offerInfo, orderInfo, listingData ->
+
         val copyId = getString(strings.idCopied)
 
         val offer = offerInfo
         val order = orderInfo
-        val sign = getString(strings.currencySign)
-        val orderLabel = getString(strings.orderLabel)
-        val copyOfferId = getString(strings.copyOfferId)
-        val copyOrderId = getString(strings.copyOrderId)
-        val deleteDialogLabel = getString(strings.deleteDialogLabel)
+        val sign = withContext(Dispatchers.IO){
+            getString(strings.currencySign)
+        }
+        val orderLabel = withContext(Dispatchers.IO){
+            getString(strings.orderLabel)
+        }
+        val copyOfferId = withContext(Dispatchers.IO){
+            getString(strings.copyOfferId)
+        }
+        val copyOrderId = withContext(Dispatchers.IO){
+            getString(strings.copyOrderId)
+        }
+        val deleteDialogLabel = withContext(Dispatchers.IO){
+            getString(strings.deleteDialogLabel)
+        }
         var userRole = ""
 
         val headerItem = when {
@@ -297,6 +308,8 @@ class DialogsViewModel(
                     }
                     component.goToOrder(order.id, type)
                 }
+
+
             }
 
             else -> {
@@ -402,7 +415,9 @@ class DialogsViewModel(
             pagingData.map { dialog ->
                 val isIncoming = (UserData.login != dialog.sender)
                 val type = if (isIncoming) MessageType.INCOMING else MessageType.OUTGOING
-                val textCopied = getString(strings.textCopied)
+                val textCopied = withContext(Dispatchers.IO){
+                    getString(strings.textCopied)
+                }
 
                 DialogsData.MessageItem(
                     id = dialog.id,

@@ -109,7 +109,6 @@ class CreateOfferViewModel(
     
     val searchData = categoryViewModel.searchData
 
-
     private val _isEditCat = savedStateHandle.getSavedStateFlow(
         scope,
         "isEditCat",
@@ -405,9 +404,9 @@ class CreateOfferViewModel(
             }
         }
         setLoading(true)
-        scope.launch(Dispatchers.IO) {
+        scope.launch {
             try {
-                val response = apiService.postCreateOfferPage(url, body)
+                val response = withContext(Dispatchers.IO) { apiService.postCreateOfferPage(url, body) }
 
                 try {
                     val serializer = DynamicPayload.serializer(OperationResult.serializer())
@@ -449,11 +448,9 @@ class CreateOfferViewModel(
                         _responsePostPage.value = payload
 
                         if (type == CreateOfferType.EDIT) {
+                            delay(500)
                             categoryViewModel.resetToRoot()
-                            delay(1000L)
-                            withContext(Dispatchers.Main) {
-                                component.onBackClicked()
-                            }
+                            component.onBackClicked()
                         }
                     } else {
                         val eventParams = mapOf(

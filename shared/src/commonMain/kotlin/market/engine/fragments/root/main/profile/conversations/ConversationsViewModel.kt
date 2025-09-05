@@ -119,9 +119,8 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
     }
 
     fun updateItem(oldItem: Conversations) {
-        getConversation(
-            oldItem.id,
-            onSuccess = { res->
+        scope.launch {
+            getConversation(oldItem.id)?.let { res ->
                 oldItem.interlocutor = res.interlocutor
                 oldItem.newMessage = res.newMessage
                 oldItem.newMessageTs = res.newMessageTs
@@ -129,11 +128,8 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
                 oldItem.aboutObjectIcon = res.aboutObjectIcon
 
                 setUpdateItem(null)
-            },
-            error = {
-                setUpdateItem(null)
             }
-        )
+        }
     }
 
     fun deleteSelectsItems() {
@@ -181,27 +177,20 @@ class ConversationsViewModel(val component: ConversationsComponent, savedStateHa
         }
     }
 
-    fun getConversation(id : Long, onSuccess: (Conversations) -> Unit, error: () -> Unit) {
-        scope.launch {
-            try {
-                val res = withContext(Dispatchers.IO) {
-                    conversationsOperations.getConversation(id)
-                }
-                val buf = res.success
-                val e = res.error
-                withContext(Dispatchers.Main) {
-                    if (buf!= null) {
-                        onSuccess(res.success!!)
-                    }else{
-                        error()
-                        e?.let { throw it }
-                    }
-                }
-            }catch (e : ServerErrorException){
-                onError(e)
-            }catch (e : Exception){
-                onError(ServerErrorException(e.message ?: "", ""))
+    suspend fun getConversation(id : Long) : Conversations? {
+        return try {
+            val res = withContext(Dispatchers.IO) {
+                conversationsOperations.getConversation(id)
             }
+            val buf = res.success
+            val e = res.error
+            buf ?: e?.let { throw it }
+        }catch (e : ServerErrorException){
+            onError(e)
+            null
+        }catch (e : Exception){
+            onError(ServerErrorException(e.message ?: "", ""))
+            null
         }
     }
 }

@@ -128,28 +128,21 @@ class CreateOrderViewModel(
     )
 
     init {
-        getOffers(basketItem.second.map { it.offerId })
-        getAdditionalFields(
-            basketItem.first,
-            basketItem.second.map { it.offerId },
-            basketItem.second.map { it.selectedQuantity }
-        ){
-            component.onBackClicked()
-        }
-
+        refreshPage()
         analyticsHelper.reportEvent("view_create_order", mapOf())
     }
 
     fun refreshPage(){
-        deliveryCardsViewModel.refreshCards()
-        getOffers(basketItem.second.map { it.offerId })
-        getAdditionalFields(
-            basketItem.first,
-            basketItem.second.map { it.offerId },
-            basketItem.second.map { it.selectedQuantity }
-        ){
-            component.onBackClicked()
+        scope.launch {
+            getOffers(basketItem.second.map { it.offerId })
+            getAdditionalFields(
+                basketItem.first,
+                basketItem.second.map { it.offerId },
+                basketItem.second.map { it.selectedQuantity }
+            )
         }
+        deliveryCardsViewModel.refreshCards()
+
         refresh()
     }
 
@@ -165,31 +158,34 @@ class CreateOrderViewModel(
         _selectPaymentType.value = paymentType
     }
 
-    fun getOffers(listOffersId : List<Long>) {
-        scope.launch {
-            try {
-                _responseGetOffers.value = emptyList()
+    suspend fun getOffers(listOffersId : List<Long>) {
+        try {
+            _responseGetOffers.value = emptyList()
 
-                setLoading(true)
+            setLoading(true)
 
-                listOffersId.forEach {
-                    val response = withContext(Dispatchers.IO) { offerOperations.getOffer(it) }
+            listOffersId.forEach {
+                val response = withContext(Dispatchers.IO) { offerOperations.getOffer(it) }
 
-                    if (response.success != null){
-                        _responseGetOffers.value += response.success!!.parseToOfferItem()
-                    }
+                if (response.success != null) {
+                    _responseGetOffers.value += response.success!!.parseToOfferItem()
                 }
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-            } finally {
-                setLoading(false)
             }
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+        } catch (exception: Exception) {
+            onError(
+                ServerErrorException(
+                    errorCode = exception.message.toString(),
+                    humanMessage = exception.message.toString()
+                )
+            )
+        } finally {
+            setLoading(false)
         }
     }
 
-    fun getAdditionalFields(sellerId: Long, lotIds: List<Long>?, lotCounts: List<Int>?, goBack: () -> Unit) {
+    fun getAdditionalFields(sellerId: Long, lotIds: List<Long>?, lotCounts: List<Int>?) {
         scope.launch {
             setLoading(true)
             try {
@@ -232,10 +228,10 @@ class CreateOrderViewModel(
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
-                goBack()
+                component.onBackClicked()
             } catch (exception: Exception) {
                 onError(ServerErrorException(errorCode = exception.message.toString(), humanMessage = exception.message.toString()))
-                goBack()
+                component.onBackClicked()
             } finally {
                 setLoading(false)
             }

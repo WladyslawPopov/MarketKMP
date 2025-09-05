@@ -127,7 +127,9 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 }
             ),
             NavigationItem(
-                title = getString(strings.createNewOffersListLabel),
+                title = withContext(Dispatchers.IO){
+                    getString(strings.createNewOffersListLabel)
+                },
                 isVisible = !isDragMode,
                 badgeCount = null,
                 icon = drawables.addFolderIcon,
@@ -136,7 +138,9 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                     if (settings.getSettingValue("create_blank_offer_list_notify_badge", true) == true) {
                         TooltipData(
                             title = "",
-                            subtitle = getString(strings.createOfferListTooltipDescription),
+                            subtitle = withContext(Dispatchers.IO){
+                                getString(strings.createOfferListTooltipDescription)
+                            },
                             dismissIcon = drawables.cancelIcon
                         )
                     }else{
@@ -147,7 +151,9 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
                 }
             ),
             NavigationItem(
-                title = getString(strings.menuTitle),
+                title = withContext(Dispatchers.IO){
+                    getString(strings.menuTitle)
+                },
                 hasNews = false,
                 isVisible = isVisibleMenu && !isDragMode,
                 badgeCount = null,
@@ -163,9 +169,11 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
             appState = SimpleAppBarData(
                 menuData = MenuData(
                     isMenuVisible = isMenuVisible,
-                    menuItems = if (isVisibleMenu)
-                        getOperationFavTab(favTabList[currentTab].id)
-                    else getDefOperationFavTab(),
+                    menuItems = withContext(Dispatchers.IO){
+                        if (isVisibleMenu)
+                            getOperationFavTab(favTabList[currentTab].id)
+                        else getDefOperationFavTab()
+                    },
                     closeMenu = {
                         _isMenuVisible.value = false
                     }
@@ -199,19 +207,25 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
             val newList = arrayListOf(
                 FavoriteListItem(
                     id = 111,
-                    title = getString(strings.myFavoritesTitle),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.myFavoritesTitle)
+                    },
                     owner = UserData.login,
                     position = 0
                 ),
                 FavoriteListItem(
                     id = 222,
-                    title = getString(strings.mySubscribedTitle),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.mySubscribedTitle)
+                    },
                     owner = UserData.login,
                     position = 1
                 ),
                 FavoriteListItem(
                     id = 333,
-                    title = getString(strings.myNotesTitle),
+                    title = withContext(Dispatchers.IO){
+                        getString(strings.myNotesTitle)
+                    },
                     owner = UserData.login,
                     position = 2
                 )
@@ -244,23 +258,21 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     }
 
     fun updateFavTabList(list: List<Tab>){
-        scope.launch {
-            try {
-                _tabsDataList.value = list.map { item ->
-                    FavoriteListItem(
-                        id = item.id,
-                        title = item.title,
-                        images = item.image?.let { listOf(it) } ?: emptyList(),
-                        markedAsPrimary = item.isPined,
-                    )
-                }
-
-                offerListRepository.saveFavoritesTabList(_tabsDataList.value)
-            }  catch (e: ServerErrorException) {
-                onError(e)
-            } catch (e: Exception) {
-                onError(ServerErrorException(e.message ?: "", ""))
+        try {
+            _tabsDataList.value = list.map { item ->
+                FavoriteListItem(
+                    id = item.id,
+                    title = item.title,
+                    images = item.image?.let { listOf(it) } ?: emptyList(),
+                    markedAsPrimary = item.isPined,
+                )
             }
+
+            offerListRepository.saveFavoritesTabList(_tabsDataList.value)
+        }  catch (e: ServerErrorException) {
+            onError(e)
+        } catch (e: Exception) {
+            onError(ServerErrorException(e.message ?: "", ""))
         }
     }
 
@@ -269,7 +281,9 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
             MenuItem(
                 icon = drawables.reorderIcon,
                 id = "reorder",
-                title = getString(strings.reorderTabLabel),
+                title = withContext(Dispatchers.IO){
+                    getString(strings.reorderTabLabel)
+                },
                 onClick = {
                     makeOperation("reorder", 1L)
                 }
@@ -278,40 +292,39 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
     }
 
     suspend fun getOperationFavTab(id: Long) : List<MenuItem> {
-
         val data = withContext(Dispatchers.IO) { offersListOperations.getOperations(id) }
 
-        return withContext(Dispatchers.Main) {
-            val res = data.success
+        val res = data.success
 
-            val defReorderMenuItem = MenuItem(
-                icon = drawables.reorderIcon,
-                id = "reorder",
-                title = getString(strings.reorderTabLabel),
-                onClick = {
-                    makeOperation("reorder", 1L)
-                }
-            )
+        val defReorderMenuItem = MenuItem(
+            icon = drawables.reorderIcon,
+            id = "reorder",
+            title = withContext(Dispatchers.IO){
+                getString(strings.reorderTabLabel)
+            },
+            onClick = {
+                makeOperation("reorder", 1L)
+            }
+        )
 
-            return@withContext buildList {
-                addAll(
-                    listOf(
-                        defReorderMenuItem
-                    )
+        return buildList {
+            addAll(
+                listOf(
+                    defReorderMenuItem
                 )
-                if(res?.isNotEmpty() == true) {
-                    addAll(
-                        res.map {
-                            MenuItem(
-                                id = it.id ?: "",
-                                title = it.name ?: "",
-                                onClick = {
-                                    makeOperation(it.id ?: "", id)
-                                }
-                            )
-                        }
-                    )
-                }
+            )
+            if (res?.isNotEmpty() == true) {
+                addAll(
+                    res.map {
+                        MenuItem(
+                            id = it.id ?: "",
+                            title = it.name ?: "",
+                            onClick = {
+                                makeOperation(it.id ?: "", id)
+                            }
+                        )
+                    }
+                )
             }
         }
     }

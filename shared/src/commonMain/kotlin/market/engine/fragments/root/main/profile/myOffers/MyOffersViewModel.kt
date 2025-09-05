@@ -89,6 +89,7 @@ class MyOffersViewModel(
                     )
                 )
             )
+
             listingBaseViewModel.setListItemsFilterBar(
                 buildList {
                     val filterString = getString(strings.filter)

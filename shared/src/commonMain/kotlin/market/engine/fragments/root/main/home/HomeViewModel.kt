@@ -86,6 +86,7 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
         _responseOffersPromotedOnMainPage2.state,
     )
     { up, categories, promoOffers1, promoOffers2 ->
+
         val userInfo = UserData.userInfo
 
         val proposalString = getString(strings.proposalTitle)

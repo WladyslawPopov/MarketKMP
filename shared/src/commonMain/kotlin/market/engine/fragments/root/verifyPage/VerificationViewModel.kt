@@ -56,21 +56,20 @@ class VerificationViewModel(
 
                     val resSMS = buf.success
                     val resSmsErr = buf.error
-                    withContext(Dispatchers.Main) {
-                        if (resSMS != null) {
-                            showToast(
-                                successToastItem.copy(
-                                    message = resSMS.operationResult?.message ?: getString(strings.operationSuccess)
-                                )
+
+                    if (resSMS != null) {
+                        showToast(
+                            successToastItem.copy(
+                                message = resSMS.operationResult?.message ?: getString(strings.operationSuccess)
                             )
-                        } else {
-                            if (resSmsErr != null) {
-                                onError(
-                                    resSmsErr
-                                )
-                            }
-                            goBack()
+                        )
+                    } else {
+                        if (resSmsErr != null) {
+                            onError(
+                                resSmsErr
+                            )
                         }
+                        goBack()
                     }
                 } catch (e : ServerErrorException){
                     onError(e)
@@ -106,30 +105,28 @@ class VerificationViewModel(
                 val resE = buf.success
                 val resEerr = buf.error
 
-                withContext(Dispatchers.Main) {
-                    if (resE != null) {
-                        val eventParameters = mapOf(
-                            "user_id" to UserData.login,
-                            "profile_source" to "settings"
+                if (resE != null) {
+                    val eventParameters = mapOf(
+                        "user_id" to UserData.login,
+                        "profile_source" to "settings"
+                    )
+                    analyticsHelper.reportEvent(
+                        "change_email_success",
+                        eventParameters
+                    )
+                    showToast(
+                        successToastItem.copy(
+                            message = resE.operationResult?.message
+                                ?: getString(strings.operationSuccess)
                         )
-                        analyticsHelper.reportEvent(
-                            "change_email_success",
-                            eventParameters
+                    )
+                    delay(500)
+                    goBack()
+                } else {
+                    if (resEerr != null) {
+                        onError(
+                            resEerr
                         )
-                        showToast(
-                            successToastItem.copy(
-                                message = resE.operationResult?.message
-                                    ?: getString(strings.operationSuccess)
-                            )
-                        )
-                        delay(2000)
-                        goBack()
-                    } else {
-                        if (resEerr != null) {
-                            onError(
-                                resEerr
-                            )
-                        }
                     }
                 }
             } catch (e: ServerErrorException) {
@@ -165,10 +162,14 @@ class VerificationViewModel(
                         if (res.status == "operation_success") {
                             showToast(
                                 successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
+                                    message = withContext(Dispatchers.IO) {
+                                        getString(strings.operationSuccess)
+                                    }
                                 )
                             )
-                            delay(2000)
+                            withContext(Dispatchers.IO) {
+                                delay(1000)
+                            }
                             goBack()
                         } else {
                             showToast(
@@ -176,7 +177,9 @@ class VerificationViewModel(
                                     message = res.humanMessage ?: ""
                                 )
                             )
-                            delay(2000)
+                            withContext(Dispatchers.IO) {
+                                delay(1000)
+                            }
                             goBack()
                         }
                     }

@@ -138,8 +138,11 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun showToast(newToast: ToastItem) {
         _toastItem.value = newToast
         scope.launch {
-            delay(2000)
-            _toastItem.value = ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
+            withContext(Dispatchers.IO) {
+                delay(2000)
+                _toastItem.value =
+                    ToastItem(message = "", type = ToastType.WARNING, isVisible = false)
+            }
         }
     }
 
@@ -190,9 +193,11 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             if (res.operationResult?.result == "ok") {
                 showToast(
                     successToastItem.copy(
-                        message = getString(
-                            strings.operationSuccess
-                        )
+                        message = withContext(Dispatchers.IO){
+                            getString(
+                                strings.operationSuccess
+                            )
+                        }
                     )
                 )
                 analyticsHelper.reportEvent(
@@ -213,9 +218,11 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 )
                 showToast(
                     errorToastItem.copy(
-                        message = getString(
-                            strings.operationFailed
-                        )
+                        message = withContext(Dispatchers.IO){
+                            getString(
+                                strings.operationFailed
+                            )
+                        }
                     )
                 )
 
@@ -349,11 +356,13 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
             val historyIds = offerVisitedHistoryRepository.getHistory().filter { it != currentId }
 
-            val freshOfferItems = historyIds.mapNotNull { id ->
-                try {
-                    offerOperations.getOffer(id).success?.parseToOfferItem()
-                } catch (_: Exception) {
-                    null
+            val freshOfferItems = withContext(Dispatchers.IO){
+                historyIds.mapNotNull { id ->
+                    try {
+                        offerOperations.getOffer(id).success?.parseToOfferItem()
+                    } catch (_: Exception) {
+                        null
+                    }
                 }
             }
 
@@ -381,7 +390,9 @@ open class CoreViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 _responseOurChoice.value = cachedOffers
             }
 
-            val response = apiService.getOurChoiceOffers(id)
+            val response = withContext(Dispatchers.IO){
+                apiService.getOurChoiceOffers(id)
+            }
             val serializer = Payload.serializer(Offer.serializer())
             val ourChoice = deserializePayload(response.payload, serializer).objects
             val freshOffers = ourChoice.map { it.parseToOfferItem() }.toList()

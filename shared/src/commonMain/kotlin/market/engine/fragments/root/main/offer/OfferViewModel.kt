@@ -2,7 +2,6 @@ package market.engine.fragments.root.main.offer
 
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.lifecycle.SavedStateHandle
-
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -100,29 +99,27 @@ class OfferViewModel(
             val res = withContext(Dispatchers.IO) {
                 operationsMethods.postOperationFields(offerId, "delete_note", "offers")
             }
-            withContext(Dispatchers.Main) {
-                if (res.success != null) {
-                    if (res.success?.operationResult?.result == "ok") {
-                        showToast(
-                            successToastItem.copy(
-                                message = getString(strings.operationSuccess)
-                            )
+            if (res.success != null) {
+                if (res.success?.operationResult?.result == "ok") {
+                    showToast(
+                        successToastItem.copy(
+                            message = getString(strings.operationSuccess)
                         )
-                        analyticsHelper.reportEvent(
-                            "delete_note_success",
-                            eventParameters = mapOf(
-                                "lot_id" to offerId,
-                            )
+                    )
+                    analyticsHelper.reportEvent(
+                        "delete_note_success",
+                        eventParameters = mapOf(
+                            "lot_id" to offerId,
                         )
-                        refreshPage()
-                    } else {
-                        showToast(
-                            errorToastItem.copy(
-                                message = res.success?.operationResult?.message
-                                    ?: getString(strings.operationFailed)
-                            )
+                    )
+                    refreshPage()
+                } else {
+                    showToast(
+                        errorToastItem.copy(
+                            message = res.success?.operationResult?.message
+                                ?: getString(strings.operationFailed)
                         )
-                    }
+                    )
                 }
             }
         }
@@ -134,9 +131,13 @@ class OfferViewModel(
                 setLoading(true)
 
                 val res = withContext(Dispatchers.IO) {
-                        getHistory(offerId)
-                        getOurChoice(offerId)
                         offerOperations.getOffer(offerId, isSnapshot)
+                }
+                withContext(Dispatchers.IO) {
+                    getHistory(offerId)
+                }
+                withContext(Dispatchers.IO) {
+                    getOurChoice(offerId)
                 }
 
                 val data = res.success
@@ -259,14 +260,12 @@ class OfferViewModel(
                 userOperations.getUsers(id)
             }
 
-            withContext(Dispatchers.Main) {
-                val user = res.success?.firstOrNull()
-                val error = res.error
-                if (user != null) {
-                    return@withContext user
-                } else {
-                    error?.let { throw it }
-                }
+            val user = res.success?.firstOrNull()
+            val error = res.error
+            if (user != null) {
+                return user
+            } else {
+                error?.let { throw it }
             }
         } catch (exception: ServerErrorException) {
             onError(exception)
@@ -562,9 +561,13 @@ class OfferViewModel(
         val isCompleted = offerState == OfferStates.COMPLETED
         val isCompletedOrInActive = isCompleted || offerState == OfferStates.INACTIVE
 
-        val quantityInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity}"
+        val quantityInfo = withContext(Dispatchers.IO) {
+            "${getString(strings.quantityParameterName)}: ${offer.currentQuantity}"
+        }
 
-        val qFullInfo = "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.originalQuantity}"
+        val qFullInfo = withContext(Dispatchers.IO) {
+            "${getString(strings.quantityParameterName)}: ${offer.currentQuantity} ${getString(strings.fromParameterName)} ${offer.originalQuantity}"
+        }
 
         return when {
             saleType == "buy_now" -> {

@@ -92,15 +92,13 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
                     userOperations.getUsers(userId)
                 }
 
-                withContext(Dispatchers.Main){
-                    val user = res.success?.firstOrNull()
-                    val error = res.error
-                    if (user != null){
-                        _userInfo.value = user
-                        initializeUserData(user)
-                    }else{
-                        error?.let { throw it }
-                    }
+                val user = res.success?.firstOrNull()
+                val error = res.error
+                if (user != null){
+                    _userInfo.value = user
+                    initializeUserData(user)
+                }else{
+                    error?.let { throw it }
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)
@@ -116,12 +114,14 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
         onSuccess: () -> Unit,
         errorCallback: (String) -> Unit
     ) {
-        scope.launch(Dispatchers.IO) {
-            val response = operationsMethods.getOperationFields(
-                UserData.login,
-                "create_subscription",
-                "users"
-            )
+        scope.launch {
+            val response = withContext(Dispatchers.IO){
+                operationsMethods.getOperationFields(
+                    UserData.login,
+                    "create_subscription",
+                    "users"
+                )
+            }
 
             val eventParameters : ArrayList<Pair<String, Any?>> = arrayListOf(
                 "buyer_id" to UserData.login.toString(),
@@ -195,28 +195,28 @@ class UserViewModel(val userId: Long, val component: UserComponent, savedStateHa
                 }
             }
 
-            val res = operationsMethods.postOperationFields(
-                UserData.login,
-                "create_subscription",
-                "users",
-                body
-            )
+            val res = withContext(Dispatchers.IO){
+                operationsMethods.postOperationFields(
+                    UserData.login,
+                    "create_subscription",
+                    "users",
+                    body
+                )
+            }
 
             val buf = res.success
             val err = res.error
 
-            withContext(Dispatchers.Main) {
-                if (buf != null) {
-                    showToast(
-                        successToastItem.copy(
-                            message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
-                        )
+            if (buf != null) {
+                showToast(
+                    successToastItem.copy(
+                        message = res.success?.operationResult?.message ?: getString(strings.operationSuccess)
                     )
-                    delay(1000)
-                    onSuccess()
-                }else {
-                    errorCallback(err?.humanMessage ?: "")
-                }
+                )
+                delay(1000)
+                onSuccess()
+            }else {
+                errorCallback(err?.humanMessage ?: "")
             }
         }
     }

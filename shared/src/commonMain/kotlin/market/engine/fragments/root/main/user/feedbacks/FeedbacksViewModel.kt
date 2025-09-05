@@ -25,7 +25,11 @@ import market.engine.core.utils.getSavedStateFlow
 import market.engine.fragments.base.CoreViewModel
 import org.jetbrains.compose.resources.getString
 
-class FeedbacksViewModel(val type : ReportPageType, val userId : Long, component: FeedbacksComponent, savedStateHandle: SavedStateHandle) : CoreViewModel(savedStateHandle) {
+class FeedbacksViewModel(
+    val type : ReportPageType,
+    val userId : Long, component: FeedbacksComponent,
+    savedStateHandle: SavedStateHandle
+) : CoreViewModel(savedStateHandle) {
 
     private val pagingRepository: PagingRepository<Reports> = PagingRepository()
 
@@ -51,9 +55,7 @@ class FeedbacksViewModel(val type : ReportPageType, val userId : Long, component
                     getString(strings.neutralFilterParams)
                 )
             }
-            withContext(Dispatchers.Main) {
-                refreshListing()
-            }
+            refreshListing()
         }
     }
 

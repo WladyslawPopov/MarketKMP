@@ -51,14 +51,12 @@ class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStat
                 withContext(Dispatchers.IO) {
                     setLoading(true)
                     val response = apiService.getRegistration()
-                    withContext(Dispatchers.Main) {
-                        try {
-                            val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                            val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
-                            _responseGetRegFields.value = payload.fields
-                        }catch (e : Exception){
-                            throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
-                        }
+                    try {
+                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                        val payload : DynamicPayload<OperationResult> = deserializePayload(response.payload, serializer)
+                        _responseGetRegFields.value = payload.fields
+                    }catch (e : Exception){
+                        throw ServerErrorException(errorCode = e.message.toString(), humanMessage = e.message.toString())
                     }
                 }
             } catch (exception: ServerErrorException) {
@@ -85,45 +83,43 @@ class RegViewModel(savedStateHandle: SavedStateHandle) : CoreViewModel(savedStat
                     apiService.postRegistration(body)
                 }
 
-                withContext(Dispatchers.Main) {
-                    try {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload: DynamicPayload<OperationResult> =
-                            deserializePayload(response.payload, serializer)
+                try {
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(response.payload, serializer)
 
-                        if (payload.operationResult?.result == "ok") {
-                            val events = mapOf(
-                                "login_type" to "email",
-                                "body" to body.toString()
-                            )
-                            analyticsHelper.reportEvent("register_success", events)
-                            showToast(
-                                successToastItem.copy(
-                                    message = payload.operationResult.message
-                                        ?: response.humanMessage
-                                        ?: getString(strings.operationSuccess)
-                                )
-                            )
-                            _showSuccessReg.value = true
-                        } else {
-                            _responseGetRegFields.value = payload.recipe?.fields ?: payload.fields
-                            val events = mapOf(
-                                "login_type" to "email",
-                                "body" to body.toString()
-                            )
-                            showToast(
-                                errorToastItem.copy(
-                                    message = getString(strings.operationFailed)
-                                )
-                            )
-                            analyticsHelper.reportEvent("register_fail", events)
-                        }
-                    } catch (e: Exception) {
-                        throw ServerErrorException(
-                            errorCode = e.message.toString(),
-                            humanMessage = e.message.toString()
+                    if (payload.operationResult?.result == "ok") {
+                        val events = mapOf(
+                            "login_type" to "email",
+                            "body" to body.toString()
                         )
+                        analyticsHelper.reportEvent("register_success", events)
+                        showToast(
+                            successToastItem.copy(
+                                message = payload.operationResult.message
+                                    ?: response.humanMessage
+                                    ?: getString(strings.operationSuccess)
+                            )
+                        )
+                        _showSuccessReg.value = true
+                    } else {
+                        _responseGetRegFields.value = payload.recipe?.fields ?: payload.fields
+                        val events = mapOf(
+                            "login_type" to "email",
+                            "body" to body.toString()
+                        )
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
+                            )
+                        )
+                        analyticsHelper.reportEvent("register_fail", events)
                     }
+                } catch (e: Exception) {
+                    throw ServerErrorException(
+                        errorCode = e.message.toString(),
+                        humanMessage = e.message.toString()
+                    )
                 }
             } catch (exception: ServerErrorException) {
                 onError(exception)

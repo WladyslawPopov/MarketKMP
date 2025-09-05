@@ -1,6 +1,8 @@
 package market.engine.fragments.base.listing
 
 import androidx.lifecycle.SavedStateHandle
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import market.engine.core.data.baseFilters.Filter
@@ -180,18 +183,38 @@ class ListingBaseViewModel(
     { listingType, listingData, listItemsNavigation ->
         val ld = listingData.data
         val searchData = listingData.searchData
-        val searchTitle = getString(strings.searchTitle)
-        val auctionString = getString(strings.ordinaryAuction)
-        val buyNowString = getString(strings.buyNow)
-        val allString = getString(strings.allOffers)
-        val userDef = getString(strings.searchUsersSearch)
+        val searchTitle = withContext(Dispatchers.IO) {
+            getString(strings.searchTitle)
+        }
+        val auctionString = withContext(Dispatchers.IO) {
+            getString(strings.ordinaryAuction)
+        }
+        val buyNowString = withContext(Dispatchers.IO) {
+            getString(strings.buyNow)
+        }
+        val allString = withContext(Dispatchers.IO) {
+            getString(strings.allOffers)
+        }
+        val userDef = withContext(Dispatchers.IO) {
+            getString(strings.searchUsersSearch)
+        }
 
-        val searchFinishedString = getString(strings.searchUserFinishedStringChoice)
-        val userString = getString(strings.searchUsersSearch)
+        val searchFinishedString = withContext(Dispatchers.IO) {
+            getString(strings.searchUserFinishedStringChoice)
+        }
+        val userString = withContext(Dispatchers.IO) {
+            getString(strings.searchUsersSearch)
+        }
 
-        val filterString = getString(strings.filter)
-        val sortString = getString(strings.sort)
-        val chooseAction = getString(strings.chooseAction)
+        val filterString = withContext(Dispatchers.IO) {
+            getString(strings.filter)
+        }
+        val sortString = withContext(Dispatchers.IO) {
+            getString(strings.sort)
+        }
+        val chooseAction = withContext(Dispatchers.IO) {
+            getString(strings.chooseAction)
+        }
 
         val filters =
             ld.filters.filter { it.value != "" && it.interpretation?.isNotBlank() == true }
@@ -204,11 +227,11 @@ class ListingBaseViewModel(
 
         val updatedListNavigation = listItemsNavigation.map { item ->
             when (item.title) {
-                getString(strings.filter) -> {
+                filterString -> {
                     item.copy(badgeCount = if (filters.isNotEmpty()) filters.size else null)
                 }
 
-                getString(strings.sort) -> {
+                sortString -> {
                     item.copy(hasNews = ld.sort != null)
                 }
 
@@ -357,9 +380,15 @@ class ListingBaseViewModel(
         _activeWindowType.state
     )
     { responseHistory, changeSearchTab, listingData, searchString, activeType ->
-        val searchHistory = getString(strings.searchHistory)
-        val subTitle = getString(strings.mySubscribedTitle)
-        val searchTitle = getString(strings.searchTitle)
+        val searchHistory = withContext(Dispatchers.IO){
+            getString(strings.searchHistory)
+        }
+        val subTitle = withContext(Dispatchers.IO){
+            getString(strings.mySubscribedTitle)
+        }
+        val searchTitle = withContext(Dispatchers.IO){
+            getString(strings.searchTitle)
+        }
 
         val searchVm = listingComponent?.additionalModels?.value?.searchCategoryViewModel
 
@@ -400,7 +429,7 @@ class ListingBaseViewModel(
                     categoryViewModel = searchVm,
                     openCategory = activeType == ActiveWindowListingType.CATEGORY_FILTERS,
                 ),
-                searchEvents = SearchEventsImpl(this),
+                searchEvents = SearchEventsImpl(this@ListingBaseViewModel),
             )
         } else {
             null
@@ -584,7 +613,7 @@ class ListingBaseViewModel(
         setSearchFilters()
         getSearchHistory(_searchString.value)
         setLoading(false)
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             delay(1000)
         }
     }

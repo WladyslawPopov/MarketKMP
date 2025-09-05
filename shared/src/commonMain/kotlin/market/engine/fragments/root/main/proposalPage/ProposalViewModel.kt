@@ -6,7 +6,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.lifecycle.SavedStateHandle
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,73 +97,82 @@ class ProposalViewModel(
         }
     }
 
-    fun getProposal(){
-        scope.launch {
-            setLoading(true)
-            try {
-                val response = withContext(Dispatchers.IO) {
-                    apiService.postOperation(offerId, "get_proposals", "offers", HashMap())
-                }
+    suspend fun getProposal() {
+        setLoading(true)
+        try {
+            val response = withContext(Dispatchers.IO) {
+                apiService.postOperation(offerId, "get_proposals", "offers", HashMap())
+            }
 
-                if (!response.success) {
-                    throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
-                }
+            if (!response.success) {
+                throw ServerErrorException(
+                    response.errorCode.toString(),
+                    response.humanMessage.toString()
+                )
+            }
 
-                val serializer = BodyListPayload.serializer(Proposals.serializer())
-                val payload: BodyListPayload<Proposals> =
-                    deserializePayload(response.payload, serializer)
+            val serializer = BodyListPayload.serializer(Proposals.serializer())
+            val payload: BodyListPayload<Proposals> =
+                deserializePayload(response.payload, serializer)
 
-                val offer = responseGetOffer.value
+            val offer = responseGetOffer.value
 
-                val prs = payload.bodyList.firstOrNull()
+            val prs = payload.bodyList.firstOrNull()
 
-                val makeSubLabel = getString(strings.subtitleProposalCountLabel)
-                val offerLeftLabel = getString(strings.subtitleOfferCountLabel)
-                val countsSign = getString(strings.countsSign)
+            val makeSubLabel = withContext(Dispatchers.IO){
+                getString(strings.subtitleProposalCountLabel)
+            }
+            val offerLeftLabel = withContext(Dispatchers.IO){
+                getString(strings.subtitleOfferCountLabel)
+            }
+            val countsSign = withContext(Dispatchers.IO){
+                getString(strings.countsSign)
+            }
 
-                _subtitle.value = buildAnnotatedString {
-                    when (type) {
-                        ProposalType.ACT_ON_PROPOSAL -> {
-                            if(offer.id != 1L) {
-                                append(offerLeftLabel)
-                                append(" ")
-                                withStyle(
-                                    SpanStyle(
-                                        color = colors.titleTextColor,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                ) {
-                                    append(offer.currentQuantity.toString())
-                                }
-                                append(" ")
-                                append(countsSign)
-                            }
-                        }
-
-                        ProposalType.MAKE_PROPOSAL -> {
-                            val countP =
-                                countProposalMax - (prs?.proposals?.filter { !it.isResponserProposal }?.size
-                                    ?: 0)
-                            append(makeSubLabel)
-
+            _subtitle.value = buildAnnotatedString {
+                when (type) {
+                    ProposalType.ACT_ON_PROPOSAL -> {
+                        if (offer.id != 1L) {
+                            append(offerLeftLabel)
+                            append(" ")
                             withStyle(
                                 SpanStyle(
-                                    color = colors.priceTextColor,
+                                    color = colors.titleTextColor,
                                     fontWeight = FontWeight.Bold,
                                 )
                             ) {
-                                append(" ")
-                                append(countP.toString())
+                                append(offer.currentQuantity.toString())
                             }
+                            append(" ")
+                            append(countsSign)
+                        }
+                    }
+
+                    ProposalType.MAKE_PROPOSAL -> {
+                        val countP =
+                            countProposalMax - (prs?.proposals?.filter { !it.isResponserProposal }?.size
+                                ?: 0)
+                        append(makeSubLabel)
+
+                        withStyle(
+                            SpanStyle(
+                                color = colors.priceTextColor,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        ) {
+                            append(" ")
+                            append(countP.toString())
                         }
                     }
                 }
+            }
 
-                _mesHeaderItem.value = MesHeaderItem(
-                    title = buildAnnotatedString {
-                        append(offer.title)
-                    },
-                    subtitle = buildAnnotatedString {
+            _mesHeaderItem.value = MesHeaderItem(
+                title = buildAnnotatedString {
+                    append(offer.title)
+                },
+                subtitle = withContext(Dispatchers.IO){
+                    buildAnnotatedString {
                         withStyle(
                             SpanStyle(
                                 color = colors.grayText,
@@ -183,25 +191,25 @@ class ProposalViewModel(
                             append(" ")
                             append(getString(strings.currencyCode))
                         }
-                    },
-                    image = offer.getOfferImagePreview(),
-                ) {
-                    component.goToOffer(offer.id)
-                }
-
-                _body.value = payload
-
-                payload.bodyList.forEach {
-                    getFieldsProposal(it.buyerInfo?.id)
-                }
-
-            } catch (exception: ServerErrorException) {
-                onError(exception)
-            } catch (exception: Exception) {
-                onError(ServerErrorException(exception.message.toString(), ""))
-            } finally {
-                setLoading(false)
+                    }
+                },
+                image = offer.getOfferImagePreview(),
+            ) {
+                component.goToOffer(offer.id)
             }
+
+            _body.value = payload
+
+            payload.bodyList.forEach {
+                getFieldsProposal(it.buyerInfo?.id)
+            }
+
+        } catch (exception: ServerErrorException) {
+            onError(exception)
+        } catch (exception: Exception) {
+            onError(ServerErrorException(exception.message.toString(), ""))
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -217,14 +225,13 @@ class ProposalViewModel(
             }
             val payload = buffer.success
             val error = buffer.error
-            withContext(Dispatchers.Main) {
-                if (payload != null) {
-                    payload.fields.find { it.widgetType == "select" }?.data = JsonPrimitive(if(buyerId != null) 0 else 2)
-                    _responseFields.value += ProposalItem(buyerId ?: 0L , payload.fields)
-                } else {
-                    if (error != null) {
-                        onError(error)
-                    }
+
+            if (payload != null) {
+                payload.fields.find { it.widgetType == "select" }?.data = JsonPrimitive(if(buyerId != null) 0 else 2)
+                _responseFields.value += ProposalItem(buyerId ?: 0L , payload.fields)
+            } else {
+                if (error != null) {
+                    onError(error)
                 }
             }
         }
@@ -249,75 +256,73 @@ class ProposalViewModel(
                         apiService.postOperation(offerId,"act_on_proposal", "offers", bodyProposals)
                 }
 
-                withContext(Dispatchers.Main) {
-                    if (response.success) {
-                        val serializer = DynamicPayload.serializer(OperationResult.serializer())
-                        val payload: DynamicPayload<OperationResult> =
-                            deserializePayload(response.payload, serializer)
+                if (response.success) {
+                    val serializer = DynamicPayload.serializer(OperationResult.serializer())
+                    val payload: DynamicPayload<OperationResult> =
+                        deserializePayload(response.payload, serializer)
 
-                        if (payload.operationResult?.result == "ok") {
-                            val eventParams = mapOf(
-                                "lot_id" to offerId,
-                                "buyer_id" to UserData.login,
+                    if (payload.operationResult?.result == "ok") {
+                        val eventParams = mapOf(
+                            "lot_id" to offerId,
+                            "buyer_id" to UserData.login,
+                        )
+
+                        when (type) {
+                            ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent(
+                                "make_proposal",
+                                eventParams
                             )
 
-                            when (type) {
-                                ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent(
-                                    "make_proposal",
-                                    eventParams
-                                )
+                            ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent(
+                                "act_on_proposal",
+                                eventParams
+                            )
+                        }
 
-                                ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent(
-                                    "act_on_proposal",
-                                    eventParams
-                                )
-                            }
+                        showToast(
+                            successToastItem.copy(
+                                message = getString(strings.operationSuccess)
+                            )
+                        )
 
-                            showToast(
-                                successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
-                                )
+                        update()
+                    } else {
+                        val eventParams = mapOf(
+                            "lot_id" to offerId,
+                            "buyer_id" to UserData.login,
+                            "body" to bodyProposals.toString()
+                        )
+
+                        when (type) {
+                            ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent(
+                                "make_proposal_failed",
+                                eventParams
                             )
 
-                            update()
-                        } else {
-                            val eventParams = mapOf(
-                                "lot_id" to offerId,
-                                "buyer_id" to UserData.login,
-                                "body" to bodyProposals.toString()
+                            ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent(
+                                "act_on_proposal_failed",
+                                eventParams
                             )
+                        }
 
-                            when (type) {
-                                ProposalType.MAKE_PROPOSAL -> analyticsHelper.reportEvent(
-                                    "make_proposal_failed",
-                                    eventParams
-                                )
-
-                                ProposalType.ACT_ON_PROPOSAL -> analyticsHelper.reportEvent(
-                                    "act_on_proposal_failed",
-                                    eventParams
-                                )
-                            }
-
-                            showToast(
-                                errorToastItem.copy(
-                                    message = getString(strings.operationFailed)
-                                )
+                        showToast(
+                            errorToastItem.copy(
+                                message = getString(strings.operationFailed)
                             )
+                        )
 
-                            _responseFields.update { field ->
-                                field.map {
-                                    if (it.userId == buyerId) {
-                                        it.copy(fields = payload.recipe?.fields ?: payload.fields)
-                                    } else {
-                                        it.copy()
-                                    }
+                        _responseFields.update { field ->
+                            field.map {
+                                if (it.userId == buyerId) {
+                                    it.copy(fields = payload.recipe?.fields ?: payload.fields)
+                                } else {
+                                    it.copy()
                                 }
                             }
                         }
-                    }else{
-                        throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                     }
+                }else{
+                    throw ServerErrorException(response.errorCode.toString(), response.humanMessage.toString())
                 }
             }catch (e : ServerErrorException) {
                 onError(e)

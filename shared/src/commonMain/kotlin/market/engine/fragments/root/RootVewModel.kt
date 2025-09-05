@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 
 import com.arkivanov.decompose.router.stack.active
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,18 +40,19 @@ class RootVewModel(val component: RootComponent, savedStateHandle: SavedStateHan
     fun goToDeepLink(url : DeepLink){
         scope.launch {
             try {
-                delay(300)
-                withContext(Dispatchers.Main) {
-                    var component = (this@RootVewModel.component.childStack.active.instance as?
-                                RootComponent.Child.MainChild)?.component
-                    if (component != null) {
-                        component.model.value.viewModel.handleDeepLink(url)
-                    } else {
-                        goToMain()
-                        component =
-                            (this@RootVewModel.component.childStack.active.instance as? RootComponent.Child.MainChild)?.component
-                        component?.model?.value?.viewModel?.handleDeepLink(url)
-                    }
+                withContext(Dispatchers.IO){
+                    delay(300)
+                }
+
+                var component = (this@RootVewModel.component.childStack.active.instance as?
+                        RootComponent.Child.MainChild)?.component
+                if (component != null) {
+                    component.model.value.viewModel.handleDeepLink(url)
+                } else {
+                    goToMain()
+                    component =
+                        (this@RootVewModel.component.childStack.active.instance as? RootComponent.Child.MainChild)?.component
+                    component?.model?.value?.viewModel?.handleDeepLink(url)
                 }
             }catch (e : Exception){
                 println("Ignoring deep link update during navigation: ${e.message}")

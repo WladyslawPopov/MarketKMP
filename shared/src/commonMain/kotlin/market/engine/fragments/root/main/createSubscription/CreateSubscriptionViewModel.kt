@@ -151,7 +151,9 @@ class CreateSubscriptionViewModel(
                 page.map {
                     if(it.key == "category_id")
                         it.copy(
-                            shortDescription = getString(strings.categoryMain),
+                            shortDescription = withContext(Dispatchers.IO){
+                                getString(strings.categoryMain)
+                            },
                             data = null
                         )
                     else it.copy()
@@ -180,18 +182,18 @@ class CreateSubscriptionViewModel(
                     operationsMethods.getOperationFields(UserData.login, "create_subscription", "users")
                 else operationsMethods.getOperationFields(editId, "edit_subscription", "subscriptions")
             }
+
             val payload = buffer.success
             val resErr = buffer.error
-            withContext(Dispatchers.Main){
-                if (payload != null){
-                    _responseGetFields.value = payload.fields
-                }else{
-                    if (resErr != null) {
-                        onError(resErr)
-                    }
+
+            if (payload != null){
+                _responseGetFields.value = payload.fields
+            }else{
+                if (resErr != null) {
+                    onError(resErr)
                 }
-                setLoading(false)
             }
+            setLoading(false)
         }
     }
 
@@ -218,59 +220,61 @@ class CreateSubscriptionViewModel(
                         operationsMethods.postOperationFields(editId, "edit_subscription", "subscriptions", body)
                 }
 
-                withContext(Dispatchers.Main) {
-                    setLoading(false)
-                    val res = buffer.success
-                    val resErr = buffer.error
-                    if (res != null) {
-                        if (res.status == "operation_success") {
-                            showToast(
-                                successToastItem.copy(
-                                    message = getString(strings.operationSuccess)
-                                )
+                setLoading(false)
+                val res = buffer.success
+                val resErr = buffer.error
+                if (res != null) {
+                    if (res.status == "operation_success") {
+                        showToast(
+                            successToastItem.copy(
+                                message = withContext(Dispatchers.IO){
+                                    getString(strings.operationSuccess)
+                                }
                             )
+                        )
 
-                            if (editId == null)
-                                analyticsHelper.reportEvent(
-                                    "create_subscription_success",
-                                    eventParameters
-                                )
-                            else
-                                analyticsHelper.reportEvent(
-                                    "edit_subscription_success",
-                                    eventParameters
-                                )
-                            delay(2000)
-                            onSuccess()
+                        if (editId == null)
+                            analyticsHelper.reportEvent(
+                                "create_subscription_success",
+                                eventParameters
+                            )
+                        else
+                            analyticsHelper.reportEvent(
+                                "edit_subscription_success",
+                                eventParameters
+                            )
+                        delay(2000)
+                        onSuccess()
 
-                        } else {
-                            showToast(
-                                errorToastItem.copy(
-                                    message = res.recipe?.globalErrorMessage ?: getString(
+                    } else {
+                        showToast(
+                            errorToastItem.copy(
+                                message = res.recipe?.globalErrorMessage ?: withContext(Dispatchers.IO){
+                                    getString(
                                         strings.operationFailed
                                     )
-                                )
+                                }
+                            )
+                        )
+
+                        if (editId == null)
+                            analyticsHelper.reportEvent(
+                                "create_subscription_failed",
+                                eventParameters
+                            )
+                        else
+                            analyticsHelper.reportEvent(
+                                "edit_subscription_failed",
+                                eventParameters
                             )
 
-                            if (editId == null)
-                                analyticsHelper.reportEvent(
-                                    "create_subscription_failed",
-                                    eventParameters
-                                )
-                            else
-                                analyticsHelper.reportEvent(
-                                    "edit_subscription_failed",
-                                    eventParameters
-                                )
-
-                            _responseGetFields.update {
-                                res.recipe?.fields ?: res.fields
-                            }
+                        _responseGetFields.update {
+                            res.recipe?.fields ?: res.fields
                         }
-                    } else {
-                        if (resErr != null) {
-                            onError(resErr)
-                        }
+                    }
+                } else {
+                    if (resErr != null) {
+                        onError(resErr)
                     }
                 }
             } catch (exception: ServerErrorException) {

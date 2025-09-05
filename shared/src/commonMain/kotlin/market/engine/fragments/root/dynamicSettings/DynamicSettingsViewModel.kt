@@ -13,6 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -123,7 +124,7 @@ class DynamicSettingsViewModel(
         )
     }.stateIn(
         scope = scope,
-        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        started = WhileSubscribed(5000),
         initialValue = DynamicSettingsUIState()
     )
 
@@ -210,66 +211,68 @@ class DynamicSettingsViewModel(
                 val payload = buffer?.success
                 val resErr = buffer?.error
 
-                val title = when (settingsType) {
-                    "app_settings" -> {
-                        getString(strings.settingsTitleApp)
-                    }
+                val title = withContext(Dispatchers.IO){
+                    when (settingsType) {
+                        "app_settings" -> {
+                            getString(strings.settingsTitleApp)
+                        }
 
-                    "set_about_me" -> {
-                        payload?.title ?: payload?.description ?: ""
-                    }
+                        "set_about_me" -> {
+                            payload?.title ?: payload?.description ?: ""
+                        }
 
-                    "set_vacation" -> {
-                        getString(strings.vacationTitle)
-                    }
+                        "set_vacation" -> {
+                            getString(strings.vacationTitle)
+                        }
 
-                    "set_bidding_step" -> {
-                        getString(strings.settingsBiddingStepsLabel)
-                    }
+                        "set_bidding_step" -> {
+                            getString(strings.settingsBiddingStepsLabel)
+                        }
 
-                    "set_auto_feedback" -> {
-                        getString(strings.settingsAutoFeedbacksLabel)
-                    }
+                        "set_auto_feedback" -> {
+                            getString(strings.settingsAutoFeedbacksLabel)
+                        }
 
-                    "set_watermark" -> {
-                        getString(strings.settingsWatermarkLabel)
-                    }
+                        "set_watermark" -> {
+                            getString(strings.settingsWatermarkLabel)
+                        }
 
-                    "set_address_cards" -> {
-                        getString(strings.addressCardsTitle)
-                    }
+                        "set_address_cards" -> {
+                            getString(strings.addressCardsTitle)
+                        }
 
-                    "set_block_rating" ->{
-                        getString(strings.settingsBlockRatingLabel)
-                    }
+                        "set_block_rating" ->{
+                            getString(strings.settingsBlockRatingLabel)
+                        }
 
-                    "cancel_all_bids" ->{
-                        getString(strings.cancelAllBidsTitle)
-                    }
+                        "cancel_all_bids" ->{
+                            getString(strings.cancelAllBidsTitle)
+                        }
 
-                    "remove_bids_of_users" -> {
-                        getString(strings.cancelAllBidsTitle)
-                    }
+                        "remove_bids_of_users" -> {
+                            getString(strings.cancelAllBidsTitle)
+                        }
 
-                    "set_phone" -> {
-                        getString(strings.htmlVerifyLabel)
-                    }
+                        "set_phone" -> {
+                            getString(strings.htmlVerifyLabel)
+                        }
 
-                    "set_message_to_buyer" -> {
-                        getString(strings.headerMessageToBuyersLabel)
-                    }
+                        "set_message_to_buyer" -> {
+                            getString(strings.headerMessageToBuyersLabel)
+                        }
 
-                    "set_outgoing_address" -> {
-                        getString(strings.outgoingAddressHeaderLabel)
-                    }
+                        "set_outgoing_address" -> {
+                            getString(strings.outgoingAddressHeaderLabel)
+                        }
 
-                    "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" ->{
-                        getBlocList()
-                        payload?.description ?: payload?.title ?: ""
-                    }
+                        "add_to_seller_blacklist", "add_to_buyer_blacklist", "add_to_whitelist" ->{
+                            getBlocList()
+                            payload?.description ?: payload?.title ?: ""
+                        }
 
-                    else -> {
-                        payload?.description ?: payload?.title ?: ""
+                        else -> {
+                            payload?.description ?: payload?.title ?: ""
+                        }
                     }
                 }
 
@@ -307,9 +310,11 @@ class DynamicSettingsViewModel(
                 setLoading(false)
                 showToast(
                     errorToastItem.copy(
-                        message = getString(
-                            strings.operationFailed
-                        )
+                        message = withContext(Dispatchers.IO){
+                            getString(
+                                strings.operationFailed
+                            )
+                        }
                     )
                 )
                 return@launch
@@ -395,16 +400,22 @@ class DynamicSettingsViewModel(
                     showToast(
                         successToastItem.copy(
                             message = when (settingsType) {
-                                "set_email", "forgot_password", "reset_password" -> getString(
-                                    strings.checkOutEmailToast
-                                )
+                                "set_email", "forgot_password", "reset_password" -> withContext(Dispatchers.IO){
+                                    getString(
+                                        strings.checkOutEmailToast
+                                    )
+                                }
 
-                                else -> payload.operationResult?.message ?: getString(strings.operationSuccess)
+                                else -> payload.operationResult?.message ?: withContext(Dispatchers.IO){
+                                    getString(strings.operationSuccess)
+                                }
                             }
                         )
                     )
 
-                    delay(500)
+                    withContext(Dispatchers.IO){
+                        delay(500)
+                    }
 
                     val body = try {
                         payload.body?.jsonObject["action"]?.jsonPrimitive?.content
@@ -434,7 +445,9 @@ class DynamicSettingsViewModel(
 
                     showToast(
                         errorToastItem.copy(
-                            message = payload.recipe?.globalErrorMessage ?: getString(strings.operationFailed)
+                            message = payload.recipe?.globalErrorMessage ?: withContext(Dispatchers.IO){
+                                getString(strings.operationFailed)
+                            }
                         )
                     )
                 }
@@ -580,7 +593,9 @@ class DynamicSettingsViewModel(
                 if (payload.operationResult?.result == "ok") {
                     showToast(
                         successToastItem.copy(
-                            message = getString(strings.operationSuccess)
+                            message = withContext(Dispatchers.IO){
+                                getString(strings.operationSuccess)
+                            }
                         )
                     )
                     delay(500)
@@ -612,7 +627,9 @@ class DynamicSettingsViewModel(
 
                 showToast(
                     successToastItem.copy(
-                        message = getString(strings.operationSuccess)
+                        message = withContext(Dispatchers.IO){
+                            getString(strings.operationSuccess)
+                        }
                     )
                 )
                 updateUserInfo()
@@ -650,7 +667,9 @@ class DynamicSettingsViewModel(
 
                 showToast(
                     successToastItem.copy(
-                        message = getString(strings.operationSuccess)
+                        message = withContext(Dispatchers.IO){
+                            getString(strings.operationSuccess)
+                        }
                     )
                 )
 
@@ -705,7 +724,9 @@ class DynamicSettingsViewModel(
 
                 showToast(
                     successToastItem.copy(
-                        message = getString(strings.operationSuccess)
+                        message = withContext(Dispatchers.IO){
+                            getString(strings.operationSuccess)
+                        }
                     )
                 )
 
@@ -759,7 +780,9 @@ class DynamicSettingsViewModel(
 
                 showToast(
                     successToastItem.copy(
-                        message = getString(strings.operationSuccess)
+                        message = withContext(Dispatchers.IO){
+                            getString(strings.operationSuccess)
+                        }
                     )
                 )
 
