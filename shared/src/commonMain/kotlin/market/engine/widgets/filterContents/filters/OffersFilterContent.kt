@@ -464,9 +464,9 @@ fun OfferFilterContent(
                                 )
 
                                 getDropdownMenu(
-                                    selectedType,
-                                    offersType[0].second,
-                                    offersTypeFilterMap,
+                                    selectedText = selectedType,
+                                    selectedTextDef = offersType[0].second,
+                                    selects = offersTypeFilterMap,
                                     modifier = Modifier.widthIn(min = 300.dp, max = 500.dp),
                                     onItemClick = { type ->
                                         offersType.find { it.second == type }?.let { pair ->

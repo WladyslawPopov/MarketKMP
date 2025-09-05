@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -49,6 +50,7 @@ import market.engine.fragments.base.screens.NoItemsFoundLayout
 import market.engine.widgets.bars.UserPanel
 import market.engine.widgets.bars.appBars.SimpleAppBar
 import market.engine.widgets.buttons.NavigationArrowButton
+import market.engine.widgets.buttons.SmallIconButton
 import market.engine.widgets.rows.UserRow
 import market.engine.widgets.tabs.PageTab
 import org.jetbrains.compose.resources.stringResource
@@ -129,9 +131,23 @@ fun UserContent(
                    horizontalAlignment = Alignment.Start,
                    verticalArrangement = Arrangement.spacedBy(dimens.smallPadding, Alignment.CenterVertically)
                ) {
-                   NavigationArrowButton {
-                       component.onBackClick()
+                   Row(
+                       modifier = Modifier.fillMaxWidth(),
+                       horizontalArrangement = Arrangement.SpaceBetween,
+                       verticalAlignment = Alignment.CenterVertically
+                   ) {
+                       NavigationArrowButton {
+                           component.onBackClick()
+                       }
+
+                       SmallIconButton(
+                           icon = drawables.iconArrowUp,
+                           color = colors.black,
+                       ){
+                           isVisibleUserPanel.value = false
+                       }
                    }
+
 
                    UserPanel(
                        user = user,

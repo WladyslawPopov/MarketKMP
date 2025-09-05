@@ -11,7 +11,6 @@ import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.doOnResume
@@ -154,13 +153,8 @@ class DefaultListingComponent(
             }
         }
     )
-    val backCallback = BackCallback {
-
-    }
 
     init {
-        model.value.backHandler.register(backCallback)
-
         lifecycle.doOnResume {
             if (updateBackHandlerItem.value != 1L) {
                 listingViewModel.setUpdateItem(updateBackHandlerItem.value)

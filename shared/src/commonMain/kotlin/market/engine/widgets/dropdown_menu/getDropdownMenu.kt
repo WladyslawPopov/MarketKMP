@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
@@ -41,6 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 fun getDropdownMenu(
     selectedText : String,
     selectedTextDef : String = stringResource(strings.chooseAction),
+    paddingContainer: Dp = dimens.mediumPadding,
     selects: List<String>,
     modifier: Modifier = Modifier,
     onItemClick: (String) -> Unit,
@@ -63,7 +65,7 @@ fun getDropdownMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.padding(dimens.mediumPadding),
+            modifier = Modifier.padding(paddingContainer),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(dimens.smallPadding)
         ) {

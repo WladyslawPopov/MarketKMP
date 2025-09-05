@@ -170,26 +170,23 @@ class CreateOfferViewModel(
                     analyticsHelper.reportEvent("add_offer_start", mapOf())
                 }
                 CreateOfferType.EDIT -> {
-                    setCatHistory()
                     getPage("offers/$offerId/operations/edit_offer")
                     analyticsHelper.reportEvent("edit_offer_start", mapOf())
                 }
                 CreateOfferType.COPY -> {
-                    setCatHistory()
                     getPage("offers/$offerId/operations/copy_offer")
                     analyticsHelper.reportEvent("copy_offer_start", mapOf())
                 }
                 CreateOfferType.COPY_WITHOUT_IMAGE ->{
-                    setCatHistory()
                     getPage("offers/$offerId/operations/copy_offer_without_old_photo")
                     analyticsHelper.reportEvent("copy_offer_without_image_start", mapOf())
                 }
                 CreateOfferType.COPY_PROTOTYPE ->{
-                    setCatHistory()
                     getPage("offers/$offerId/operations/copy_offer_from_prototype")
                     analyticsHelper.reportEvent("copy_offer_prototype_start", mapOf())
                 }
             }
+            getCategoriesHistory()
         }
     }
 
@@ -230,13 +227,7 @@ class CreateOfferViewModel(
         }
     }
 
-    suspend fun setCatHistory() {
-        getCategoriesHistory(catPath?.firstOrNull())
-    }
-
     suspend fun getPage(url: String) {
-        updateUserInfo()
-
         try {
             setLoading(true)
 
@@ -493,7 +484,7 @@ class CreateOfferViewModel(
         }
     }
 
-    suspend fun getCategoriesHistory(catId: Long?) {
+    suspend fun getCategoriesHistory(catId: Long? = catPath?.firstOrNull()) {
         try {
             val categories = withContext(Dispatchers.IO) {
                 val catHistory = arrayListOf<Category>()

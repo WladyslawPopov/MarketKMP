@@ -73,7 +73,7 @@ class CategoryViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             try {
                 var catDef = ""
                 var catBtn = ""

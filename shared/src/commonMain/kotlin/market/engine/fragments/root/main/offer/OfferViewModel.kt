@@ -126,28 +126,17 @@ class OfferViewModel(
     }
 
     fun getOffer(offerId: Long, isSnapshot: Boolean = false) {
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             try {
                 setLoading(true)
 
-                val res = withContext(Dispatchers.IO) {
-                        offerOperations.getOffer(offerId, isSnapshot)
-                }
-                withContext(Dispatchers.IO) {
-                    getHistory(offerId)
-                }
-                withContext(Dispatchers.IO) {
-                    getOurChoice(offerId)
-                }
+                val res = offerOperations.getOffer(offerId, isSnapshot)
 
                 val data = res.success
 
                 setLoading(false)
 
                 data?.let { offer ->
-
-                    getCategoriesHistory(offer.catpath)
-
                     val initTimer =
                         ((offer.session.end?.toLongOrNull() ?: 1L) - nowAsEpochSeconds()) * 1000
 
@@ -247,6 +236,13 @@ class OfferViewModel(
                     cabinetOfferRepository.setNewOfferData(offer.parseToOfferItem())
 
                     updateUserState(offer.sellerData?.id ?: 1)
+
+                    getCategoriesHistory(offer.catpath)
+
+                    getHistory(offerId)
+
+
+                    getOurChoice(offerId)
                 }
             } catch (e: Exception) {
                 onError(ServerErrorException(e.message ?: "Unknown error", ""))

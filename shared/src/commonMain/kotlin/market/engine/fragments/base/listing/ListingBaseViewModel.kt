@@ -797,7 +797,9 @@ class ListingBaseViewModel(
         scope.launch {
             _listingData.asyncUpdate { listingData ->
                 val sd = listingData.searchData.copy()
-                sd.clear(getString(strings.categoryMain))
+                sd.clear(withContext(Dispatchers.IO){
+                    getString(strings.categoryMain)
+                })
 
                 listingData.copy(
                     searchData = sd,
@@ -832,7 +834,11 @@ class ListingBaseViewModel(
     fun clearSearchCategory() {
         scope.launch {
             _listingData.asyncUpdate { currentListingData ->
-                currentListingData.searchData.clear(getString(strings.categoryMain))
+                currentListingData.searchData.clear(
+                    withContext(Dispatchers.IO){
+                        getString(strings.categoryMain)
+                    }
+                )
                 currentListingData.copy()
             }
         }

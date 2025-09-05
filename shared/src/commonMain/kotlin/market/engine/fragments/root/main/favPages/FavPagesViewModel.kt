@@ -204,32 +204,28 @@ class FavPagesViewModel(val component: FavPagesComponent, savedStateHandle: Save
 
     fun getFavTabList() {
         scope.launch {
-            val newList = arrayListOf(
-                FavoriteListItem(
-                    id = 111,
-                    title = withContext(Dispatchers.IO){
-                        getString(strings.myFavoritesTitle)
-                    },
-                    owner = UserData.login,
-                    position = 0
-                ),
-                FavoriteListItem(
-                    id = 222,
-                    title = withContext(Dispatchers.IO){
-                        getString(strings.mySubscribedTitle)
-                    },
-                    owner = UserData.login,
-                    position = 1
-                ),
-                FavoriteListItem(
-                    id = 333,
-                    title = withContext(Dispatchers.IO){
-                        getString(strings.myNotesTitle)
-                    },
-                    owner = UserData.login,
-                    position = 2
+            val newList = withContext(Dispatchers.IO){
+                arrayListOf(
+                    FavoriteListItem(
+                        id = 111,
+                        title = getString(strings.myFavoritesTitle),
+                        owner = UserData.login,
+                        position = 0
+                    ),
+                    FavoriteListItem(
+                        id = 222,
+                        title = getString(strings.mySubscribedTitle),
+                        owner = UserData.login,
+                        position = 1
+                    ),
+                    FavoriteListItem(
+                        id = 333,
+                        title = getString(strings.myNotesTitle),
+                        owner = UserData.login,
+                        position = 2
+                    )
                 )
-            )
+            }
 
             val data = withContext(Dispatchers.IO) {
                 offersListOperations.getOffersList()

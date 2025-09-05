@@ -141,6 +141,7 @@ fun FeedbacksContent(
                             selectedText = currentFilter ?: stringResource(strings.allFilterParams),
                             selectedTextDef = stringResource(strings.allFilterParams),
                             selects = filters,
+                            paddingContainer = dimens.smallPadding,
                             onClearItem = {
                                 viewModel.refreshListing()
                             },
