@@ -22,39 +22,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import market.engine.core.data.globalData.ThemeResources.colors
 import market.engine.core.data.globalData.ThemeResources.dimens
-import market.engine.core.data.globalData.ThemeResources.drawables
-import market.engine.core.data.globalData.ThemeResources.strings
 import market.engine.core.data.states.FilterBarUiState
 import market.engine.widgets.badges.BadgedButton
 import market.engine.widgets.items.ActiveFilterListingItem
 import market.engine.widgets.rows.LazyRowWithScrollBars
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FiltersBar(
     uiFilterBarUiState: FilterBarUiState,
     isVisible : Boolean = true,
-    listingType : Int = 0,
 ) {
-    val filterString = stringResource(strings.filter)
-    val sortString = stringResource(strings.sort)
-    val chooseAction = stringResource(strings.chooseAction)
-
     val swipeTabsBarState = uiFilterBarUiState.swipeTabsBarState
-    val listNavigation = uiFilterBarUiState.listNavigation.map {
-        it.copy(
-            icon = when (it.title) {
-                filterString -> drawables.filterIcon
-                sortString -> drawables.sortIcon
-                chooseAction -> if (listingType == 0) drawables.iconWidget else drawables.iconSliderHorizontal
-                else -> null
-            },
-            tint = colors.black,
-            onClick = {
-                uiFilterBarUiState.onClick(it)
-            }
-        )
-    }
+    val listNavigation = uiFilterBarUiState.listNavigation
 
     AnimatedVisibility(
         visible = isVisible,

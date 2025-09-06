@@ -20,9 +20,6 @@ fun FiltersSearchBar(
     uiSearchState: SearchUiState,
     searchEvents: SearchEvents,
 ) {
-    val us = stringResource(strings.searchUsersSearch)
-    val catDef = stringResource(strings.categoryMain)
-
     val searchData = remember(uiSearchState.searchData){
         uiSearchState.searchData
     }
@@ -37,7 +34,7 @@ fun FiltersSearchBar(
             FilterButton(
                 text = buildString {
                     if(searchData.searchCategoryID == 1L){
-                        append(catDef)
+                        append(uiSearchState.categoryLabel)
                     }else{
                         append(searchData.searchCategoryName)
                     }
@@ -60,7 +57,7 @@ fun FiltersSearchBar(
 
         item {
             FilterButton(
-                text = searchData.userLogin ?: us,
+                text = searchData.userLogin ?: uiSearchState.userLabel,
                 color = if (!searchData.userSearch)
                     colors.simpleButtonColors
                 else

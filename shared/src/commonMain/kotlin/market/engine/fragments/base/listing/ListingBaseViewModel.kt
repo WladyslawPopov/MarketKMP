@@ -3,7 +3,6 @@ package market.engine.fragments.base.listing
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -181,8 +180,10 @@ class ListingBaseViewModel(
         _listItemsNavigationFilterBar
     )
     { listingType, listingData, listItemsNavigation ->
+
         val ld = listingData.data
         val searchData = listingData.searchData
+
         val searchTitle = withContext(Dispatchers.IO) {
             getString(strings.searchTitle)
         }
@@ -228,11 +229,36 @@ class ListingBaseViewModel(
         val updatedListNavigation = listItemsNavigation.map { item ->
             when (item.title) {
                 filterString -> {
-                    item.copy(badgeCount = if (filters.isNotEmpty()) filters.size else null)
+                    item.copy(
+                        badgeCount = if (filters.isNotEmpty()) filters.size else null,
+                        hasNews = ld.sort != null,
+                        icon = drawables.filterIcon,
+                        tint = colors.black,
+                        onClick = {
+                            setActiveWindowType(ActiveWindowListingType.FILTERS)
+                        }
+                    )
                 }
 
                 sortString -> {
-                    item.copy(hasNews = ld.sort != null)
+                    item.copy(
+                        hasNews = ld.sort != null,
+                        icon = drawables.sortIcon,
+                        tint = colors.black,
+                        onClick = {
+                            setActiveWindowType(ActiveWindowListingType.SORTING)
+                        }
+                    )
+                }
+                chooseAction -> {
+                    item.copy(
+                        tint = colors.black,
+                        onClick = {
+                            val newType = if (listingType == 0) 1 else 0
+                            settings.setSettingValue("listingType", newType)
+                            setListingType(newType)
+                        }
+                    )
                 }
 
                 else -> {
@@ -347,23 +373,6 @@ class ListingBaseViewModel(
                 )
             } else {
                 null
-            },
-            onClick = { item ->
-                when (item.title) {
-                    filterString -> {
-                        setActiveWindowType(ActiveWindowListingType.FILTERS)
-                    }
-
-                    sortString -> {
-                        setActiveWindowType(ActiveWindowListingType.SORTING)
-                    }
-
-                    chooseAction -> {
-                        val newType = if (listingType == 0) 1 else 0
-                        settings.setSettingValue("listingType", newType)
-                        setListingType(newType)
-                    }
-                }
             }
         )
     }.stateIn(
@@ -388,6 +397,12 @@ class ListingBaseViewModel(
         }
         val searchTitle = withContext(Dispatchers.IO){
             getString(strings.searchTitle)
+        }
+        val categoryString = withContext(Dispatchers.IO){
+            getString(strings.categoryMain)
+        }
+        val userString = withContext(Dispatchers.IO){
+            getString(strings.searchUsersSearch)
         }
 
         val searchVm = listingComponent?.additionalModels?.value?.searchCategoryViewModel
@@ -430,6 +445,8 @@ class ListingBaseViewModel(
                     openCategory = activeType == ActiveWindowListingType.CATEGORY_FILTERS,
                 ),
                 searchEvents = SearchEventsImpl(this@ListingBaseViewModel),
+                userLabel = userString,
+                categoryLabel = categoryString
             )
         } else {
             null

@@ -1,7 +1,6 @@
 package market.engine.fragments.root.main.listing
 
 import androidx.lifecycle.SavedStateHandle
-
 import androidx.paging.cachedIn
 import androidx.paging.map
 import app.cash.paging.PagingData
@@ -48,7 +47,6 @@ import market.engine.core.utils.parseToOfferItem
 import market.engine.fragments.base.CoreViewModel
 import market.engine.fragments.root.DefaultRootComponent.Companion.goToLogin
 import org.jetbrains.compose.resources.getString
-
 import kotlin.String
 import kotlin.time.Duration.Companion.days
 

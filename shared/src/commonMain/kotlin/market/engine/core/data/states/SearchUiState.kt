@@ -14,6 +14,9 @@ data class SearchUiState(
     val selectedTabIndex: Int = 0,
     val tabs: List<Tab> = listOf(),
 
+    val categoryLabel : String,
+    val userLabel : String,
+
     val searchHistory: List<SearchHistoryItem> = emptyList(),
 
     val appBarData: SimpleAppBarData = SimpleAppBarData(),

@@ -15,6 +15,5 @@ data class SwipeTabsBarState(
 data class FilterBarUiState(
     val listFiltersButtons: List<FilterListingBtnItem> = emptyList(),
     val listNavigation: List<NavigationItem> = emptyList(),
-    val swipeTabsBarState: SwipeTabsBarState? = null,
-    val onClick : (NavigationItem) -> Unit = {}
+    val swipeTabsBarState: SwipeTabsBarState? = null
 )

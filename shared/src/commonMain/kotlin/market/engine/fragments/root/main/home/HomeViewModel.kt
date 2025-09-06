@@ -345,7 +345,9 @@ class HomeViewModel(val component: HomeComponent, savedStateHandle: SavedStateHa
     fun goToAllPromo() {
         scope.launch {
             ld.data.filters = ListingFilters.getEmpty()
-            val allPromo = getString(strings.allPromoOffersBtn)
+            val allPromo = withContext(Dispatchers.IO){
+                getString(strings.allPromoOffersBtn)
+            }
 
             ld.data.filters.find { filter ->
                 filter.key == "promo_main_page"
